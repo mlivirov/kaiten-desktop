@@ -1,0 +1,6 @@
+<ng-container [ngSwitch]="state">
+    <span *ngSwitchCase="CardState.Queued">Queued</span>
+    <span *ngSwitchCase="CardState.InProgress" class="text-primary">In progress</span>
+    <span *ngSwitchCase="CardState.Done" class="text-success">Done</span>
+    <span *ngSwitchDefault>Unknown</span>
+</ng-container>

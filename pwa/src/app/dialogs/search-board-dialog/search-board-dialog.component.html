@@ -1,0 +1,17 @@
+<div class="modal-body">
+    <input
+            type="search"
+            class="form-control form-control-lg"
+            placeholder="Search boards"
+            id="boardSearchInput"
+            (input)="filter(InputFromEventFunction($event).value)"
+    >
+    <div class="mt-4" *ngFor="let space of filteredSpaces">
+        <h5 style="color: #8146D3">{{space.title}}</h5>
+        <ul class="list-group">
+            <li *ngFor="let board of space.boards" class="list-group-item">
+                <a class="dropdown-item" href="javascript:void(0)" (click)="switchBoard(space.id, board.id)">{{board.title}}</a>
+            </li>
+        </ul>
+    </div>
+</div>

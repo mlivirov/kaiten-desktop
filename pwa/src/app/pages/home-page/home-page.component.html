@@ -1,0 +1,17 @@
+<div class="d-flex flex-column align-items-center justify-content-center h-100 w-50 mx-auto">
+    <div class="bg-kaiten rounded-1 p-4 mb-5 d-flex align-items-center w-100">
+        <img alt="logo" ngSrc="assets/logo.svg" width="32" height="32" class="me-3"/>
+        <div class="display-6">Kaiten</div>
+        <span class="ms-auto"></span>
+
+        <app-current-user></app-current-user>
+    </div>
+
+
+    <div class="display-2">Welcome to Kaiten!</div>
+    <div class="display-6">Open a board to start</div>
+    <div class="position-relative">
+        <button type="button" class="btn btn-lg btn-primary mt-4" (click)="search()">Search boards</button>
+        <div class="opacity-50 small text-center mt-1">(CTRL+K)</div>
+    </div>
+</div>

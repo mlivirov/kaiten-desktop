@@ -1,0 +1,65 @@
+<ng-template #boardColumn let-title="title" let-index="index" let-cards="cards">
+    <div *ngIf="!(hideEmpty && !cards?.length)" class="d-flex border-bottom grid-section w-100" style="min-height: 100px; border-bottom-style: dashed !important;">
+        <div class="text-uppercase {{'bg-grad-' + index}}">
+            <strong class="sticky-top my-3" style="text-orientation: mixed; writing-mode: vertical-rl; font-size: small; top: 1rem">
+                {{title}}
+            </strong>
+        </div>
+        <div class="m-2 py-2 flex-grow-1">
+            <ng-container *ngFor="let card of cards">
+                <app-card [card]="card" (updated)="refresh()"></app-card>
+            </ng-container>
+
+            <div *ngIf="!cards?.length" class="text-center">
+                <span class="text-muted small">No cards in this state</span>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<table class="table table-bordered table-sm" [ngClass]="{'opacity-25': isBoardLoading }" style="table-layout: fixed">
+    <thead>
+    <tr>
+        <th *ngFor="let column of columns" class="small">
+            <div class="d-flex">
+                <span>{{column.title}}</span>
+                <span class="ms-auto small"
+                      ngbTooltip="WIP limit"
+                      *ngIf="column.wip_limit"
+                      [class.text-danger]="column.wip_limit < cardsCountByRootColumnId[column.id]"
+                      [class.text-warning]="cardsCountByRootColumnId[column.id] / column.wip_limit * 100. > 80."
+                      [class.text-success]="cardsCountByRootColumnId[column.id] / column.wip_limit * 100. < 50.">
+                    [{{cardsCountByRootColumnId[column.id]}} of {{column.wip_limit}}]
+                </span>
+                <span class="ms-auto small"
+                      ngbTooltip="Cards in column"
+                      *ngIf="!column.wip_limit"
+                >
+                    [{{cardsCountByRootColumnId[column.id]}}]
+                </span>
+            </div>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td class="p-0" *ngFor="let column of columns">
+            <ng-container *ngIf="column?.subcolumns?.length">
+                <ng-container
+                        *ngFor="let subcolumn of column.subcolumns; index as i"
+                        [ngTemplateOutlet]="boardColumn"
+                        [ngTemplateOutletContext]="{index: i, title: subcolumn.title, cards: cardsByColumnId[subcolumn.id]}"
+                >
+                </ng-container>
+            </ng-container>
+
+            <ng-container
+                    *ngIf="!column.subcolumns?.length"
+                    [ngTemplateOutlet]="boardColumn"
+                    [ngTemplateOutletContext]="{index: 0, title: column.title, cards: cardsByColumnId[column.id]}"
+            >
+            </ng-container>
+        </td>
+    </tr>
+    </tbody>
+</table>

@@ -1,0 +1,12 @@
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="exampleModalLabel">Login confirmation</h1>
+    <button tabindex="-1" type="button" class="btn-close" aria-label="Close" (click)="modal.close()"></button>
+</div>
+<div class="modal-body d-flex align-content-center">
+    Would you like to continue as <app-inline-member class="ms-2 strong" [profile]="user"></app-inline-member> ?
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="modal.close(true)">
+        Continue
+    </button>
+</div>

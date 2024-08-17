@@ -1,0 +1,65 @@
+@import 'bootstrap/scss/bootstrap';
+@import 'primeicons/primeicons.css';
+@import '@toast-ui/editor/dist/toastui-editor.css';
+$bg-gray: #F7F9FA;
+
+.bg-grad-0 {
+  background-color: #E8DBB0;
+}
+
+.bg-grad-1 {
+  background-color: #C8CFC7;
+}
+
+.bg-grad-2 {
+  background-color: #B2C7D3;
+}
+
+.bg-grad-3 {
+  background-color: #A4C9D1;
+}
+
+.bg-grad-4 {
+  background-color: #86B0B1;
+}
+
+th, td {
+  background-color: $bg-gray !important;
+}
+
+.grid-section:last-of-type {
+  border-bottom: 0 !important;
+}
+
+.smaller {
+  font-size: .575em;
+}
+
+.card-member+.card-member {
+  margin-top: 0.5rem;
+}
+
+.bg-kaiten {
+  @extend .text-white;
+  background-color: #8146D3;
+}
+
+body {
+  min-height: 100%;
+}
+
+.strong {
+  font-weight: bold;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+app-list-of-related-cards .list .item:last-child {
+  border-bottom: none !important;
+}

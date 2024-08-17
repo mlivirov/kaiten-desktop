@@ -1,0 +1,28 @@
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="exampleModalLabel">Would you like to move card to the next column?</h1>
+    <button tabindex="-1" type="button" class="btn-close" aria-label="Close" (click)="modal.close()"></button>
+</div>
+<div class="modal-body">
+    <h5 class="text-center mb-3 text-primary">
+        {{from?.title}}
+        <i class="pi pi-arrow-right mx-4"></i>
+        {{to?.title}}
+    </h5>
+    <div class="bg-white p-2 shadow mb-2 rounded">
+        <div class="text-muted d-flex align-items-center mb-2" style="min-height: 1.5rem;">
+            <div class="smaller">{{card.type.name}}</div>
+            <div class="mx-2">
+                <app-time-dots [since]="card.column_changed_at"></app-time-dots>
+            </div>
+            <div class="ms-auto"></div>
+            <div class="small ms-2 text-nowrap" style="cursor: pointer"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
+        </div>
+        <p class="mb-2" style="font-size: 14px; cursor: pointer;">{{card.title}}</p>
+    </div>
+</div>
+<div class="modal-footer">
+    <i *ngIf="isMovingInProgress" class="pi pi-spin pi-spinner me-auto"></i>
+    <button type="button" class="btn btn-primary" [disabled]="isMovingInProgress" (click)="move()">
+        Continue
+    </button>
+</div>

@@ -1,0 +1,161 @@
+<div class="row">
+    <div class="col-9">
+        <div class="d-flex align-items-center small bg-white">
+            <div class="text-nowrap me-2"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
+            <div class="me-2 text-primary">{{card.type.name}}</div>
+            <div class="d-flex align-items-center">
+                <span class="me-2 text-muted">by</span>
+                <app-inline-member class="text-primary" [profile]="card.owner"></app-inline-member>
+                <span class="ms-2 text-muted">created at {{card.created | date }}</span>
+            </div>
+            <div class="form-check form-switch ms-auto">
+                <label class="form-check-label" for="flexSwitchCheckDefault">ASAP</label>
+                <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" [ngModel]="card.asap">
+            </div>
+        </div>
+        <h3 *ngIf="showTitle">{{card.title}}</h3>
+        <div class="mt-2 p-2 rounded border-2 border-dark" *ngIf="card.block_reason" style="background-color: #EDD1CE">
+            <i class="pi pi-exclamation-circle" style="color: red; font-weight: bold;"></i>
+            {{card.block_reason}}
+        </div>
+        <div class="mt-4">
+            <app-md-editor [(ngModel)]="card.description"></app-md-editor>
+        </div>
+
+        <div class="mt-4">
+            <app-card-references-accordion [references]="references"></app-card-references-accordion>
+        </div>
+    </div>
+    <div class="rounded col-3 border border-1" style="background-color: #F7F9FA; border-color: #DFE5EB">
+        <div class="container">
+            <h6 class="mt-4">General</h6>
+            <div class="form-group row mb-2 align-items-center small">
+                <label for="sprint" class="col-4 col-form-label">Sprint:</label>
+                <div class="col-8 small text-muted" id="sprint">
+                    {{card.sprint_id || 'Not set'}}
+                </div>
+            </div>
+            <div class="form-group row mb-2 align-items-center small">
+                <label for="state" class="col-4 col-form-label">State:</label>
+                <div class="col-8" id="state">
+                    <app-card-state-label [state]="card.state"></app-card-state-label>
+                </div>
+            </div>
+            <div class="form-group row mb-2 align-items-center small">
+                <label for="lane" class="col-4 col-form-label small">Lane:</label>
+                <div class="col-8" id="lane">
+                    {{ card.lane?.title || 'default' }}
+                </div>
+            </div>
+            <div class="form-group row mb-2 align-items-center small">
+                <label for="board" class="col-4 col-form-label small">Board:</label>
+                <div class="col-8" id="board">
+                    <a href="javascript:void(0)" [routerLink]="['/board', card.board_id]">{{ card.board.title }}</a>
+                </div>
+            </div>
+            <div class="form-group row mb-2 align-items-center small">
+                <label for="column" class="col-4 col-form-label small">Column:</label>
+                <div class="col-8" id="column">
+                    <select class="form-select form-select-sm" [ngModel]="card.column.id">
+                        <option *ngFor="let col of columns" [value]="col.id">{{col.title}}</option>
+                    </select>
+                </div>
+            </div>
+            <h6 class="mt-4">Properties</h6>
+            <div class="form-group row mb-2 small" *ngFor="let prop of customProperties">
+                <label class="col-4 col-form-label">{{prop.property.name}}:</label>
+
+                <div class="col-8 d-flex align-items-center">
+                    <ng-container [ngSwitch]="prop.property.type">
+                        <ng-container *ngSwitchCase="'user'">
+                            <app-inline-member [profileUid]="getCustomPropertyValue(prop.property.id)"></app-inline-member>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'select'">
+                            <select class="form-select form-select-sm" [ngModel]="getCustomPropertyValue(prop.property.id)">
+                                <option [value]="null" [defaultSelected]="true">Not set</option>
+                                <option *ngFor="let val of prop.values" [value]="val.id">{{val.value}}</option>
+                            </select>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'number'">
+                            <input
+                                    type="number"
+                                    class="form-control form-control-sm"
+                                    [min]="prop.property.data?.restrictions?.min ?? NumberMin"
+                                    [max]="prop.property.data?.restrictions?.max ?? NumberMax"
+                                    [ngModel]="getCustomPropertyValue(prop.property.id)"
+                            />
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'date'">
+                            <input type="date" class="form-control form-control-sm" [ngModel]="getCustomPropertyValue(prop.property.id)">
+                        </ng-container>
+                        <ng-container *ngSwitchDefault>
+                            not supported type {{prop.property.type}}
+                        </ng-container>
+                    </ng-container>
+                </div>
+            </div>
+            <h6 class="mt-4">Time management</h6>
+            <div class="form-group row mb-2 small">
+                <label for="dueDate" class="col-4 col-form-label">Due Date:</label>
+                <div class="col-8">
+                    <input type="date" id="dueDate" class="form-control form-control-sm" [ngModel]="card.due_date" [disabled]="!!card.completed_at">
+                </div>
+            </div>
+            <div class="form-group row mb-2 align-items-center small" *ngIf="card.completed_at">
+                <label for="completedAt" class="col-4 col-form-label">Completed At:</label>
+                <div class="col-8 small text-muted" id="completedAt">
+                    {{card.completed_at}}
+                </div>
+            </div>
+            <div class="form-group row mb-2 align-items-center small" *ngIf="card.completed_at">
+                <label for="completedOnTime" class="col-4 col-form-label">Overdue:</label>
+                <div class="col-8 small text-muted" id="completedOnTime">
+                    {{card.completed_on_time === false}}
+                </div>
+            </div>
+            <div class="form-group row mb-2 align-items-center small" *ngIf="card.goals_total">
+                <label for="goals" class="col-4 col-form-label">Goals:</label>
+                <div class="col-8 text-muted small" id="goals">
+                    Completed {{card.goals_done}} of {{card.goals_total}}
+                </div>
+            </div>
+            <div class="form-group row mb-2 align-items-center small" *ngIf="card.size">
+                <label for="size" class="col-4 col-form-label">Size:</label>
+                <div class="col-8">
+                    <span class="text-muted small" id="size">{{card.size_text || 'Not set'}}</span>
+                </div>
+            </div>
+            <h6 class="mt-4">
+                Tags
+                <button
+                        class="btn btn-sm btn-link-primary ms-1 d-lg-none d-xl-inline-block"
+                        style="padding: 0px;width: 1rem;height: 1rem;position: relative;"
+                >
+                    <i class="pi pi-plus" style="font-size: 0.8em; position: absolute; top: 2px; left: 0; right: 0; bottom: 0;"></i>
+                </button>
+            </h6>
+            <div class="form-group mb-2 d-flex flex-wrap">
+                <span class="p-1 mb-1 me-1 small border rounded rounded-pill bg-white" *ngFor="let tag of card.tags">{{tag.name}}</span>
+                <span class="text-muted small" *ngIf="!card.tags?.length">No tags</span>
+            </div>
+            <h6 class="mt-4">
+                Members
+                <button
+                        class="btn btn-sm btn-link-primary ms-1 d-lg-none d-xl-inline-block"
+                        style="padding: 0px;width: 1rem;height: 1rem;position: relative;"
+                >
+                    <i class="pi pi-plus" style="font-size: 0.8em; position: absolute; top: 2px; left: 0; right: 0; bottom: 0;"></i>
+                </button>
+            </h6>
+            <div class="form-group row mb-2">
+                <ng-container *ngIf="card.members?.length">
+                    <div *ngFor="let member of card.members" class="mb-2">
+                        <app-inline-member [profile]="member"></app-inline-member>
+                    </div>
+                </ng-container>
+
+                <span *ngIf="!card.members?.length">No members</span>
+            </div>
+        </div>
+    </div>
+</div>

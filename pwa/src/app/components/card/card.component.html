@@ -1,0 +1,68 @@
+<div class="p-2 shadow mb-2 rounded"
+     (mouseover)="active = true"
+     (mouseout)="active = false"
+     (focusin)="active = true"
+     (focusout)="active = false"
+     *ngIf="card"
+>
+    <div class="d-flex align-items-center mb-2" style="min-height: 1.5rem;">
+        <div class="smaller" style="cursor: pointer" (click)="openCard(card.id)">{{card.type.name}}</div>
+        <div class="mx-2 d-none d-lg-block">
+            <app-time-dots [since]="card.column_changed_at"></app-time-dots>
+        </div>
+        <div class="ms-auto"></div>
+        <div [ngClass]="{ 'invisible': disabled || !active }" class="d-flex align-items-center me-1">
+            <button
+                    ngbTooltip="Add blocker"
+                    type="button"
+                    class="btn btn-sm btn-link-primary me-1 d-lg-none d-xl-inline-block"
+                    style="padding: 0px;width: 1rem;height: 1rem;position: relative;"
+                    (click)="addBlock()"
+            >
+                <i class="pi pi-lock" style="font-size: 0.8em; position: absolute; top: 2px; left: 0; right: 0; bottom: 0;"></i>
+            </button>
+            <button
+                    ngbTooltip="Move to next column"
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    style="padding: 0px;width: 1rem;height: 1rem;position: relative;"
+                    (click)="transitionToNextColumn()"
+            >
+                <i class="pi pi-angle-double-right" style="font-size: 0.8em; position: absolute; top: 2px; left: 0; right: 0; bottom: 0;"></i>
+            </button>
+        </div>
+        <div class="small text-danger ms-1" *ngIf="card.asap"><span>!</span></div>
+        <div class="small ms-1 text-nowrap opacity-75" style="cursor: pointer" (click)="openCard(card.id)"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
+    </div>
+    <div class="p-1 small my-2 rounded-1 d-none d-lg-block"
+       style="background-color: #EDD1CE"
+       *ngFor="let blocker of card?.blockers"
+    >
+        <div *ngIf="!blocker.blocker_card_id">
+            <i class="pi pi-exclamation-circle" style="color: red; font-weight: bold;"></i>
+            <span class="ms-1 small">{{blocker.reason}}</span>
+        </div>
+        <div *ngIf="blocker.blocker_card_id" (click)="openCard(blocker.blocker_card_id)" class="cursor-pointer">
+            <i class="pi pi-lock" style="color: red; font-weight: bold;"></i>
+            <span class="ms-1 small">
+              <strong class="text-muted small">{{blocker.card?.id}}:</strong>
+              <span class="ms-1">{{blocker.card?.title}}</span>
+            </span>
+        </div>
+    </div>
+    <p class="p-1 small my-2 d-none d-lg-block cursor-pointer"
+       style="background-color: #FDF8E4"
+       *ngFor="let blocker of card?.blocking_blockers"
+       (click)="openCard(blocker.blocked_card?.id)"
+    >
+        <i class="pi pi-lock" style="color: red; font-weight: bold;"></i>
+        <span class="ms-1 small">
+          <strong class="text-muted small">{{blocker.blocked_card?.id}}:</strong>
+          <span class="ms-1">{{blocker.blocked_card?.title}}</span>
+        </span>
+    </p>
+    <p class="mb-2" style="font-size: 14px; cursor: pointer;" (click)="openCard(card.id)">{{card.title}}</p>
+    <div *ngFor="let member of assignedMembers" class="mb-2">
+        <app-inline-member class="small" [profile]="member"></app-inline-member>
+    </div>
+</div>

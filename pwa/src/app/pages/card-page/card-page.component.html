@@ -1,0 +1,4 @@
+<app-page-header [showSearch]="false" [title]="card.board.title" (switchBoard)="switchBoard($event.spaceId, $event.boardId)"></app-page-header>
+<div class="mx-4 mt-2">
+    <app-card-editor [card]="card"></app-card-editor>
+</div>

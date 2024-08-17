@@ -1,0 +1,61 @@
+import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
+import { CurrentUserComponent } from '../current-user/current-user.component';
+import { InputFromEventFunction } from '../../functions/input-from-event.function';
+import { NgIf, NgOptimizedImage } from '@angular/common';
+import { DialogService } from '../../services/dialogService';
+import { filter } from 'rxjs';
+
+@Component({
+  selector: 'app-page-header',
+  standalone: true,
+  imports: [
+    CurrentUserComponent,
+    NgOptimizedImage,
+    NgIf
+  ],
+  templateUrl: './page-header.component.html',
+  styleUrl: './page-header.component.scss'
+})
+export class PageHeaderComponent {
+  InputFromEventFunction = InputFromEventFunction;
+
+  @Input()
+  title?: string
+
+  @Input()
+  showSearch: boolean = true;
+
+  @Output()
+  filter: EventEmitter<string> = new EventEmitter<string>();
+
+  @Output()
+  switchBoard = new EventEmitter<{spaceId: number, boardId: number}>()
+
+  @ViewChild('cardSearchInput')
+  cardSearchInput: ElementRef;
+
+
+  constructor(private dialogService: DialogService) {
+  }
+
+  search() {
+    this.dialogService.searchBoard()
+      .pipe(filter(r => !!r))
+      .subscribe(r => this.switchBoard.emit(r));
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKey(event: KeyboardEvent) {
+    if (event.code === 'KeyK' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.search();
+    } else if (event.code === 'KeyF' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.cardSearchInput.nativeElement.focus();
+    }
+  }
+}

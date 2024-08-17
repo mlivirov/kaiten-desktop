@@ -1,0 +1,2 @@
+<app-page-header [title]="title" (filter)="boardComponent.filter($event)" (switchBoard)="switchBoard($event.spaceId, $event.boardId)"></app-page-header>
+<app-board #boardComponent [boardId]="boardId"></app-board>
