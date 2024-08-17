@@ -1,0 +1,28 @@
+server {
+    large_client_header_buffers 4 32k;
+    listen       ${NGINX_PORT};
+
+    location ~ ^/api/(.*) {
+        proxy_set_header Authorization "Bearer ${KAITEN_TOKEN}";
+
+        resolver 8.8.8.8;
+        proxy_pass https://${KAITEN_HOST}:443${request_uri};
+
+        add_header Access-Control-Allow-Origin *;
+    }
+
+    location ~ ^/files/(.*) {
+        resolver 8.8.8.8;
+        proxy_pass https://${KAITEN_FILES}:443/$1;
+
+        add_header Access-Control-Allow-Origin *;
+    }
+
+    location / {
+       proxy_set_header Host             $host;
+       proxy_set_header X-Real-IP        $remote_addr;
+
+       root   /usr/share/nginx/html;
+       index  index.html;
+    }
+}
