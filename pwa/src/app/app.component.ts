@@ -17,6 +17,8 @@ import { MdEditorComponent } from './components/md-editor/md-editor.component';
 import { FormsModule } from '@angular/forms';
 import { CardEditorDialogComponent } from './dialogs/card-editor-dialog/card-editor-dialog.component';
 import { CardEditorComponent } from './components/card-editor/card-editor.component';
+import { ApiService } from './services/api.service';
+import { Setting } from './models/setting';
 
 @Component({
   selector: 'app-root',
@@ -28,7 +30,8 @@ import { CardEditorComponent } from './components/card-editor/card-editor.compon
 export class AppComponent {
   isLoading: boolean = false;
 
-  constructor(router: Router) {
+  constructor(router: Router, private apiService: ApiService) {
+
     router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.isLoading = true;
@@ -38,7 +41,7 @@ export class AppComponent {
         this.isLoading = false;
 
         if (event.url.startsWith('/board')) {
-          localStorage.setItem('lastUrl', event.url);
+          apiService.setSetting(Setting.LastURL, event.url).subscribe();
         }
       }
     });

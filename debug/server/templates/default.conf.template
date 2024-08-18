@@ -14,8 +14,6 @@ server {
     location ~ ^/files/(.*) {
         resolver 8.8.8.8;
         proxy_pass https://${KAITEN_FILES}:443/$1;
-
-        add_header Access-Control-Allow-Origin *;
     }
 
     location / {

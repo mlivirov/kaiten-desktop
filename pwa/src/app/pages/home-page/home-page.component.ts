@@ -5,6 +5,8 @@ import { CurrentUserComponent } from '../../components/current-user/current-user
 import { DialogService } from '../../services/dialogService';
 import { filter } from 'rxjs';
 import { NgIf, NgOptimizedImage } from '@angular/common';
+import { ApiService } from '../../services/api.service';
+import { Setting } from '../../models/setting';
 
 @Component({
   selector: 'app-home-page',
@@ -19,11 +21,12 @@ import { NgIf, NgOptimizedImage } from '@angular/common';
   styleUrl: './home-page.component.scss'
 })
 export class HomePageComponent {
-  constructor(private router: Router, private dialogService: DialogService) {
-    const lastUrl = localStorage.getItem('lastUrl');
-    if (lastUrl) {
-      router.navigateByUrl(lastUrl);
-    }
+  constructor(private router: Router, private dialogService: DialogService, private apiService: ApiService) {
+    apiService.getSetting(Setting.LastURL)
+      .pipe(
+        filter(v => !!v)
+      )
+      .subscribe(v => router.navigateByUrl(v));
   }
 
   search() {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { forkJoin, map, Observable, switchMap, zip } from 'rxjs';
 import { CardEx } from '../models/card-ex';
 import { HttpClient } from '@angular/common/http';
 import { Board } from '../models/board';
@@ -9,6 +9,7 @@ import { Credentials } from '../models/credentials';
 import { CustomProperty, CustomPropertySelectValue } from '../models/custom-property';
 import { Lane } from '../models/lane';
 import { ColumnEx } from '../models/column-ex';
+import { Setting } from '../models/setting';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -16,7 +17,54 @@ export class ApiService {
   }
 
   setCredentials(creds: Credentials): Observable<User> {
-    return this.getCurrentUser();
+    return zip([
+      this.setSetting(Setting.ApiUrl, creds.apiEndpoint),
+      this.setSetting(Setting.FilesUrl, creds.resourcesEndpoint),
+      this.setSetting(Setting.Token, creds.apiToken)
+    ]).pipe(
+      switchMap(() => this.getCurrentUser())
+    );
+  }
+
+  getCredentials(): Observable<Credentials | null> {
+    return forkJoin({
+      ApiUrl: this.getSetting(Setting.ApiUrl),
+      FilesUrl: this.getSetting(Setting.FilesUrl),
+      Token: this.getSetting(Setting.Token),
+    })
+      .pipe(
+        map(r => {
+          const isAuthenticated = !(!r.ApiUrl || !r.FilesUrl || !r.Token);
+
+          return isAuthenticated
+            ? <Credentials>{
+              apiEndpoint: r.ApiUrl,
+              apiToken: r.Token,
+              resourcesEndpoint: r.FilesUrl,
+            }
+            : null;
+        })
+      );
+  }
+
+  getFile(url: string): Observable<Blob> {
+    return this.httpClient.get(url, {
+      responseType: 'blob'
+    });
+  }
+
+  setSetting(setting: Setting, value: string): Observable<void> {
+    return this.httpClient.post(`app://settings#${setting}`, value, {
+      responseType: 'text'
+    }).pipe(
+      map(() => {})
+    );
+  }
+
+  getSetting(setting: Setting): Observable<string> {
+    return this.httpClient.get(`app://settings#${setting}`, {
+      responseType: 'text'
+    });
   }
 
   getCards(boardId: number, query?: string): Observable<CardEx[]> {

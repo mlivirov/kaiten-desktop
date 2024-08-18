@@ -1,22 +1,22 @@
 <div class="d-flex w-100 h-100 align-items-center justify-content-center">
-    <form class="w-50 bg-white p-3 shadow" (ngSubmit)="submit()" (keydown.control.enter)="submit()">
+    <form [formGroup]="form" class="w-50 bg-white p-3 shadow" (ngSubmit)="submit()" (keydown.control.enter)="submit()">
         <div class="bg-kaiten rounded-1 p-4 mb-5 d-flex align-items-center">
             <img alt="logo" ngSrc="assets/logo.svg" width="32" height="32" class="me-3"/>
             <div class="display-6">Kaiten Login</div>
         </div>
         <div class="form-group mb-3">
             <label for="apiEndpoint">API endpoint</label>
-            <input type="url" name="apiEndpoint" class="form-control form-control-lg" id="apiEndpoint" aria-describedby="apiEndpointHelp" placeholder="Enter URL here">
-            <small id="apiEndpointHelp" class="form-text text-muted">For example: https://kaiten.my-company.com</small>
+            <input type="url" name="apiEndpoint" formControlName="apiEndpoint" class="form-control form-control-lg" id="apiEndpoint" aria-describedby="apiEndpointHelp" placeholder="Enter URL here">
+            <small id="apiEndpointHelp" class="form-text text-muted">For example: https://kaiten.my-company.com/api</small>
         </div>
         <div class="form-group mb-3">
             <label for="resourcesEndpoint">Resources endpoint</label>
-            <input type="url" name="resourcesEndpoint" class="form-control form-control-lg" id="resourcesEndpoint" aria-describedby="resourcesEndpointHelp" placeholder="Enter URL here">
+            <input type="url" name="resourcesEndpoint" formControlName="resourcesEndpoint" class="form-control form-control-lg" id="resourcesEndpoint" aria-describedby="resourcesEndpointHelp" placeholder="Enter URL here">
             <small id="resourcesEndpointHelp" class="form-text text-muted">For example: https://kaiten-files.my-company.com</small>
         </div>
         <div class="form-group mb-3">
             <label for="token">API Token</label>
-            <input id="token" type="text" name="token" class="form-control form-control-lg" placeholder="Enter Token here">
+            <input id="token" type="text" formControlName="apiToken" name="token" class="form-control form-control-lg" placeholder="Enter Token here">
         </div>
         <button type="submit" class="btn btn-primary">Continue</button>
     </form>

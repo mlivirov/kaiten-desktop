@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { User } from '../../models/user';
 import { ApiService } from '../../services/api.service';
 import { AvatarService } from '../../services/avatar.service';
-import { NgOptimizedImage } from '@angular/common';
+import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import { NgbDropdown, NgbDropdownMenu, NgbDropdownToggle } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 
@@ -13,17 +13,15 @@ import { Router } from '@angular/router';
     NgOptimizedImage,
     NgbDropdown,
     NgbDropdownMenu,
-    NgbDropdownToggle
+    NgbDropdownToggle,
+    AsyncPipe
   ],
   templateUrl: './current-user.component.html',
   styleUrl: './current-user.component.scss'
 })
 export class CurrentUserComponent {
   profile?: User;
-
-  get avatarUrl() {
-    return this.avatarService.getUrl(this.profile);
-  }
+  avatarUrl?: string;
 
   constructor(
     private apiService: ApiService,
@@ -34,10 +32,20 @@ export class CurrentUserComponent {
       .getCurrentUser()
       .subscribe(user => {
         this.profile = user;
-      })
+        this.loadAvatarUrl();
+      });
   }
 
   logout() {
+    this.apiService.setCredentials({});
     this.router.navigate(['login']);
+  }
+
+  loadAvatarUrl(): void {
+    this.avatarService
+      .getUrl(this.profile)
+      .subscribe(url => {
+        this.avatarUrl = url;
+      });
   }
 }

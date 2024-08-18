@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import { FormBuilder, FormControl, FormGroup, FormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { catchError, filter, switchMap } from 'rxjs';
 import { DialogService } from '../../services/dialogService';
@@ -12,7 +12,8 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [
     NgOptimizedImage,
-    FormsModule
+    FormsModule,
+    ReactiveFormsModule
   ],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.scss'
@@ -48,13 +49,13 @@ export class LoginPageComponent implements OnInit {
     this.apiService
       .setCredentials(this.form.value)
       .pipe(
-        catchError((err) => this.dialogService.alert('Failed to login. Please make sure that credentials are valid.')),
         switchMap(v => this.dialogService.loginConfirmation(v)),
+        catchError((err) => this.dialogService.alert('Failed to login. Please make sure that credentials are valid.')),
         filter(t => t),
-        switchMap(() => this.apiService.getSpaces())
+        switchMap(() => this.apiService.getSpaces()),
       )
       .subscribe(spaces => {
-        this.router.navigate(['board', spaces[0].id, spaces[0].boards[0].id]);
+        this.router.navigate(['board', spaces[0].boards[0].id]);
       });
   }
 }
