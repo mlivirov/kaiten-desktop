@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="index.html">pwa/dist/pwa/browser/index.html</file>
+        <file alias="main.js">pwa/dist/pwa/browser/main.js</file>
+        <file alias="scripts.js">pwa/dist/pwa/browser/scripts.js</file>
+        <file alias="styles.css">pwa/dist/pwa/browser/styles.css</file>
+        <file alias="polyfills.js">pwa/dist/pwa/browser/polyfills.js</file>
+        <file alias="favicon.ico">pwa/dist/pwa/browser/favicon.ico</file>
+        <file alias="media/primeicons.eot">pwa/dist/pwa/browser/media/primeicons.eot</file>
+        <file alias="media/primeicons.svg">pwa/dist/pwa/browser/media/primeicons.svg</file>
+        <file alias="media/primeicons.ttf">pwa/dist/pwa/browser/media/primeicons.ttf</file>
+        <file alias="media/primeicons.woff">pwa/dist/pwa/browser/media/primeicons.woff</file>
+        <file alias="media/primeicons.woff2">pwa/dist/pwa/browser/media/primeicons.woff2</file>
+        <file alias="assets/logo.svg">pwa/dist/pwa/browser/assets/logo.svg</file>
+    </qresource>
+</RCC>
