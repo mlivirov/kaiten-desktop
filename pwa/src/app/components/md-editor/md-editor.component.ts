@@ -1,11 +1,15 @@
-import { AfterViewInit, Component, ElementRef, forwardRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, ViewChild } from '@angular/core';
 import Editor from '@toast-ui/editor';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { NgClass } from '@angular/common';
+import Viewer = toastui.Viewer;
 
 @Component({
   selector: 'app-md-editor',
   standalone: true,
-  imports: [],
+  imports: [
+    NgClass
+  ],
   templateUrl: './md-editor.component.html',
   styleUrl: './md-editor.component.scss',
   providers: [
@@ -20,6 +24,12 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
   @ViewChild('editor')
   editorRef: ElementRef;
   editor: Editor;
+
+  @Input()
+  hideToolbar: boolean = false;
+
+  @Input()
+  hideBorder: boolean = false;
 
   value: string;
 

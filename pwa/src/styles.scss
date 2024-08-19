@@ -63,3 +63,11 @@ body {
 app-list-of-related-cards .list .item:last-child {
   border-bottom: none !important;
 }
+
+.no-toolbar .te-toolbar-section {
+  display: none;
+}
+
+.tui-editor-defaultUI {
+  border: none;
+}

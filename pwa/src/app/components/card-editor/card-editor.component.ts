@@ -18,6 +18,8 @@ import {
 } from './card-references-accordion/card-references-accordion.component';
 import { Router, RouterLink } from '@angular/router';
 import { ColumnEx } from '../../models/column-ex';
+import { TimeagoModule } from 'ngx-timeago';
+import { CardCommentsComponent } from './card-comments/card-comments.component';
 
 @Component({
   selector: 'app-card-editor',
@@ -36,7 +38,9 @@ import { ColumnEx } from '../../models/column-ex';
     ListOfRelatedCardsComponent,
     CardStateLabelComponent,
     CardReferencesAccordionComponent,
-    RouterLink
+    RouterLink,
+    TimeagoModule,
+    CardCommentsComponent
   ],
   templateUrl: './card-editor.component.html',
   styleUrl: './card-editor.component.scss'

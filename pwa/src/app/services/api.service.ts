@@ -10,6 +10,7 @@ import { CustomProperty, CustomPropertySelectValue } from '../models/custom-prop
 import { Lane } from '../models/lane';
 import { ColumnEx } from '../models/column-ex';
 import { Setting } from '../models/setting';
+import { CardComment } from '../models/card-comment';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -89,6 +90,17 @@ export class ApiService {
 
   getSpaces(): Observable<Space[]> {
     return this.httpClient.get<Space[]>('http://localhost:8080/api/latest/spaces');
+  }
+
+  getCardComments(cardId: number): Observable<CardComment[]> {
+    return this.httpClient.get<CardComment[]>(`http://localhost:8080/api/latest/cards/${cardId}/comments`);
+  }
+
+  addComment(cardId: number, text: string): Observable<CardComment> {
+    const form = new FormData();
+    form.append('text', text);
+
+    return this.httpClient.post<CardComment>(`http://localhost:8080/api/latest/cards/${cardId}/comments`, form);
   }
 
   getCurrentUser(): Observable<User> {

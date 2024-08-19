@@ -26,6 +26,9 @@ export class InlineMemberComponent implements OnChanges {
   @Input()
   showAvatar: boolean = true;
 
+  @Input()
+  showName: boolean = true;
+
   avatarUrl?: string;
 
   constructor(private avatarService: AvatarService, private apiService: ApiService) {
