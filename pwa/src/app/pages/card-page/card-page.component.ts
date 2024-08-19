@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { CardEx } from '../../models/card-ex';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CardEditorComponent } from '../../components/card-editor/card-editor.component';
 import { CurrentUserComponent } from '../../components/current-user/current-user.component';
-import { NgIf, NgOptimizedImage } from '@angular/common';
+import { NgIf, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 
 @Component({
@@ -14,7 +14,9 @@ import { PageHeaderComponent } from '../../components/page-header/page-header.co
     CurrentUserComponent,
     NgIf,
     NgOptimizedImage,
-    PageHeaderComponent
+    PageHeaderComponent,
+    NgTemplateOutlet,
+    RouterLink
   ],
   templateUrl: './card-page.component.html',
   styleUrl: './card-page.component.scss'

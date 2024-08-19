@@ -1,7 +1,16 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
+import {
+  Component, ContentChild, ContentChildren,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  Output, QueryList,
+  TemplateRef,
+  ViewChild
+} from '@angular/core';
 import { CurrentUserComponent } from '../current-user/current-user.component';
 import { InputFromEventFunction } from '../../functions/input-from-event.function';
-import { NgIf, NgOptimizedImage } from '@angular/common';
+import { NgIf, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import { DialogService } from '../../services/dialogService';
 import { filter } from 'rxjs';
 
@@ -11,7 +20,8 @@ import { filter } from 'rxjs';
   imports: [
     CurrentUserComponent,
     NgOptimizedImage,
-    NgIf
+    NgIf,
+    NgTemplateOutlet
   ],
   templateUrl: './page-header.component.html',
   styleUrl: './page-header.component.scss'
@@ -34,6 +44,8 @@ export class PageHeaderComponent {
   @ViewChild('cardSearchInput')
   cardSearchInput: ElementRef;
 
+  @ContentChild('content')
+  contentTemplate: TemplateRef<any>;
 
   constructor(private dialogService: DialogService) {
   }

@@ -6,6 +6,10 @@
                 <span>{{ title }}</span>
                 <sup *ngIf="title"><span class="ms-2 text-white opacity-50" style="font-size: 0.8rem">(CTRL+K)</span></sup>
             </h3>
+            <div *ngIf="contentTemplate">
+                <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
+            </div>
+
             <input type="text"
                    *ngIf="showSearch"
                    class="form-control mt-2 mt-lg-0 me-2 mx-lg-4 flex-grow-1"

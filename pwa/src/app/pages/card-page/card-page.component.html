@@ -1,4 +1,14 @@
-<app-page-header [showSearch]="false" [title]="card.board.title" (switchBoard)="switchBoard($event.spaceId, $event.boardId)"></app-page-header>
+<app-page-header
+        [showSearch]="false"
+        [title]="card.board.title"
+        (switchBoard)="switchBoard($event.spaceId, $event.boardId)"
+>
+    <ng-template #content>
+        <div class="ms-4">
+            <button class="btn btn-sm btn-outline-primary" [routerLink]="['/board', card.board_id]">Open board</button>
+        </div>
+    </ng-template>
+</app-page-header>
 <div class="mx-4 mt-2">
     <app-card-editor [card]="card"></app-card-editor>
 </div>
