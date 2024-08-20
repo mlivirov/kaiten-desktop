@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "CustomWebEnginePage.h"
 #include <QWebChannel>
 #include <QWebEngineSettings>
 #include <QNetworkReply>
@@ -22,11 +23,12 @@ _networkDiskCache(new QNetworkDiskCache(this))
 
     _networkAccessManager->setCache(_networkDiskCache.get());
 
-    _webEngineView->settings()->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, true);
+    _webEngineView->setPage(new CustomWebEnginePage(this));
+    _webEngineView->settings()->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, false);
     _webEngineView->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
     _webEngineView->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, false);
-    _webEngineView->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
-    _webEngineView->settings()->setAttribute(QWebEngineSettings::HyperlinkAuditingEnabled, true);
+    _webEngineView->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, false);
+    _webEngineView->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
     _webEngineView->page()->setWebChannel(_webChannel.get());
 
@@ -104,7 +106,7 @@ size_t Application::httpSettingsRequest(const QString &method, const QString &pa
         const auto value = _settings->value(path);
 
         QTimer::singleShot(0, this, [this, id, path, value] {
-            emit httpRequestReady(QString::number(id), 200, value.toString());
+            emit httpRequestReady(QString::number(id), 200, value.isNull() ? nullptr : value.toString());
         });
 
         return id;

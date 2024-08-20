@@ -1,10 +1,15 @@
-<div class="p-4 d-flex align-items-center bg-kaiten">
+<div class="p-4 d-flex align-items-center bg-kaiten flex-wrap flex-md-nowrap flex-row-reverse">
+    <div class="mx-auto mb-4 mb-md-0 ms-md-4 ms-lg-0">
+        <app-current-user></app-current-user>
+    </div>
+
     <div class="flex-grow-1">
-        <div class="d-flex align-items-center flex-wrap flex-lg-nowrap">
-            <h3 class="text-nowrap my-0 text-white d-flex" style="cursor: pointer" (click)="search()">
+        <div class="d-flex align-items-center flex-wrap flex-lg-nowrap justify-content-center justify-content-md-start">
+            <h3 class="my-0 text-white d-flex align-items-center" style="cursor: pointer" (click)="search()">
                 <img alt="logo" ngSrc="assets/logo.svg" width="32" height="32" class="me-3"/>
-                <span>{{ title }}</span>
-                <sup *ngIf="title"><span class="ms-2 text-white opacity-50" style="font-size: 0.8rem">(CTRL+K)</span></sup>
+                <span class="small d-md-none text-wrap">{{ title }}</span>
+                <span class="d-none d-md-inline text-nowrap">{{ title }}</span>
+                <sup *ngIf="title" class="d-none d-md-block"><span class="ms-2 text-white opacity-50" style="font-size: 0.8rem">(CTRL+K)</span></sup>
             </h3>
             <div *ngIf="contentTemplate">
                 <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
@@ -12,7 +17,7 @@
 
             <input type="text"
                    *ngIf="showSearch"
-                   class="form-control mt-2 mt-lg-0 me-2 mx-lg-4 flex-grow-1"
+                   class="form-control mt-4 mt-lg-0 me-2 mx-lg-4 flex-grow-1"
                    #cardSearchInput
                    id="cardSearchInput"
                    placeholder="Type your search query here or press (CTRL+F)"
@@ -20,6 +25,4 @@
             >
         </div>
     </div>
-
-    <app-current-user></app-current-user>
 </div>

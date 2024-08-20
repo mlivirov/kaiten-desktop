@@ -6,6 +6,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { TimeagoModule } from 'ngx-timeago';
 import { qWebInterceptor } from './interceptors/qweb.interceptor';
 import { EMPTY, from } from 'rxjs';
+import { DragulaModule } from 'ng2-dragula';
 
 declare class ApplicationProxy {
   initialize(): Promise<void>;
@@ -35,6 +36,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([qWebInterceptor])),
     importProvidersFrom(
       TimeagoModule.forRoot(),
+      DragulaModule.forRoot()
     ),
     {
       provide: APP_INITIALIZER,

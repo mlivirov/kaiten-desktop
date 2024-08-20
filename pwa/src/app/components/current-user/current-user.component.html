@@ -1,16 +1,18 @@
-<div class="text-white d-flex align-items-center">
+<div class="text-white align-items-center text-center cursor-pointer d-md-flex" (click)="dropdownMenu.click()">
     <img alt="avatar" width="64" height="64" class="rounded-circle" [src]="avatarUrl"/>
-    <div class="small d-flex flex-column text-center ms-3">
-        <strong>{{profile?.full_name}}</strong>
-        <span class="smaller">&commat;{{profile?.username}}</span>
-    </div>
-    <div ngbDropdown class="d-inline-block ms-2" container="body">
-        <button type="button" class="btn btn-outline-primary" id="optionsDropdown" ngbDropdownToggle>
-            <i class="pi pi-th-large"></i>
-        </button>
-        <div ngbDropdownMenu aria-labelledby="optionsDropdown">
-            <li><button class="dropdown-item" type="button"><i class="pi pi-table me-2"></i> Edit custom columns</button></li>
-            <li><button class="dropdown-item" type="button" (click)="logout()"><i class="pi pi-sign-out me-2"></i> Logout</button></li>
+    <div class="d-flex mt-2">
+        <div class="small d-flex flex-column text-center ms-3">
+            <strong>{{profile?.full_name}}</strong>
+            <span class="smaller">&commat;{{profile?.username}}</span>
+        </div>
+        <div ngbDropdown class="ms-2" container="body">
+            <button type="button" class="btn btn-outline-primary d-none d-md-block" id="optionsDropdown" ngbDropdownToggle #dropdownMenu>
+                <i class="pi pi-th-large"></i>
+            </button>
+            <div ngbDropdownMenu aria-labelledby="optionsDropdown">
+                <li><button class="dropdown-item" type="button" (click)="logout()"><i class="pi pi-sign-out me-2"></i> Logout</button></li>
+            </div>
         </div>
     </div>
+
 </div>

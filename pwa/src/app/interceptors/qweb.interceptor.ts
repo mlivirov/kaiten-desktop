@@ -43,10 +43,16 @@ export const qWebInterceptor: HttpInterceptorFn = (req, next) => {
 
   switch (typeof req.body) {
     case 'object':
-      parsedBody = req.body === null ? '' : JSON.stringify(req.body);
+      if (req.body === null) {
+        parsedBody = null;
+      } if (req.body instanceof FormData) {
+        alert('not supported');
+      } else {
+        parsedBody = JSON.stringify(req.body);
+      }
       break;
     case 'undefined':
-      parsedBody = '';
+      parsedBody = null;
       break;
     default:
       parsedBody = req.body as string;
@@ -65,10 +71,10 @@ export const qWebInterceptor: HttpInterceptorFn = (req, next) => {
 
         switch (req.responseType) {
           case 'json':
-            parsedBody = JSON.parse(response.data);
+            parsedBody = response.data ? JSON.parse(response.data) : null;
             break;
           case 'blob':
-            parsedBody = base64ToBlob(response.data);
+            parsedBody = response.data ? base64ToBlob(response.data) : null;
             break;
           default:
             parsedBody = response.data;

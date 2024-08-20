@@ -1,6 +1,8 @@
 @import 'bootstrap/scss/bootstrap';
 @import 'primeicons/primeicons.css';
 @import '@toast-ui/editor/dist/toastui-editor.css';
+@import "../node_modules/dragula/dist/dragula.css";
+
 $bg-gray: #F7F9FA;
 
 .bg-grad-0 {
@@ -21,6 +23,10 @@ $bg-gray: #F7F9FA;
 
 .bg-grad-4 {
   background-color: #86B0B1;
+}
+
+.bg-gray {
+  background-color: $bg-gray !important;
 }
 
 th, td {
@@ -58,6 +64,10 @@ body {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.cursor-move {
+  cursor: move;
 }
 
 app-list-of-related-cards .list .item:last-child {

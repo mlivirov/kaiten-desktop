@@ -2,7 +2,7 @@
     <h1 class="modal-title fs-5" id="exampleModalLabel">Would you like to move card to the next column?</h1>
     <button tabindex="-1" type="button" class="btn-close" aria-label="Close" (click)="modal.close()"></button>
 </div>
-<div class="modal-body">
+<div class="modal-body" *ngIf="card">
     <h5 class="text-center mb-3 text-primary">
         {{from?.title}}
         <i class="pi pi-arrow-right mx-4"></i>

@@ -26,6 +26,8 @@ find_package(Qt6 COMPONENTS
 add_executable(kaiten main.cpp resources.qrc
         Application.cpp
         Application.h
+        CustomWebEnginePage.cpp
+        CustomWebEnginePage.h
 )
 target_link_libraries(kaiten
         Qt::Core

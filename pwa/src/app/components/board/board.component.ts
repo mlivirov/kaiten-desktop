@@ -1,12 +1,16 @@
-import { Component, HostListener, Input, OnInit, SimpleChanges } from '@angular/core';
+import { Component, HostListener, Input, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { JsonPipe, NgClass, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { CardComponent } from '../card/card.component';
 import { CardEx } from '../../models/card-ex';
 import { ApiService } from '../../services/api.service';
-import { finalize, zip } from 'rxjs';
+import { finalize, map, Observable, Subject, switchMap, takeUntil, tap, zip } from 'rxjs';
 import { User } from '../../models/user';
 import { ColumnEx } from '../../models/column-ex';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { DragulaModule, DragulaService } from 'ng2-dragula';
+import { Setting } from '../../models/setting';
+import { BoardService } from '../../services/board.service';
+import { DialogService } from '../../services/dialogService';
 
 function colSortPredicate(a, b) {
   if (a.sort_order < b.sort_order) {
@@ -16,6 +20,10 @@ function colSortPredicate(a, b) {
   }
 
   return 0;
+}
+
+class BoardViewColumn {
+  columns: ColumnEx[];
 }
 
 @Component({
@@ -28,12 +36,13 @@ function colSortPredicate(a, b) {
     NgTemplateOutlet,
     NgIf,
     JsonPipe,
-    NgbTooltip
+    NgbTooltip,
+    DragulaModule
   ],
   templateUrl: './board.component.html',
   styleUrl: './board.component.scss'
 })
-export class BoardComponent implements OnInit {
+export class BoardComponent implements OnInit, OnDestroy {
   @Input()
   spaceId: number;
 
@@ -44,34 +53,97 @@ export class BoardComponent implements OnInit {
   currentUser?: User;
   columns: ColumnEx[];
   cards: CardEx[];
+  viewColumns: BoardViewColumn[];
 
   isBoardLoading: boolean = false;
   hideEmpty: boolean = false;
   cardsByColumnId: { [key: number]: CardEx[] } = {};
   cardsCountByRootColumnId: { [key: number]: number } = {};
 
-  customColumns = [
-      {
-        title: 'Analysis',
-        after: null,
-        children: [
-          'Waiting for Analysis',
-          'Analyzing',
-        ]
-      },
-      {
-        title: 'Completion',
-        after: 'Testing',
-        children: [
-          'Done',
-          'To Demo'
-        ]
-      }
-  ];
+  customColumns: number[][] = [];
+
+  unsubscribe$: Subject<void> = new Subject();
 
   constructor(
-    private apiService: ApiService
+    private apiService: ApiService,
+    private dragulaService: DragulaService,
+    private boardService: BoardService,
+    private dialogService: DialogService
   ) {
+    const cardDragBag = dragulaService.createGroup('CARD', {
+      moves: (el, container, handle) => {
+        return !!el.getAttribute('data-card-id');
+      },
+      accepts: (el, target, source) => {
+        const targetId = Number.parseInt(target.getAttribute('data-column-id'));
+        const sourceId = Number.parseInt(source.getAttribute('data-column-id'));
+
+        return sourceId !== targetId;
+      },
+    });
+
+    dragulaService.drop('CARD')
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap(({name, el, target, source}) => {
+          const targetId = Number.parseInt(target.getAttribute('data-column-id'));
+          const sourceId = Number.parseInt(source.getAttribute('data-column-id'));
+          const cardId = Number.parseInt(el.getAttribute('data-card-id'));
+
+          cardDragBag.drake.cancel(true);
+          return this.moveCardToColumn(cardId, sourceId, targetId);
+        })
+      )
+      .subscribe();
+
+    this.unsubscribe$.subscribe(() => {
+      dragulaService.destroy('CARD');
+    });
+
+    dragulaService.createGroup('COLUMN', {
+      removeOnSpill: true,
+      moves: (el, container, handle) => {
+        return handle.parentElement.classList.contains('column-title')
+          || handle.classList.contains('column-title');
+      },
+      accepts: (el, target, source) => {
+        const targetIndex = Number.parseInt(target.getAttribute('data-view-column-index'));
+        const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'));
+
+        return Math.abs(targetIndex - sourceIndex) === 1;
+      }
+    });
+
+    this.unsubscribe$.subscribe(() => {
+      dragulaService.destroy('COLUMN');
+    });
+
+
+    dragulaService
+      .drop('COLUMN')
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap(({el, target, source}) => {
+          const targetIndex = Number.parseInt(target.getAttribute('data-view-column-index'))
+          const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'))
+          const elIndex = Number.parseInt(el.getAttribute('data-column-index'));
+
+          return this.updateColumnsArrangement(targetIndex, sourceIndex, elIndex);
+        })
+      )
+      .subscribe();
+
+    dragulaService.remove('COLUMN')
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap(({el, source}) => {
+          const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'))
+          const elIndex = Number.parseInt(el.getAttribute('data-column-index'));
+
+          return this.updateColumnsArrangement(null, sourceIndex, elIndex);
+        })
+      )
+      .subscribe()
   }
 
   ngOnInit(): void {
@@ -83,41 +155,73 @@ export class BoardComponent implements OnInit {
     this.mapCardsByColumnId(this.cards);
   }
 
+  moveCardToColumn(cardId: number, fromId: number, toId: number): Observable<void> {
+    const card = this.cards.find(t => t.id === cardId);
+    console.log(cardId);
+    const from = this.columns.find(t => t.id === fromId);
+    const to = this.columns.find(t => t.id === toId);
+
+    return this.dialogService.cardTransition(card, from, to)
+      .pipe(
+        tap(card => {
+          this.refresh();
+        }),
+        map(() => {})
+      );
+  }
+
+  updateColumnsArrangement(targetIndex: number|null, sourceIndex: number, colIndex: number): Observable<void> {
+    const column: ColumnEx = this.viewColumns[sourceIndex].columns[colIndex];
+    const currentCustomGroup = this.customColumns.find(g => g.indexOf(column.id) !== -1);
+
+    if (targetIndex !== null) {
+      const targetSiblingColumn: ColumnEx|null = this.viewColumns[targetIndex].columns[0];
+      const targetCustomGroup = this.customColumns.find(g => g.indexOf(targetSiblingColumn.id) !== -1);
+
+      if (!targetCustomGroup) {
+        this.customColumns.push([
+          column.id,
+          targetSiblingColumn.id
+        ]);
+
+      } else {
+        targetCustomGroup.push(column.id);
+      }
+    }
+
+    if (currentCustomGroup) {
+      currentCustomGroup.splice(currentCustomGroup.indexOf(column.id), 1);
+
+      if (currentCustomGroup.length === 0) {
+        this.customColumns.splice(this.customColumns.indexOf(currentCustomGroup), 1);
+      }
+    }
+
+    this.rearrangeColumns();
+
+    return this.boardService.setCustomColumns(this.boardId, this.customColumns);
+  }
+
   rearrangeColumns() {
-    const customColumns = this.customColumns;
+    this.viewColumns = [];
 
-    for (const customCol of customColumns) {
-      const afterIndex = this.columns.findIndex(col => col.title === customCol.after);
-      if (afterIndex === -1) {
-        continue;
-      }
+    for (const col of this.columns) {
+      const requiresCustomization = this.customColumns.reduce((a, i) => [...a, ...i], []).some(t => t === col.id);
+      if (requiresCustomization) {
+        const customGroup = this.customColumns.find(t => t.some(c => c === col.id));
 
-      const newCol: ColumnEx = {
-        id: 999 + this.columns.length + 1,
-        title: customCol.title,
-        subcolumns: [],
-      } as ColumnEx;
-
-      for (const child of customCol.children) {
-        const movedIndex = this.columns.findIndex(col => col.title === child)
-        if (movedIndex === -1) {
-          continue;
-        }
-
-        const colsToMove = [];
-
-        if (this.columns[movedIndex].subcolumns) {
-          colsToMove.push(...this.columns[movedIndex].subcolumns!);
+        const existingViewColumn = this.viewColumns.find(t => t.columns.map(c => c.id).some(c => customGroup.indexOf(c) != -1));
+        if (existingViewColumn) {
+          existingViewColumn.columns.push(col);
         } else {
-          colsToMove.push(this.columns[movedIndex]);
+          this.viewColumns.push(<BoardViewColumn>{
+            columns: [col],
+          });
         }
-
-        newCol.subcolumns.push(...colsToMove);
-        this.columns.splice(movedIndex, 1);
-      }
-
-      if (newCol.subcolumns.length) {
-        this.columns.splice(afterIndex + 1, 0, newCol);
+      } else {
+        this.viewColumns.push(<BoardViewColumn>{
+          columns: [col],
+        });
       }
     }
   }
@@ -164,18 +268,20 @@ export class BoardComponent implements OnInit {
     this.isBoardLoading = true;
     zip(
       this.apiService.getColumns(this.boardId),
-      this.apiService.getCards(this.boardId)
+      this.apiService.getCards(this.boardId),
+      this.boardService.getCustomColumns(this.boardId)
     )
       .pipe(
         finalize(() => this.isBoardLoading = false)
       )
-      .subscribe(([columns, cards]) => {
+      .subscribe(([columns, cards, customColumns]) => {
         this.columns = columns;
         this.cards = cards;
+        this.customColumns = customColumns;
 
         this.mapCardsByColumnId(cards);
-        this.rearrangeColumns();
         this.sortColumns();
+        this.rearrangeColumns();
         this.countCards();
       });
   }
@@ -217,5 +323,10 @@ export class BoardComponent implements OnInit {
         }
       }
     }
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
   }
 }
