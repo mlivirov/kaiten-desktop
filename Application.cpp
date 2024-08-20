@@ -3,6 +3,7 @@
 #include <QWebEngineSettings>
 #include <QNetworkReply>
 #include <QTimer>
+#include <QStandardPaths>
 
 const QString Application::LOCALHOST_API_PATH{"http://localhost:8080/api"};
 const QString Application::LOCALHOST_FILE_PATH{"http://localhost:8080/files"};
@@ -12,14 +13,23 @@ Application::Application():
 _webEngineView(new QWebEngineView()),
 _webChannel(new QWebChannel()),
 _settings(new QSettings("client", "kaiten")),
-_networkAccessManager(new QNetworkAccessManager(this))
+_networkAccessManager(new QNetworkAccessManager(this)),
+_networkDiskCache(new QNetworkDiskCache(this))
 {
+    auto cacheLocation = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.kaiten/cache";
+    qInfo() << "Cache location:" << cacheLocation;
+    _networkDiskCache->setCacheDirectory(cacheLocation);
+
+    _networkAccessManager->setCache(_networkDiskCache.get());
+
     _webEngineView->settings()->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, true);
     _webEngineView->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
     _webEngineView->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, false);
     _webEngineView->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
+    _webEngineView->settings()->setAttribute(QWebEngineSettings::HyperlinkAuditingEnabled, true);
 
     _webEngineView->page()->setWebChannel(_webChannel.get());
+
     _webEngineView->load(QUrl("qrc:/index.html"));
     _webChannel->registerObject("proxy", this);
 
@@ -78,6 +88,7 @@ size_t Application::httpApiRequest(const QString &method, const QString &url, co
 
 size_t Application::httpFileRequest(const QString &method, const QString &url, const QString &data) {
     QNetworkRequest request(url);
+    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
 
     if (method == "GET") {
         return (size_t)_networkAccessManager->get(request);

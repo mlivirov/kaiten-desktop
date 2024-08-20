@@ -8,6 +8,7 @@
 #include <QWebSocketServer>
 #include <QSettings>
 #include <QNetworkAccessManager>
+#include <QNetworkDiskCache>
 
 class Application : public QObject {
     Q_OBJECT
@@ -37,6 +38,7 @@ private:
     QScopedPointer<QWebChannel> _webChannel;
     QScopedPointer<QSettings> _settings;
     QScopedPointer<QNetworkAccessManager> _networkAccessManager;
+    QScopedPointer<QNetworkDiskCache> _networkDiskCache;
 };
 
 
