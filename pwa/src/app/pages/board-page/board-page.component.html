@@ -1,2 +1,16 @@
-<app-page-header [title]="title" (filter)="boardComponent.filter($event)" (switchBoard)="switchBoard($event.spaceId, $event.boardId)"></app-page-header>
+<app-page-header
+        [title]="title"
+        (switchBoard)="switchBoard($event.spaceId, $event.boardId)"
+>
+    <ng-template #content>
+        <div class="mt-4 mt-lg-0 me-2 mx-lg-4 flex-grow-1">
+            <app-card-search-input
+                #cardSearchInput
+                [ngModel]="boardComponent.filterValue"
+                (ngModelChange)="boardComponent.handleFilter($event)"
+                placeholder="Type your search query here or press (CTRL+F)"
+            ></app-card-search-input>
+        </div>
+    </ng-template>
+</app-page-header>
 <app-board #boardComponent [boardId]="boardId"></app-board>

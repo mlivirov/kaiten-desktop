@@ -1,9 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CurrentUserComponent } from '../../components/current-user/current-user.component';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { BoardComponent } from '../../components/board/board.component';
 import { Board } from '../../models/board';
 import { ActivatedRoute, Router } from '@angular/router';
+import { InputFromEventFunction } from '../../functions/input-from-event.function';
+import { NgIf } from '@angular/common';
+import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-board-page',
@@ -11,7 +15,10 @@ import { ActivatedRoute, Router } from '@angular/router';
   imports: [
     CurrentUserComponent,
     PageHeaderComponent,
-    BoardComponent
+    BoardComponent,
+    NgIf,
+    CardSearchInputComponent,
+    FormsModule
   ],
   templateUrl: './board-page.component.html',
   styleUrl: './board-page.component.scss'
@@ -19,6 +26,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class BoardPageComponent {
   title: string;
   boardId: number;
+
+  @ViewChild('cardSearchInput')
+  cardSearchInput: ElementRef;
 
   constructor(private activatedRoute: ActivatedRoute, private router: Router) {
     activatedRoute
@@ -32,5 +42,15 @@ export class BoardPageComponent {
 
   switchBoard(spaceId: number, boardId: number) {
     this.router.navigate(['board', boardId]);
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKey(event: KeyboardEvent): void {
+    if (event.code === 'KeyF' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.cardSearchInput.nativeElement.focus();
+    }
   }
 }

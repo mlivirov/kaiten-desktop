@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, HostListener, Input, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { JsonPipe, NgClass, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { CardComponent } from '../card/card.component';
 import { CardEx } from '../../models/card-ex';
@@ -11,6 +11,8 @@ import { DragulaModule, DragulaService } from 'ng2-dragula';
 import { Setting } from '../../models/setting';
 import { BoardService } from '../../services/board.service';
 import { DialogService } from '../../services/dialogService';
+import { TypeaheadComponentValue } from '../typeahead/typeahead.component';
+import { CardFilter } from '../card-search-input/card-search-input.component';
 
 function colSortPredicate(a, b) {
   if (a.sort_order < b.sort_order) {
@@ -49,7 +51,7 @@ export class BoardComponent implements OnInit, OnDestroy {
   @Input()
   boardId: number;
 
-  filterTerm?: string;
+  filterValue?: CardFilter;
   currentUser?: User;
   columns: ColumnEx[];
   cards: CardEx[];
@@ -150,8 +152,8 @@ export class BoardComponent implements OnInit, OnDestroy {
     this.apiService.getCurrentUser().subscribe(t => this.currentUser = t);
   }
 
-  filter(value?: string) {
-    this.filterTerm = value;
+  handleFilter(value?: CardFilter) {
+    this.filterValue = value;
     this.mapCardsByColumnId(this.cards);
   }
 
@@ -247,13 +249,29 @@ export class BoardComponent implements OnInit, OnDestroy {
         cardsByColumnId[card.column_id] = cards;
       }
 
-      if (!this.filterTerm) {
+      const hasMembers = this.filterValue?.members?.length
+        ? this.filterValue.members.some(member => card.members.map(t => t.id).includes(member.id))
+        : null;
+
+      const hasOwners = this.filterValue?.owners?.length
+        ? this.filterValue?.owners?.some(owner => card.owner_id === owner.id)
+        : null;
+
+      const hasTags = this.filterValue?.tags?.length
+        ? this.filterValue?.tags?.some(tag => card.tag_ids.includes(tag.id))
+        : null;
+
+      const hasText = this.filterValue?.text
+        ? card.title.toLowerCase().indexOf(this.filterValue.text?.toLowerCase()) !== -1 || `${card.id}`.indexOf(this.filterValue.text) !== -1
+        : null;
+
+      if (
+        (hasMembers === true || hasMembers === null)
+        && (hasOwners === true || hasOwners === null)
+        && (hasTags === true || hasTags === null)
+        && (hasText === true || hasText === null)
+      ) {
         cards.push(card);
-      } else if (this.filterTerm === '@me' && card.members?.filter(m => m.uid === this.currentUser?.uid).length > 0)
-      {
-        cards.push(card)
-      } else if (card.title.toLowerCase().indexOf(this.filterTerm.toLowerCase()) !== -1 || `${card.id}`.indexOf(this.filterTerm) !== -1) {
-        cards.push(card)
       }
     }
 

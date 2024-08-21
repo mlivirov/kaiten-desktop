@@ -11,18 +11,7 @@
                 <span class="d-none d-md-inline text-nowrap">{{ title }}</span>
                 <sup *ngIf="title" class="d-none d-md-block"><span class="ms-2 text-white opacity-50" style="font-size: 0.8rem">(CTRL+K)</span></sup>
             </h3>
-            <div *ngIf="contentTemplate">
-                <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
-            </div>
-
-            <input type="text"
-                   *ngIf="showSearch"
-                   class="form-control mt-4 mt-lg-0 me-2 mx-lg-4 flex-grow-1"
-                   #cardSearchInput
-                   id="cardSearchInput"
-                   placeholder="Type your search query here or press (CTRL+F)"
-                   (keydown.enter)="filter.emit(InputFromEventFunction($event).value)"
-            >
+            <ng-container *ngIf="contentTemplate" [ngTemplateOutlet]="contentTemplate"></ng-container>
         </div>
     </div>
 </div>

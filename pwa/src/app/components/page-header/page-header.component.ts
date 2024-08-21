@@ -27,22 +27,11 @@ import { filter } from 'rxjs';
   styleUrl: './page-header.component.scss'
 })
 export class PageHeaderComponent {
-  InputFromEventFunction = InputFromEventFunction;
-
   @Input()
   title?: string
 
-  @Input()
-  showSearch: boolean = true;
-
-  @Output()
-  filter: EventEmitter<string> = new EventEmitter<string>();
-
   @Output()
   switchBoard = new EventEmitter<{spaceId: number, boardId: number}>()
-
-  @ViewChild('cardSearchInput')
-  cardSearchInput: ElementRef;
 
   @ContentChild('content')
   contentTemplate: TemplateRef<any>;
@@ -63,11 +52,6 @@ export class PageHeaderComponent {
       event.stopPropagation();
 
       this.search();
-    } else if (event.code === 'KeyF' && event.ctrlKey) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      this.cardSearchInput.nativeElement.focus();
     }
   }
 }
