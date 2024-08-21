@@ -1,0 +1,51 @@
+<ng-template #popover>
+    <div>
+        <div class="list-group" *ngIf="currentBadgeType === null">
+            <div *ngFor="let item of popoverItems; index as i"
+                 class="list-group-item user-select-none"
+                 [class.active]="currentPopoverItemIndex === i"
+                 (click)="selectPopoverItem(item)"
+            >
+                {{item.name}}
+            </div>
+        </div>
+        <div class="list-group" *ngIf="currentBadgeType !== null && !popoverItemsLoading">
+            <div *ngFor="let item of popoverItems; index as i"
+                 class="list-group-item user-select-none"
+                 [class.active]="currentPopoverItemIndex === i"
+                 (click)="selectPopoverItem(item)"
+            >
+                <ng-container [ngTemplateOutlet]="getCurrentTemplate()" [ngTemplateOutletContext]="{ data: item }" />
+            </div>
+        </div>
+    </div>
+</ng-template>
+<div>
+    <div class="position-relative" [class.input-group]="!!title">
+        <div class="position-absolute d-flex z-1" style="right: 5px; top: 0; bottom: 0" *ngIf="popoverItemsLoading">
+            <i class="pi pi-spinner pi-spin my-auto" style="color: black"></i>
+        </div>
+
+        <span class="input-group-text {{titleClass}}" id="label" *ngIf="title">{{title}}</span>
+        <input #input
+               [ngModel]="value"
+               (ngModelChange)="updateValue($event)"
+               (blur)="notifyTouched()"
+               [ngbPopover]="popover"
+               popoverClass="typeahead-popover"
+               placement="bottom-start"
+               container="body"
+               triggers="manual"
+               class="form-control {{inputClass}} z-0"
+               [placeholder]="placeholder"
+               aria-describedby="label"
+        >
+    </div>
+
+    <div class="mt-1">
+        <span class="badge text-bg-secondary me-1 cursor-pointer mb-1"
+              *ngFor="let badge of badges"
+              (click)="removeBadge(badge)"
+        >{{badge.type.name}}: {{badge.type.getTitle(badge.value)}}</span>
+    </div>
+</div>

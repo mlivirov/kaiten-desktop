@@ -41,6 +41,10 @@ th, td {
   font-size: .575em;
 }
 
+.med {
+  font-size: .9em;
+}
+
 .card-member+.card-member {
   margin-top: 0.5rem;
 }
@@ -80,4 +84,8 @@ app-list-of-related-cards .list .item:last-child {
 
 .tui-editor-defaultUI {
   border: none;
+}
+
+.typeahead-popover > .popover-body {
+  padding: 0 !important;
 }
