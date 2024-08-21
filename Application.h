@@ -5,7 +5,6 @@
 #include <QWebEngineView>
 #include <QString>
 #include <QWebChannel>
-#include <QWebSocketServer>
 #include <QSettings>
 #include <QNetworkAccessManager>
 #include <QNetworkDiskCache>

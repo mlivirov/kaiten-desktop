@@ -1,9 +1,5 @@
 #include <QApplication>
 #include <QPushButton>
-#include <QWebEngineView>
-#include <QResource>
-#include <QFile>
-#include <qt6/QtWidgets/QApplication>
 #include "Application.h"
 
 int main(int argc, char *argv[]) {
