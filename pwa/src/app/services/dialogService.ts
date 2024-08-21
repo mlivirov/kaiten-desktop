@@ -1,6 +1,6 @@
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { CardEx } from '../models/card-ex';
-import { Observable } from 'rxjs';
+import { EMPTY, finalize, Observable, of } from 'rxjs';
 import {
   CardTransitionConfirmationDialogComponent
 } from '../dialogs/card-transition-confirmation-dialog/card-transition-confirmation-dialog.component';
@@ -14,9 +14,14 @@ import {
 } from '../dialogs/login-confirmation-dialog/login-confirmation-dialog.component';
 import { ApiService } from './api.service';
 import { LoadingDialogComponent } from '../dialogs/loading-dialog/loading-dialog.component';
+import { Card } from '../models/card';
+import { CardGlobalSearchComponent } from '../dialogs/card-global-search/card-global-search.component';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
+  private isCardSearch = false;
+  private isBoardSearch = false;
+
   constructor(
     private apiService: ApiService,
     private modal: NgbModal
@@ -51,13 +56,31 @@ export class DialogService {
     return instance.closed;
   }
 
+  searchCard(): Observable<Card> {
+    if (this.isCardSearch) {
+      return EMPTY;
+    }
+
+    this.isCardSearch = true;
+    const instance = this.modal.open(CardGlobalSearchComponent, {
+      size: 'lg'
+    });
+    return instance.closed.pipe(finalize(() => this.isCardSearch = false));
+  }
+
   searchBoard(closable: boolean = true): Observable<{spaceId: number, boardId: number}> {
+    if (this.isBoardSearch) {
+      return EMPTY;
+    }
+
+    this.isBoardSearch = true;
     const instance = this.modal.open(SearchBoardDialogComponent, {
       beforeDismiss() {
         return closable;
       }
     });
-    return instance.closed;
+
+    return instance.closed.pipe(finalize(() => this.isBoardSearch = false));
   }
 
   loading<T>(): { close() } {

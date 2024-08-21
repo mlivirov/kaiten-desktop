@@ -1,8 +1,8 @@
-<div *ngIf="!profile" class="d-flex align-items-center">
+<div *ngIf="!profile && showName" class="d-flex align-items-center">
     <i class="pi pi-user"></i>
     <span class="ms-2">Unassigned</span>
 </div>
 <div *ngIf="profile" class="d-flex align-items-center">
-    <img *ngIf="showAvatar" class="rounded-circle" alt="logo" [src]="avatarUrl" width="24" height="24"/>
+    <img *ngIf="showAvatar" class="rounded-circle" alt="logo" [src]="avatarUrl" width="24" height="24" [ngbTooltip]="profile?.full_name"/>
     <span class="ms-2" *ngIf="showName">{{profile.full_name}}</span>
 </div>

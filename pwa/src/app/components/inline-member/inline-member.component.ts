@@ -3,6 +3,7 @@ import { AsyncPipe, JsonPipe, NgIf, NgOptimizedImage } from '@angular/common';
 import { AvatarService } from '../../services/avatar.service';
 import { ApiService } from '../../services/api.service';
 import { User } from '../../models/user';
+import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-inline-member',
@@ -11,7 +12,9 @@ import { User } from '../../models/user';
     NgIf,
     NgOptimizedImage,
     JsonPipe,
-    AsyncPipe
+    AsyncPipe,
+    NgbPopover,
+    NgbTooltip
   ],
   templateUrl: './inline-member.component.html',
   styleUrl: './inline-member.component.scss'

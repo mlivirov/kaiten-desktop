@@ -1,0 +1,57 @@
+<div class="modal-header">
+    <div class="d-flex w-100 align-items-center">
+        <app-card-search-input #cardSearchInput placeholder="Type your search query here" titleClass="text-bg-primary" title="Search everywhere" class="flex-grow-1 me-4" [ngModel]="filter" (ngModelChange)="search($event)"></app-card-search-input>
+    </div>
+
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.close()"></button>
+</div>
+<div class="modal-body">
+    <div class="table-responsive mb-4">
+        <table class="table table-sm table-bordered table-striped">
+            <thead>
+                <tr class="med">
+                    <th>Board</th>
+                    <th>Id</th>
+                    <th>Title</th>
+                    <th>Responsible</th>
+                    <th>Status</th>
+                    <th>Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let card of cards; index as i" class="small">
+                    <td class="text-nowrap med">
+                        <a href="javascript:void(0)" (click)="openBoard(card.board_id)">
+                            {{card.board.title}}
+                        </a>
+                    </td>
+                    <td class="med">
+                        <a href="javascript:void(0)" (click)="openCard(card.id)">
+                            {{card.id}}
+                        </a>
+                    </td>
+                    <td class="med">{{card.title}}</td>
+                    <td class="text-nowrap small">
+                        <app-inline-member *ngIf="getResponsible(card)" [profile]="getResponsible(card)"></app-inline-member>
+                    </td>
+                    <td class="text-nowrap small text-center">
+                        <app-card-state-label [state]="card.state"></app-card-state-label>
+                    </td>
+                    <td class="text-nowrap small text-center">
+                        {{card.updated | timeago}}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-center" *ngIf="hasMore && !isLoading">
+        <button class="btn btn-sm btn-outline-secondary" (click)="loadMore()">Load more</button>
+    </div>
+    <div *ngIf="isLoading" class="d-flex align-items-center">
+        <i class="pi pi-spin pi-spinner"></i> <span class="ms-2 small">Loading</span>
+    </div>
+    <div *ngIf="!isLoading && !cards?.length" class="opacity-75 small">
+        Nothing found
+    </div>
+</div>

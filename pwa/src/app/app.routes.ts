@@ -29,6 +29,10 @@ export const routes: Routes = [
           card: cardResolver
         },
       },
+      {
+        path: ':cardId',
+        redirectTo: 'card/:cardId',
+      }
     ],
     canActivate: [authGuard],
   },

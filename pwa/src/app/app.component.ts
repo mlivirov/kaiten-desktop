@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   NavigationCancel,
@@ -19,19 +19,25 @@ import { CardEditorDialogComponent } from './dialogs/card-editor-dialog/card-edi
 import { CardEditorComponent } from './components/card-editor/card-editor.component';
 import { ApiService } from './services/api.service';
 import { Setting } from './models/setting';
+import { TypeaheadComponent } from './components/typeahead/typeahead.component';
+import { CardSearchInputComponent } from './components/card-search-input/card-search-input.component';
+import { DialogService } from './services/dialogService';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, TimeDotsComponent, CardComponent, BoardComponent, PageHeaderComponent, BoardPageComponent, MdEditorComponent, FormsModule, CardEditorDialogComponent, CardEditorComponent],
+  imports: [CommonModule, RouterOutlet, TimeDotsComponent, CardComponent, BoardComponent, PageHeaderComponent, BoardPageComponent, MdEditorComponent, FormsModule, CardEditorDialogComponent, CardEditorComponent, TypeaheadComponent, CardSearchInputComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
   isLoading: boolean = false;
 
-  constructor(router: Router, private apiService: ApiService) {
-
+  constructor(
+    private router: Router,
+    private apiService: ApiService,
+    private dialogService: DialogService,
+  ) {
     router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.isLoading = true;
@@ -45,5 +51,17 @@ export class AppComponent {
         }
       }
     });
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKey(event: KeyboardEvent): void {
+    if (event.code === 'KeyG' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.dialogService
+        .searchCard()
+        .subscribe(t => this.router.navigate(['card', t.id]));
+    }
   }
 }
