@@ -13,6 +13,7 @@ import { BoardService } from '../../services/board.service';
 import { DialogService } from '../../services/dialogService';
 import { TypeaheadComponentValue } from '../typeahead/typeahead.component';
 import { CardFilter } from '../card-search-input/card-search-input.component';
+import { FindColumnRecursiveFunction } from '../../functions/find-column-recursive.function';
 
 function colSortPredicate(a, b) {
   if (a.sort_order < b.sort_order) {
@@ -159,9 +160,8 @@ export class BoardComponent implements OnInit, OnDestroy {
 
   moveCardToColumn(cardId: number, fromId: number, toId: number): Observable<void> {
     const card = this.cards.find(t => t.id === cardId);
-    console.log(cardId);
-    const from = this.columns.find(t => t.id === fromId);
-    const to = this.columns.find(t => t.id === toId);
+    const from = FindColumnRecursiveFunction(this.columns, fromId);
+    const to = FindColumnRecursiveFunction(this.columns, toId);
 
     return this.dialogService.cardTransition(card, from, to)
       .pipe(
@@ -317,6 +317,11 @@ export class BoardComponent implements OnInit, OnDestroy {
       event.stopPropagation();
 
       this.hideEmpty = !this.hideEmpty;
+    } else if (event.code === 'KeyR' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.refresh();
     }
   }
 
