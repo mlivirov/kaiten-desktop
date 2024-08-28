@@ -22,11 +22,12 @@ import { Setting } from './models/setting';
 import { TypeaheadComponent } from './components/typeahead/typeahead.component';
 import { CardSearchInputComponent } from './components/card-search-input/card-search-input.component';
 import { DialogService } from './services/dialogService';
+import { ToastContainerComponent } from './components/toast/toast-container/toast-container.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, TimeDotsComponent, CardComponent, BoardComponent, PageHeaderComponent, BoardPageComponent, MdEditorComponent, FormsModule, CardEditorDialogComponent, CardEditorComponent, TypeaheadComponent, CardSearchInputComponent],
+  imports: [CommonModule, RouterOutlet, TimeDotsComponent, CardComponent, BoardComponent, PageHeaderComponent, BoardPageComponent, MdEditorComponent, FormsModule, CardEditorDialogComponent, CardEditorComponent, TypeaheadComponent, CardSearchInputComponent, ToastContainerComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
