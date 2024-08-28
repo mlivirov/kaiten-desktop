@@ -2,11 +2,12 @@ import { APP_INITIALIZER, ApplicationConfig, importProvidersFrom } from '@angula
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpBackend, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { TimeagoModule } from 'ngx-timeago';
-import { qWebInterceptor } from './interceptors/qweb.interceptor';
 import { EMPTY, from } from 'rxjs';
 import { DragulaModule } from 'ng2-dragula';
+import { errorInterceptor } from './interceptors/error.interceptor';
+import { AppHttpBackend } from './http-backend';
 
 declare class ApplicationProxy {
   initialize(): Promise<void>;
@@ -33,7 +34,9 @@ function applicationProxyFactory() {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withInterceptors([qWebInterceptor])),
+    provideHttpClient(
+      withInterceptors([errorInterceptor])
+    ),
     importProvidersFrom(
       TimeagoModule.forRoot(),
       DragulaModule.forRoot()
@@ -42,6 +45,10 @@ export const appConfig: ApplicationConfig = {
       provide: APP_INITIALIZER,
       multi: true,
       useFactory: () => applicationProxyFactory,
+    },
+    {
+      provide: HttpBackend,
+      useClass: AppHttpBackend
     }
   ],
 };
