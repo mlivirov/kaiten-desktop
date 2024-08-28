@@ -1,18 +1,20 @@
 import { Injectable } from '@angular/core';
-import { forkJoin, map, Observable, switchMap, zip } from 'rxjs';
+import { forkJoin, map, Observable, of, switchMap, zip } from 'rxjs';
 import { CardEx } from '../models/card-ex';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Board } from '../models/board';
 import { Space } from '../models/space';
 import { User } from '../models/user';
 import { Credentials } from '../models/credentials';
-import { CustomProperty, CustomPropertySelectValue } from '../models/custom-property';
+import { CustomProperty, CustomPropertyAndValues, CustomPropertySelectValue } from '../models/custom-property';
 import { Lane } from '../models/lane';
 import { ColumnEx } from '../models/column-ex';
 import { Setting } from '../models/setting';
 import { CardComment } from '../models/card-comment';
 import { Tag } from '../models/tag';
 import { CardFilter } from '../components/card-search-input/card-search-input.component';
+import { MemberType } from '../models/member-type';
+import { Owner } from '../models/owner';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -141,22 +143,36 @@ export class ApiService {
       .get<User[]>(`http://localhost:8080/api/latest/users`)
       .pipe(
         map(users => {
-          let filtered = users.filter(u => {
-            if (!query || query === '') {
-              return true;
-            }
-
-            return u.full_name.indexOf(query) !== -1
-            || u.username.indexOf(query) != -1;
-          });
-
-          if (filtered.length > offset + limit + 1) {
-            return filtered.slice(offset, offset + limit);
-          }
-
-          return filtered;
+          return this.filterUsers(users, offset, limit, query);
         })
       );
+  }
+
+  getCardAllowedUsers(cardId: number, offset: number, limit: number, query?: string): Observable<User[]> {
+    return this.httpClient
+      .get<User[]>(`http://localhost:8080/api/latest/cards/${cardId}/allowed-users`)
+      .pipe(
+        map(users => {
+          return this.filterUsers(users, offset, limit, query);
+        })
+      );
+  }
+
+  private filterUsers(users: User[], offset: number, limit: number, query?: string): User[] {
+    let filtered = users.filter(u => {
+      if (!query || query === '') {
+        return true;
+      }
+
+      return u.full_name.indexOf(query) !== -1
+        || u.username.indexOf(query) != -1;
+    });
+
+    if (filtered.length > offset + limit + 1) {
+      return filtered.slice(offset, offset + limit);
+    }
+
+    return filtered;
   }
 
   getUserByUid(uid: string): Observable<User> {
@@ -171,6 +187,28 @@ export class ApiService {
     return this.httpClient.patch<CardEx>(`http://localhost:8080/api/latest/cards/${id}`, properties);
   }
 
+  addMemberToCard(cardId: number, userId: number): Observable<Owner> {
+    return this.httpClient.post<Owner>(`http://localhost:8080/api/latest/cards/${cardId}/members`, {
+      user_id: userId,
+    });
+  }
+
+  removeMemberFromCard(cardId: number, userId: number): Observable<void> {
+    return this.httpClient.delete(`http://localhost:8080/api/latest/cards/${cardId}/members/${userId}`)
+      .pipe(
+        map(res => {})
+      );
+  }
+
+  makeMemberResponsible(cardId: number, userId: number): Observable<void> {
+    return this.httpClient.patch(`http://localhost:8080/api/latest/cards/${cardId}/members/${userId}`, {
+        type: MemberType.Responsible,
+      })
+      .pipe(
+        map(res => {})
+      );
+  }
+
   getCustomProperties(): Observable<CustomProperty[]> {
     return this.httpClient.get<CustomProperty[]>(`http://localhost:8080/api/latest/company/custom-properties`);
   }
@@ -178,6 +216,27 @@ export class ApiService {
   getCustomPropertyValues(id: number): Observable<CustomPropertySelectValue[]> {
     return this.httpClient.get<CustomPropertySelectValue[]>(`http://localhost:8080/api/latest/company/custom-properties/${id}/select-values`);
   }
+
+  getCustomPropertiesWithValues(): Observable<CustomPropertyAndValues[]> {
+    return this.getCustomProperties()
+      .pipe(
+        switchMap(properties => {
+          const results = properties.map(property => {
+            if (property.type === 'select') {
+              return this.getCustomPropertyValues(property.id)
+                .pipe(
+                  map(values => ({ property, values } as CustomPropertyAndValues))
+                );
+            } else {
+              return of({ property, values: null } as CustomPropertyAndValues);
+            }
+          });
+
+          return results.length ? forkJoin<CustomPropertyAndValues[]>(results) : of([]);
+        }),
+      );
+  }
+
 
   getTags(offset: number, limit: number, query: string): Observable<Tag[]> {
     let params = new HttpParams();
@@ -188,5 +247,19 @@ export class ApiService {
     }
 
     return this.httpClient.get<Tag[]>(`http://localhost:8080/api/latest/tags?${params.toString()}`);
+  }
+
+  createTag(cardId: number, name: string): Observable<Tag> {
+    return this.httpClient.post<Tag>(`http://localhost:8080/api/latest/cards/${cardId}/tags`, {
+      name
+    });
+  }
+
+  removeTag(cardId: number, tagId: number): Observable<void> {
+    return this.httpClient
+      .delete(`http://localhost:8080/api/latest/cards/${cardId}/tags/${tagId}`)
+      .pipe(
+        map(() => {})
+      );
   }
 }
