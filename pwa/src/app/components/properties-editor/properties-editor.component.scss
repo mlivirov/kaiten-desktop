@@ -1,0 +1,10 @@
+.inline-property:hover,
+.inline-property.active,
+{
+  background-color: #B2C7D3;
+  cursor: pointer;
+}
+
+.blur {
+  filter: blur(1px);
+}
