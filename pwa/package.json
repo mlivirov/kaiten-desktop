@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build --deploy-url=qrc:/ --output-hashing=none",
+    "build-dev": "ng build --deploy-url=qrc:/ --output-hashing=none -c development",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
