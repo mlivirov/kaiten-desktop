@@ -18,4 +18,7 @@ export class CardStateLabelComponent {
 
   @Input()
   state: CardState;
+
+  @Input()
+  colored: boolean = true;
 }
