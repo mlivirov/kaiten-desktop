@@ -1,0 +1,164 @@
+<app-properties-editor #propertiesEditor [properties]="properties" (saveRequested)="confirmSave($event)">
+    <ng-template [app-editor-property-template] mode="read" type="state" let-data="data">
+        <app-card-state-label [state]="data" [colored]="false"></app-card-state-label>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="title" let-data="data">
+        <span>{{data.title}}</span>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="size" let-property="property">
+        <input class="form-control form-control-sm editor"
+               type="number"
+               [ngModel]="property.value"
+               (ngModelChange)="property.value = $event"
+        >
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="plain" let-data="data">
+        <span>{{data}}</span>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="column" let-data="data">
+        <span>{{data.title}}</span>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="column" let-property="property">
+        <select class="form-select form-select-sm editor" [ngModel]="property.value.id" (ngModelChange)="property.value = FindColumnRecursiveFunction(columns, $event)">
+            <option *ngFor="let column of columns" [ngValue]="column.id">{{column.title}}</option>
+        </select>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="goals" let-data="data">
+        <span>{{data.total}} of {{data.done}}</span>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="member" let-data="data" let-property="property">
+        <div class="d-flex align-items-center flex-grow-1">
+            <app-inline-member [profile]="data"
+                               class="small"
+                               [class.text-primary]="data.type === MemberType.Responsible"
+                               (dblclick)="makeMemberResponsible(data)"
+                               [ngbTooltip]="property.value.type === MemberType.Responsible ? 'This member is responsible' : 'Double click on the member to make it responsible'"
+            ></app-inline-member>
+            <button type="button" class="btn btn-sm btn-link ms-auto visible-on-hover text-secondary" (click)="removeMember(data, property)" >
+                <i class="pi pi-times" style="font-size: .5em"></i>
+            </button>
+        </div>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="member" let-property="property">
+        <ng-template #userTypeahead let-profile="result">
+            <app-inline-member [profile]="profile"></app-inline-member>
+        </ng-template>
+
+        <app-inline-member #member class="d-none" [profileUid]="property.value"></app-inline-member>
+
+        <input type="text"
+               class="form-control form-control-sm editor"
+               [placeholder]="'Type user name'"
+               [ngModel]="member.profile"
+               (ngModelChange)="property.value = $event"
+               [ngbTypeahead]="cardUsersTypeaheadSearch"
+               [resultTemplate]="userTypeahead"
+               [editable]="false"
+               [inputFormatter]="userTypeaheadFormatter"
+        >
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="tag" let-data="data" let-property="property">
+        <div class="bg-white small border border-1 px-2 d-flex align-items-center">
+            <span>{{data.name}}</span>
+            <button type="button" class="btn btn-sm btn-link ms-auto text-secondary" (click)="removeTag(data, property)">
+                <i class="pi pi-times" style="font-size: .5em"></i>
+            </button>
+        </div>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="tag" let-property="property">
+        <ng-template #tagTypeahead let-tag="result">
+            {{ tag.name }}
+        </ng-template>
+
+        <input type="text"
+               class="form-control form-control-sm editor"
+               [placeholder]="'Type tag name'"
+               [ngModel]="property.value"
+               (ngModelChange)="property.value = $event"
+               [ngbTypeahead]="tagTypeaheadSearch"
+               [resultTemplate]="tagTypeahead"
+               [inputFormatter]="tagTypeaheadFormatter"
+        >
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="date" let-data="data">
+        <span>{{data | date}}</span>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="date" let-property="property">
+        <input class="form-control form-control-sm editor" type="date" ngbDatepicker [(ngModel)]="property.value">
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="custom-date" let-data="data">
+        <span>{{data.date | date}}</span>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="custom-date" let-property="property">
+        <input class="form-control form-control-sm editor" type="date" ngbDatepicker [ngModel]="property.value?.date" (ngModelChange)="property.value = { date: $event }">
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="custom-user" let-data="data">
+        <app-inline-member class="small" [profileUid]="data"></app-inline-member>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="custom-user" let-property="property">
+        <ng-template #userTypeahead let-profile="result">
+            <app-inline-member [profile]="profile"></app-inline-member>
+        </ng-template>
+
+        <app-inline-member #member class="d-none" [profileUid]="property.value"></app-inline-member>
+
+        <input type="text"
+               class="form-control form-control-sm editor"
+               [placeholder]="'Type user name'"
+               [ngModel]="member.profile"
+               (ngModelChange)="property.value = $event?.uid"
+               [ngbTypeahead]="allUsersTypeaheadSearch"
+               [resultTemplate]="userTypeahead"
+               [inputFormatter]="userTypeaheadFormatter"
+               [editable]="false"
+        >
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="custom-select" let-data="data" let-property="property">
+        {{ findSelectValue(property.extra.values, data).value }}
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="custom-select" let-property="property">
+        <select class="form-select form-select-sm editor" [(ngModel)]="property.value">
+            <option [ngValue]="null">Not Set</option>
+            <option *ngFor="let item of property.extra.values" [ngValue]="item.id">{{ item.value }}</option>
+        </select>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="custom-checkbox" let-data="data">
+        <input class="form-check-inpu" type="checkbox" [ngModel]="data" [disabled]="true">
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="custom-checkbox" let-property="property">
+        <input class="form-check-input editor" type="checkbox" [(ngModel)]="property.value">
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="custom-string" let-property="property">
+        <input class="form-control form-control-sm editor" type="text" [(ngModel)]="property.value">
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="write" type="custom-number" let-property="property">
+        <input class="form-control form-control-sm editor"
+               type="number"
+               [ngModel]="property.value"
+               (ngModelChange)="property.value = $event"
+               [min]="property.extra.property.data?.restrictions?.min"
+               [max]="property.extra.property.data?.restrictions?.max">
+    </ng-template>
+</app-properties-editor>
