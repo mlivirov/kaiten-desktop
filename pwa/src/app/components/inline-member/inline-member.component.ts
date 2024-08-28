@@ -4,6 +4,8 @@ import { AvatarService } from '../../services/avatar.service';
 import { ApiService } from '../../services/api.service';
 import { User } from '../../models/user';
 import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { finalize } from 'rxjs';
+
 
 @Component({
   selector: 'app-inline-member',
@@ -34,6 +36,8 @@ export class InlineMemberComponent implements OnChanges {
 
   avatarUrl?: string;
 
+  isLoading: boolean = false;
+
   constructor(private avatarService: AvatarService, private apiService: ApiService) {
   }
 
@@ -47,10 +51,16 @@ export class InlineMemberComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.profileUid) {
-      this.apiService.getUserByUid(this.profileUid).subscribe(d => {
-        this.profile = d;
-        this.loadAvatarUrl();
-      });
+      this.isLoading = true;
+      this.apiService
+        .getUserByUid(this.profileUid)
+        .pipe(
+          finalize(() => this.isLoading = false),
+        )
+        .subscribe(d => {
+          this.profile = d;
+          this.loadAvatarUrl();
+        });
     }
 
     if (this.profile) {
