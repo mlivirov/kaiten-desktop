@@ -16,12 +16,13 @@
         <div class="flex-grow-1 align-self-center">
             <ng-container
                     [ngTemplateOutlet]="getPropertyWriterTemplate(editingProperty)"
-                    [ngTemplateOutletContext]="{ property: editingProperty }"
+                    [ngTemplateOutletContext]="{ property: editingProperty, isSaveInProgress }"
             ></ng-container>
         </div>
 
-        <button type="button" class="btn btn-sm btn-link ms-auto me-1" (click)="saveProperty($event);" tabindex="0">
-            <i class="pi pi-check text-success"></i>
+        <button type="button" class="btn btn-sm btn-link ms-auto me-1" (click)="saveProperty($event);" tabindex="0" [disabled]="isSaveInProgress">
+            <i class="pi pi-check text-success" *ngIf="!isSaveInProgress"></i>
+            <i class="pi pi-spinner pi-spin" *ngIf="isSaveInProgress"></i>
         </button>
     </div>
 </ng-template>

@@ -7,11 +7,12 @@
         <span>{{data.title}}</span>
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="size" let-property="property">
+    <ng-template [app-editor-property-template] mode="write" type="size" let-property="property" let-isSaveInProgress="isSaveInProgress">
         <input class="form-control form-control-sm editor"
                type="number"
                [ngModel]="property.value"
                (ngModelChange)="property.value = $event"
+               [disabled]="isSaveInProgress"
         >
     </ng-template>
 
@@ -23,8 +24,12 @@
         <span>{{data.title}}</span>
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="column" let-property="property">
-        <select class="form-select form-select-sm editor" [ngModel]="property.value.id" (ngModelChange)="property.value = FindColumnRecursiveFunction(columns, $event)">
+    <ng-template [app-editor-property-template] mode="write" type="column" let-property="property" let-isSaveInProgress="isSaveInProgress">
+        <select class="form-select form-select-sm editor"
+                [ngModel]="property.value.id"
+                (ngModelChange)="property.value = FindColumnRecursiveFunction(columns, $event)"
+                [disabled]="isSaveInProgress"
+        >
             <option *ngFor="let column of columns" [ngValue]="column.id">{{column.title}}</option>
         </select>
     </ng-template>
@@ -41,13 +46,14 @@
                                (dblclick)="makeMemberResponsible(data)"
                                [ngbTooltip]="property.value.type === MemberType.Responsible ? 'This member is responsible' : 'Double click on the member to make it responsible'"
             ></app-inline-member>
-            <button type="button" class="btn btn-sm btn-link ms-auto visible-on-hover text-secondary" (click)="removeMember(data, property)" >
-                <i class="pi pi-times" style="font-size: .5em"></i>
+            <button type="button" class="btn btn-sm btn-link ms-auto visible-on-hover text-secondary" (click)="removeMember(data, property)" [disabled]="isSaveInProgress">
+                <i class="pi pi-times" style="font-size: .5em" *ngIf="!isSaveInProgress"></i>
+                <i class="pi pi-spinner pi-spin" style="font-size: .5em" *ngIf="isSaveInProgress"></i>
             </button>
         </div>
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="member" let-property="property">
+    <ng-template [app-editor-property-template] mode="write" type="member" let-property="property" let-isSaveInProgress="isSaveInProgress">
         <ng-template #userTypeahead let-profile="result">
             <app-inline-member [profile]="profile"></app-inline-member>
         </ng-template>
@@ -63,19 +69,21 @@
                [resultTemplate]="userTypeahead"
                [editable]="false"
                [inputFormatter]="userTypeaheadFormatter"
+               [disabled]="isSaveInProgress"
         >
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="read" type="tag" let-data="data" let-property="property">
         <div class="bg-white small border border-1 px-2 d-flex align-items-center">
             <span>{{data.name}}</span>
-            <button type="button" class="btn btn-sm btn-link ms-auto text-secondary" (click)="removeTag(data, property)">
-                <i class="pi pi-times" style="font-size: .5em"></i>
+            <button type="button" class="btn btn-sm btn-link ms-auto text-secondary" (click)="removeTag(data, property)" [disabled]="isSaveInProgress">
+                <i class="pi pi-times" style="font-size: .5em" *ngIf="!isSaveInProgress"></i>
+                <i class="pi pi-spinner pi-spin" style="font-size: .5em" *ngIf="isSaveInProgress"></i>
             </button>
         </div>
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="tag" let-property="property">
+    <ng-template [app-editor-property-template] mode="write" type="tag" let-property="property" let-isSaveInProgress="isSaveInProgress">
         <ng-template #tagTypeahead let-tag="result">
             {{ tag.name }}
         </ng-template>
@@ -88,6 +96,7 @@
                [ngbTypeahead]="tagTypeaheadSearch"
                [resultTemplate]="tagTypeahead"
                [inputFormatter]="tagTypeaheadFormatter"
+               [disabled]="isSaveInProgress"
         >
     </ng-template>
 
@@ -95,23 +104,29 @@
         <span>{{data | date}}</span>
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="date" let-property="property">
-        <input class="form-control form-control-sm editor" type="date" ngbDatepicker [(ngModel)]="property.value">
+    <ng-template [app-editor-property-template] mode="write" type="date" let-property="property" let-isSaveInProgress="isSaveInProgress">
+        <input class="form-control form-control-sm editor" type="date" ngbDatepicker [(ngModel)]="property.value" [disabled]="isSaveInProgress">
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="read" type="custom-date" let-data="data">
         <span>{{data.date | date}}</span>
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="custom-date" let-property="property">
-        <input class="form-control form-control-sm editor" type="date" ngbDatepicker [ngModel]="property.value?.date" (ngModelChange)="property.value = { date: $event }">
+    <ng-template [app-editor-property-template] mode="write" type="custom-date" let-property="property" let-isSaveInProgress="isSaveInProgress">
+        <input class="form-control form-control-sm editor"
+               type="date"
+               ngbDatepicker
+               [ngModel]="property.value?.date"
+               (ngModelChange)="property.value = { date: $event }"
+               [disabled]="isSaveInProgress"
+        >
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="read" type="custom-user" let-data="data">
         <app-inline-member class="small" [profileUid]="data"></app-inline-member>
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="custom-user" let-property="property">
+    <ng-template [app-editor-property-template] mode="write" type="custom-user" let-property="property" let-isSaveInProgress="isSaveInProgress">
         <ng-template #userTypeahead let-profile="result">
             <app-inline-member [profile]="profile"></app-inline-member>
         </ng-template>
@@ -127,6 +142,7 @@
                [resultTemplate]="userTypeahead"
                [inputFormatter]="userTypeaheadFormatter"
                [editable]="false"
+               [disabled]="isSaveInProgress"
         >
     </ng-template>
 
@@ -134,8 +150,8 @@
         {{ findSelectValue(property.extra.values, data).value }}
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="custom-select" let-property="property">
-        <select class="form-select form-select-sm editor" [(ngModel)]="property.value">
+    <ng-template [app-editor-property-template] mode="write" type="custom-select" let-property="property" let-isSaveInProgress="isSaveInProgress">
+        <select class="form-select form-select-sm editor" [(ngModel)]="property.value" [disabled]="isSaveInProgress">
             <option [ngValue]="null">Not Set</option>
             <option *ngFor="let item of property.extra.values" [ngValue]="item.id">{{ item.value }}</option>
         </select>
@@ -145,20 +161,22 @@
         <input class="form-check-inpu" type="checkbox" [ngModel]="data" [disabled]="true">
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="custom-checkbox" let-property="property">
-        <input class="form-check-input editor" type="checkbox" [(ngModel)]="property.value">
+    <ng-template [app-editor-property-template] mode="write" type="custom-checkbox" let-property="property" let-isSaveInProgress="isSaveInProgress">
+        <input class="form-check-input editor" type="checkbox" [(ngModel)]="property.value" [disabled]="isSaveInProgress">
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="custom-string" let-property="property">
-        <input class="form-control form-control-sm editor" type="text" [(ngModel)]="property.value">
+    <ng-template [app-editor-property-template] mode="write" type="custom-string" let-property="property" let-isSaveInProgress="isSaveInProgress">
+        <input class="form-control form-control-sm editor" type="text" [(ngModel)]="property.value" [disabled]="isSaveInProgress">
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="custom-number" let-property="property">
+    <ng-template [app-editor-property-template] mode="write" type="custom-number" let-property="property" let-isSaveInProgress="isSaveInProgress">
         <input class="form-control form-control-sm editor"
                type="number"
                [ngModel]="property.value"
                (ngModelChange)="property.value = $event"
-               [min]="property.extra.property.data?.restrictions?.min"
-               [max]="property.extra.property.data?.restrictions?.max">
+               [min]="property.extra.property.data?.restrictions?.min ?? NumberMin"
+               [max]="property.extra.property.data?.restrictions?.max ?? NumberMax"
+               [disabled]="isSaveInProgress"
+        >
     </ng-template>
 </app-properties-editor>

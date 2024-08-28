@@ -13,7 +13,7 @@ import {
 } from '../../properties-editor/properties-editor.component';
 import { CardEx } from '../../../models/card-ex';
 import { Column } from '../../../models/column';
-import { debounceTime, forkJoin, Observable, of, OperatorFunction, switchMap } from 'rxjs';
+import { catchError, debounceTime, EMPTY, finalize, forkJoin, Observable, of, OperatorFunction, switchMap } from 'rxjs';
 import { User } from '../../../models/user';
 import { Tag } from '../../../models/tag';
 import { CustomProperty, CustomPropertyAndValues, CustomPropertySelectValue } from '../../../models/custom-property';
@@ -24,7 +24,7 @@ import { MemberType } from '../../../models/member-type';
 import { UnionIfNotExistsFunction } from '../../../functions/union-if-not-exists.function';
 import { ApiService } from '../../../services/api.service';
 import { CardStateLabelComponent } from '../card-state-label/card-state-label.component';
-import { AsyncPipe, DatePipe, NgForOf } from '@angular/common';
+import { AsyncPipe, DatePipe, NgForOf, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InlineMemberComponent } from '../../inline-member/inline-member.component';
 import { FindColumnRecursiveFunction } from '../../../functions/find-column-recursive.function';
@@ -80,6 +80,7 @@ export class NgbDateStringAdapter extends NgbDateAdapter<string> {
     NgbTypeahead,
     AsyncPipe,
     NgbTooltip,
+    NgIf,
   ],
   templateUrl: './card-properties.component.html',
   styleUrl: './card-properties.component.scss',
@@ -134,9 +135,9 @@ export class CardPropertiesComponent implements OnInit {
 
   tagTypeaheadFormatter = (item: Tag) => item.name;
 
-
   properties: GroupOfEditorProperties[] = [];
   columns: Column[] = [];
+  isSaveInProgress: boolean = false;
 
   constructor(private apiService: ApiService) {
   }
@@ -265,25 +266,46 @@ export class CardPropertiesComponent implements OnInit {
   updateDateProperty(property: EditorProperty<string>) {
     this.apiService.updateCard(this.card.id, {
       [property.name]: property.value
-    } as unknown as CardEx).subscribe(() => {
-      this.propertiesEditor.commitChanges(property.value);
-    });
+    } as unknown as CardEx)
+      .pipe(
+        catchError(() => {
+          this.propertiesEditor.abortSave();
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.propertiesEditor.commitChanges(property.value);
+      });
   }
 
   updateColumn(property: EditorProperty<Column>) {
     this.apiService.updateCard(this.card.id, {
       column_id: property.value.id
-    }).subscribe(() => {
-      this.propertiesEditor.commitChanges(property.value);
-    });
+    })
+      .pipe(
+        catchError(() => {
+          this.propertiesEditor.abortSave();
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.propertiesEditor.commitChanges(property.value);
+      });
   }
 
   updateSize(property: EditorProperty<number>) {
     this.apiService.updateCard(this.card.id, {
       size: property.value
-    }).subscribe(() => {
-      this.propertiesEditor.commitChanges(property.value);
-    });
+    })
+      .pipe(
+        catchError(() => {
+          this.propertiesEditor.abortSave();
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.propertiesEditor.commitChanges(property.value);
+      });
   }
 
   updateCustomUser(property: EditorProperty<string, CustomPropertyAndValues>) {
@@ -291,9 +313,16 @@ export class CardPropertiesComponent implements OnInit {
       properties: {
         [`id_${property.extra.property.id}`]: property.value ? [property.value] : null
       }
-    }).subscribe(() => {
-      this.propertiesEditor.commitChanges(property.value);
-    });
+    })
+      .pipe(
+        catchError(() => {
+          this.propertiesEditor.abortSave();
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.propertiesEditor.commitChanges(property.value);
+      });
   }
 
   updateCustomCheckbox(property: EditorProperty<boolean, CustomPropertyAndValues>) {
@@ -301,9 +330,16 @@ export class CardPropertiesComponent implements OnInit {
       properties: {
         [`id_${property.extra.property.id}`]: property.value
       }
-    }).subscribe(() => {
-      this.propertiesEditor.commitChanges(property.value);
-    });
+    })
+      .pipe(
+        catchError(() => {
+          this.propertiesEditor.abortSave();
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.propertiesEditor.commitChanges(property.value);
+      });
   }
 
   updateCustomSelect(property: EditorProperty<number, CustomPropertyAndValues>) {
@@ -311,9 +347,16 @@ export class CardPropertiesComponent implements OnInit {
       properties: {
         [`id_${property.extra.property.id}`]: [property.value]
       }
-    }).subscribe(() => {
-      this.propertiesEditor.commitChanges(property.value);
-    });
+    })
+      .pipe(
+        catchError(() => {
+          this.propertiesEditor.abortSave();
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.propertiesEditor.commitChanges(property.value);
+      });
   }
 
   updateCustomString(property: EditorProperty<string, CustomPropertyAndValues>) {
@@ -321,9 +364,16 @@ export class CardPropertiesComponent implements OnInit {
       properties: {
         [`id_${property.extra.property.id}`]: property.value
       }
-    }).subscribe(() => {
-      this.propertiesEditor.commitChanges(property.value);
-    });
+    })
+      .pipe(
+        catchError(() => {
+          this.propertiesEditor.abortSave();
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.propertiesEditor.commitChanges(property.value);
+      });
   }
 
   updateCustomDate(property: EditorProperty<{ date: string}, CustomPropertyAndValues>) {
@@ -341,14 +391,25 @@ export class CardPropertiesComponent implements OnInit {
       properties: {
         [`id_${property.extra.property.id}`]: newValue
       }
-    }).subscribe(() => {
-      this.propertiesEditor.commitChanges(newValue);
-    });
+    })
+      .pipe(
+        catchError(() => {
+          this.propertiesEditor.abortSave();
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.propertiesEditor.commitChanges(newValue);
+      });
   }
 
   makeMemberResponsible(member: Owner) {
+    this.isSaveInProgress = true;
     this.apiService
       .makeMemberResponsible(this.card.id, member.id)
+      .pipe(
+        finalize(() => this.isSaveInProgress = false),
+      )
       .subscribe(() => {
         member.type = MemberType.Responsible;
       });
@@ -357,16 +418,25 @@ export class CardPropertiesComponent implements OnInit {
   addMember(property: EditorProperty<User>) {
     this.apiService
       .addMemberToCard(this.card.id, property.value.id)
+      .pipe(
+        catchError(() => {
+          this.propertiesEditor.abortSave();
+          return EMPTY;
+        })
+      )
       .subscribe(member => {
         this.card.members = UnionIfNotExistsFunction(this.card.members, member, 'id');
         this.propertiesEditor.commitChanges(this.card.members);
       })
-
   }
 
   removeMember(member: User, property: EditorProperty<User[]>) {
+    this.isSaveInProgress = true;
     this.apiService
       .removeMemberFromCard(this.card.id, member.id)
+      .pipe(
+        finalize(() => this.isSaveInProgress = false)
+      )
       .subscribe(() => {
         const indexOfElement = this.card.members.indexOf(member);
         this.card.members.splice(indexOfElement, 1);
@@ -377,6 +447,12 @@ export class CardPropertiesComponent implements OnInit {
     const name = typeof property.value === 'string' ? property.value : property.value.name;
     this.apiService
       .createTag(this.card.id, name)
+      .pipe(
+        catchError(() => {
+          this.propertiesEditor.abortSave();
+          return EMPTY;
+        })
+      )
       .subscribe(tag => {
         this.card.tags = UnionIfNotExistsFunction(this.card.tags, tag, 'id');
         this.propertiesEditor.commitChanges(this.card.tags);
@@ -384,8 +460,12 @@ export class CardPropertiesComponent implements OnInit {
   }
 
   removeTag(tag: Tag, property: EditorProperty<Tag[]>) {
+    this.isSaveInProgress = true;
     this.apiService
       .removeTag(this.card.id, tag.id)
+      .pipe(
+        finalize(() => this.isSaveInProgress = false)
+      )
       .subscribe(() => {
         const indexOfTag = this.card.tags.indexOf(tag);
         this.card.tags.splice(indexOfTag, 1);

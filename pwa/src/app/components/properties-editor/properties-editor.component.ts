@@ -120,10 +120,10 @@ export class PropertiesEditorComponent {
     this.editingProperty.value = newValue;
     this.editingProperty = null;
     this.editingPropertyGroup = null;
-    this.isSaveInProgress = true;
+    this.isSaveInProgress = false;
   }
 
-  rejectChanges(newValue: any) {
+  abortSave() {
     this.isSaveInProgress = false;
   }
 
