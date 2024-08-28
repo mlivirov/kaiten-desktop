@@ -16,7 +16,7 @@ import { CardEx } from '../../models/card-ex';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
 import { CustomProperty, CustomPropertyAndValues, CustomPropertySelectValue } from '../../models/custom-property';
 import { ApiService } from '../../services/api.service';
-import { debounceTime, forkJoin, Observable, of, OperatorFunction, switchMap } from 'rxjs';
+import { debounceTime, finalize, forkJoin, Observable, of, OperatorFunction, switchMap } from 'rxjs';
 import { Lane } from '../../models/lane';
 import { DialogService } from '../../services/dialogService';
 import { CardReference, ListOfRelatedCardsComponent } from './card-references-accordion/list-of-related-cards/list-of-related-cards.component';
@@ -82,4 +82,23 @@ export class CardEditorComponent {
 
   @Input()
   card: CardEx;
+
+  isSaveInProgress: boolean = false;
+
+  constructor(private apiService: ApiService) {
+  }
+
+  updateAsap(value: boolean) {
+    this.isSaveInProgress = true;
+    this.apiService
+      .updateCard(this.card.id, {
+        asap: value
+      })
+      .pipe(
+        finalize(() => this.isSaveInProgress = false)
+      )
+      .subscribe(card => {
+        this.card.asap = value;
+      })
+  }
 }
