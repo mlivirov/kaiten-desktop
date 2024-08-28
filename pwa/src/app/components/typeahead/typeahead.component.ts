@@ -73,7 +73,11 @@ export class TypeaheadComponent implements ControlValueAccessor {
 
   currentPopoverItemIndex = 0;
 
-  @ViewChild('input', { read: NgbPopover }) popover: NgbPopover;
+  @ViewChild('input', { read: NgbPopover })
+  popover: NgbPopover;
+
+  @ViewChild('input', { read: ElementRef })
+  input: ElementRef;
 
   @Input()
   title: string;

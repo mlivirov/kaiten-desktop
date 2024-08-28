@@ -27,8 +27,8 @@ export class BoardPageComponent {
   title: string;
   boardId: number;
 
-  @ViewChild('cardSearchInput')
-  cardSearchInput: ElementRef;
+  @ViewChild('cardSearchInput', { read: CardSearchInputComponent })
+  cardSearchInput: CardSearchInputComponent;
 
   constructor(private activatedRoute: ActivatedRoute, private router: Router) {
     activatedRoute
@@ -50,7 +50,7 @@ export class BoardPageComponent {
       event.preventDefault();
       event.stopPropagation();
 
-      this.cardSearchInput.nativeElement.focus();
+      this.cardSearchInput.typeahead.input.nativeElement.focus();
     }
   }
 }

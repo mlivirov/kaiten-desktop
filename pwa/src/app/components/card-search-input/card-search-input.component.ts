@@ -1,4 +1,4 @@
-import { Component, forwardRef, Injectable, Input } from '@angular/core';
+import { Component, ElementRef, forwardRef, Injectable, Input, ViewChild } from '@angular/core';
 import {
   Badge,
   BADGE_SERVICE,
@@ -101,6 +101,9 @@ export class CardSearchInputComponent implements ControlValueAccessor {
 
   @Input()
   titleClass: string;
+
+  @ViewChild('typeahead', { read: TypeaheadComponent })
+  typeahead: TypeaheadComponent;
 
   onChangeCallback?: (value: TypeaheadComponentValue) => void;
   onTouchedCallback?: () => void;
