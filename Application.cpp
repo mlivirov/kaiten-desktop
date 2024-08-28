@@ -49,6 +49,8 @@ void Application::processHttpResponse(QNetworkReply *reply) {
     auto contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
     if (contentType.contains("application/json")) {
         data = QString::fromUtf8(reply->readAll());
+    } else if (reply->error() != QNetworkReply::NetworkError::NoError) {
+        data = reply->errorString();
     } else {
         data = contentType + ":" + QString::fromUtf8(reply->readAll().toBase64());
     }
