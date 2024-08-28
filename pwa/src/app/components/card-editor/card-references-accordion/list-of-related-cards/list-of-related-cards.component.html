@@ -14,7 +14,7 @@
             <div class="strong me-2 text-uppercase">
                 <app-card-state-label [state]="item.card.state"></app-card-state-label>
             </div>
-            <div *ngIf="getResponsible(item.card.members).length" class="me-2">
+            <div *ngIf="getResponsible(item.card.members).length" class="me-2 d-none d-sm-block">
                 by
                 <app-inline-member *ngFor="let member of getResponsible(item.card.members)" class="me-1" [profile]="member" [showAvatar]="false"></app-inline-member>
             </div>

@@ -1,11 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { DatePipe, NgClass, NgForOf, NgIf, NgSwitch } from '@angular/common';
-import { Owner } from '../../../models/owner';
-import { MemberType } from '../../../models/member-type';
-import { InlineMemberComponent } from '../../inline-member/inline-member.component';
-import { Card } from '../../../models/card';
-import { CardState } from '../../../models/card-state';
-import { CardStateLabelComponent } from '../card-state-label/card-state-label.component';
+import { Owner } from '../../../../models/owner';
+import { MemberType } from '../../../../models/member-type';
+import { InlineMemberComponent } from '../../../inline-member/inline-member.component';
+import { Card } from '../../../../models/card';
+import { CardState } from '../../../../models/card-state';
+import { CardStateLabelComponent } from '../../card-state-label/card-state-label.component';
 import { TimeagoModule } from 'ngx-timeago';
 import { Router } from '@angular/router';
 
