@@ -18,7 +18,7 @@
 </div>
 
 <div *ngFor="let comment of comments" class="mt-4">
-    <div class="d-flex small align-items-center">
+    <div class="d-flex small align-items-center" style="background-color: #F7F9FA">
         <app-inline-member class="me-2" [profile]="comment.author"></app-inline-member>
         <div class="opacity-75 small">
             commented {{comment.created | timeago}} {{ comment.edited ? ' (edited)' : ''}}

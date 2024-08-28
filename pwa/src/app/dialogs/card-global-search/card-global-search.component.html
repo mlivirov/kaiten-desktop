@@ -6,7 +6,7 @@
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.close()"></button>
 </div>
 <div class="modal-body">
-    <div class="table-responsive mb-4">
+    <div class="table-responsive">
         <table class="table table-sm table-bordered table-striped">
             <thead>
                 <tr class="med">
@@ -48,8 +48,10 @@
     <div class="text-center" *ngIf="hasMore && !isLoading">
         <button class="btn btn-sm btn-outline-secondary" (click)="loadMore()">Load more</button>
     </div>
-    <div *ngIf="isLoading" class="d-flex align-items-center">
-        <i class="pi pi-spin pi-spinner"></i> <span class="ms-2 small">Loading</span>
+    <div *ngIf="isLoading" class="text-center">
+        <div>
+            <i class="pi pi-spin pi-spinner"></i> <span class="ms-2 small">Loading</span>
+        </div>
     </div>
     <div *ngIf="!isLoading && !cards?.length" class="opacity-75 small">
         Nothing found

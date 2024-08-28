@@ -1,3 +1,5 @@
+$enable-negative-margins: true;
+
 @import 'bootstrap/scss/bootstrap';
 @import 'primeicons/primeicons.css';
 @import '@toast-ui/editor/dist/toastui-editor.css';
@@ -88,4 +90,13 @@ app-list-of-related-cards .list .item:last-child {
 
 .typeahead-popover > .popover-body {
   padding: 0 !important;
+}
+
+
+* .visible-on-hover {
+  visibility: hidden;
+}
+
+*:hover > .visible-on-hover {
+  visibility: visible;
 }

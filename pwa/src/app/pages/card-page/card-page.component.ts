@@ -5,6 +5,7 @@ import { CardEditorComponent } from '../../components/card-editor/card-editor.co
 import { CurrentUserComponent } from '../../components/current-user/current-user.component';
 import { NgIf, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
+import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
 
 @Component({
   selector: 'app-card-page',
@@ -16,7 +17,8 @@ import { PageHeaderComponent } from '../../components/page-header/page-header.co
     NgOptimizedImage,
     PageHeaderComponent,
     NgTemplateOutlet,
-    RouterLink
+    RouterLink,
+    CardSearchInputComponent
   ],
   templateUrl: './card-page.component.html',
   styleUrl: './card-page.component.scss'
