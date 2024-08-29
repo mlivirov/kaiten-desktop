@@ -1,13 +1,13 @@
 import {
   FetchBackend,
-  HttpBackend,
+  HttpBackend, HttpClient,
   HttpErrorResponse,
   HttpEvent,
   HttpHeaders,
   HttpRequest,
   HttpResponse
 } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { delay, filter, finalize, Observable, of, Subject, switchMap, take, tap } from 'rxjs';
 import { QtApplication, ResponseData } from './qt-application';
 
 function base64ToBlob(val: string) {
@@ -21,7 +21,12 @@ function base64ToBlob(val: string) {
 
 export class HttpBackendDecorator implements HttpBackend {
   static readonly APP_SETTINGS_PATH = 'app://settings#';
-  readonly browserBackend: HttpBackend = new FetchBackend();
+  private readonly _browserBackend: HttpBackend = new FetchBackend();
+
+
+  handle(request: HttpRequest<any>): Observable<HttpEvent<any>> {
+    return this.handleInner(request);
+  }
 
   private useLocalstorage(request: HttpRequest<string>): HttpResponse<string|void> {
     const settingName = request.url.substring(HttpBackendDecorator.APP_SETTINGS_PATH.length);
@@ -29,13 +34,15 @@ export class HttpBackendDecorator implements HttpBackend {
     if (request.method === 'GET') {
       return new HttpResponse<string>({
         status: 200,
-        body: localStorage.getItem(settingName)
+        body: localStorage.getItem(settingName),
+        headers: new HttpHeaders()
       });
     } else if (request.method === 'DELETE') {
       localStorage.removeItem(settingName);
 
       return new HttpResponse({
         status: 200,
+        headers: new HttpHeaders()
       });
     } else {
       localStorage.setItem(settingName, request.body as string);
@@ -43,6 +50,7 @@ export class HttpBackendDecorator implements HttpBackend {
       return new HttpResponse<string>({
         status: 200,
         body: request.body as string,
+        headers: new HttpHeaders()
       });
     }
   }
@@ -52,10 +60,10 @@ export class HttpBackendDecorator implements HttpBackend {
       return of(this.useLocalstorage(req));
     }
 
-    return this.browserBackend.handle(req);
+    return this._browserBackend.handle(req);
   }
 
-  parseQtResponseBody(request: HttpRequest<any>, data?: string) {
+  private parseQtResponseBody(request: HttpRequest<any>, data?: string) {
     switch (request.responseType) {
       case 'json':
         return data ? JSON.parse(data) : null;
@@ -66,25 +74,26 @@ export class HttpBackendDecorator implements HttpBackend {
     }
   }
 
-  processQtApplicationResponse(request: HttpRequest<any>, response: ResponseData): HttpResponse<any> {
+  private processQtApplicationResponse(request: HttpRequest<any>, response: ResponseData): HttpResponse<any> {
     if (response.statusCode !== 200) {
       return new HttpResponse({
         status: response.statusCode,
         statusText: response.data,
         url: request.url,
+        headers: new HttpHeaders(response.headers),
       })
     }
 
     const parsedBody = this.parseQtResponseBody(request, response.data);
-
     return new HttpResponse({
       status: response.statusCode,
       body: parsedBody,
       url: request.url,
+      headers: new HttpHeaders(response.headers),
     });
   }
 
-  handle(request: HttpRequest<any>): Observable<HttpEvent<any>> {
+  private handleInner(request: HttpRequest<any>): Observable<HttpEvent<any>> {
     if (!QtApplication.isAvailable()) {
       return this.handleInBrowser(request);
     }

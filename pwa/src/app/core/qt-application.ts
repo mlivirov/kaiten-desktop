@@ -6,8 +6,10 @@ declare interface QSignal<TCallback = (...args: any) => void> {
   connect(callback: TCallback): void;
 }
 
+export type QHeaders = { [key: string]: string };
+
 declare class ApplicationObject implements QObject {
-  httpRequestReady: QSignal<(requestId: string, statusCode: number, data?: string) => void>
+  httpRequestReady: QSignal<(requestId: string, statusCode: number, data: string, headers: QHeaders) => void>
   httpRequest(method: string, url: string, data: string): Promise<string>;
 }
 
@@ -22,6 +24,7 @@ declare class QWebChannel {
 export interface ResponseData {
   statusCode: number;
   data?: string;
+  headers: QHeaders;
 }
 
 interface SentRequest {
@@ -66,8 +69,8 @@ export class QtApplication {
   private initialize(channel: QChannel): void {
     this._proxy = <ApplicationObject>channel.objects.proxy;
 
-    this._proxy.httpRequestReady.connect((requestId, statusCode, data) => {
-      this._promises[requestId].resolve({ statusCode, data });
+    this._proxy.httpRequestReady.connect((requestId, statusCode, data, headers) => {
+      this._promises[requestId].resolve({ statusCode, data, headers });
 
       delete this._promises[requestId];
     });

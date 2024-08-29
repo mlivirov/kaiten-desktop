@@ -5,6 +5,8 @@
 #include <QNetworkReply>
 #include <QTimer>
 #include <QStandardPaths>
+#include <QJsonObject>
+#include <QJsonArray>
 
 const QString Application::LOCALHOST_API_PATH{"http://localhost:8080/api"};
 const QString Application::LOCALHOST_FILE_PATH{"http://localhost:8080/files"};
@@ -55,8 +57,12 @@ void Application::processHttpResponse(QNetworkReply *reply) {
         data = contentType + ":" + QString::fromUtf8(reply->readAll().toBase64());
     }
 
+    QJsonObject headers;
+    for (auto rawHeaderPair : reply->rawHeaderPairs()) {
+        headers[QString::fromUtf8(rawHeaderPair.first)] = QString::fromUtf8(rawHeaderPair.second);
+    }
 
-    emit httpRequestReady(QString::number((size_t) reply), statusCode, data);
+    emit httpRequestReady(QString::number((size_t) reply), statusCode, data, headers);
 }
 
 size_t Application::httpRequest(const QString &method, const QString &url, const QString &data) {
@@ -108,7 +114,7 @@ size_t Application::httpSettingsRequest(const QString &method, const QString &pa
         const auto value = _settings->value(path);
 
         QTimer::singleShot(0, this, [this, id, path, value] {
-            emit httpRequestReady(QString::number(id), 200, value.isNull() ? nullptr : value.toString());
+            emit httpRequestReady(QString::number(id), 200, value.isNull() ? nullptr : value.toString(), QJsonObject());
         });
 
         return id;
@@ -116,7 +122,7 @@ size_t Application::httpSettingsRequest(const QString &method, const QString &pa
         _settings->setValue(path, data);
 
         QTimer::singleShot(0, this, [this, id, path] {
-            emit httpRequestReady(QString::number(id), 200, nullptr);
+            emit httpRequestReady(QString::number(id), 200, nullptr, QJsonObject());
         });
 
         return id;

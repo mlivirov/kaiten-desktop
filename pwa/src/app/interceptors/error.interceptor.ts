@@ -7,8 +7,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const toastService = inject(ToastService);
 
   return next(req).pipe(
-    catchError((error: any) => {
-      console.log('error interceptor', error);
+    catchError((error: HttpErrorResponse) => {
       toastService.error(`Server error: ${error.statusText}`);
       return throwError(() => error);
     })

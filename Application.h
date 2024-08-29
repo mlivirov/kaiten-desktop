@@ -8,12 +8,13 @@
 #include <QSettings>
 #include <QNetworkAccessManager>
 #include <QNetworkDiskCache>
+#include <QJsonObject>
 
 class Application : public QObject {
     Q_OBJECT
 
 signals:
-    void httpRequestReady(const QString& requestId, const int statusCode, const QString& data);
+    void httpRequestReady(const QString& requestId, const int statusCode, const QString& data, const QJsonObject& headers);
 
 private:
     static const QString LOCALHOST_API_PATH;
