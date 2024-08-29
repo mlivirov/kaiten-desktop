@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file alias="index.html">pwa/dist/pwa/browser/index.html</file>
         <file alias="main.js">pwa/dist/pwa/browser/main.js</file>
-        <file alias="scripts.js">pwa/dist/pwa/browser/scripts.js</file>
         <file alias="styles.css">pwa/dist/pwa/browser/styles.css</file>
         <file alias="polyfills.js">pwa/dist/pwa/browser/polyfills.js</file>
         <file alias="favicon.ico">pwa/dist/pwa/browser/favicon.ico</file>

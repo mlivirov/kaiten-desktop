@@ -7,29 +7,8 @@ import { TimeagoModule } from 'ngx-timeago';
 import { EMPTY, from } from 'rxjs';
 import { DragulaModule } from 'ng2-dragula';
 import { errorInterceptor } from './interceptors/error.interceptor';
-import { AppHttpBackend } from './http-backend';
-
-declare class ApplicationProxy {
-  initialize(): Promise<void>;
-  httpRequest(method: string, url: string, data: string): Promise<{ statusCode: number, data: string }>;
-}
-
-function applicationProxyFactory() {
-  if (!window['qt']) {
-    return EMPTY;
-  }
-
-  const applicationProxy = new ApplicationProxy();
-  const promise = applicationProxy
-    .initialize()
-    .then(() => {
-      window['ApplicationProxy'] = applicationProxy;
-
-      return Promise.resolve();
-    });
-
-  return from(promise);
-}
+import { HttpBackendDecorator } from './core/http-backend-decorator';
+import { QtApplication } from './core/qt-application';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -44,11 +23,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       multi: true,
-      useFactory: () => applicationProxyFactory,
+      useFactory: () => QtApplication.create,
     },
     {
       provide: HttpBackend,
-      useClass: AppHttpBackend
+      useClass: HttpBackendDecorator
     }
   ],
 };
