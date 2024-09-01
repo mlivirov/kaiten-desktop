@@ -2,7 +2,7 @@
     <img alt="avatar" width="64" height="64" class="rounded-circle d-none d-md-block" [src]="avatarUrl"/>
     <img alt="avatar" width="32" height="32" class="rounded-circle d-block d-md-none" [src]="avatarUrl"/>
     <div class="d-flex mt-md-2 ms-n1">
-        <div class="small d-flex flex-column text-center ms-3">
+        <div class="small d-flex flex-column text-center ms-3" *ngIf="showText">
             <strong>{{profile?.full_name}}</strong>
             <span class="smaller d-none d-md-inline">&commat;{{profile?.username}}</span>
         </div>
@@ -16,5 +16,4 @@
             </div>
         </div>
     </div>
-
 </div>

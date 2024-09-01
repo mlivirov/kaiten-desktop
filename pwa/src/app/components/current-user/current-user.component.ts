@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { User } from '../../models/user';
 import { ApiService } from '../../services/api.service';
 import { AvatarService } from '../../services/avatar.service';
@@ -23,6 +23,10 @@ import { DialogService } from '../../services/dialogService';
 export class CurrentUserComponent {
   profile?: User;
   avatarUrl?: string;
+
+  @Input()
+  showText: boolean = true;
+
 
   constructor(
     private apiService: ApiService,

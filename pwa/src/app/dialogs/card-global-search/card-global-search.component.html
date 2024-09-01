@@ -1,12 +1,54 @@
-<div class="modal-header">
-    <div class="d-flex w-100 align-items-center">
-        <app-card-search-input #cardSearchInput placeholder="Type your search query here" titleClass="text-bg-primary" title="Search everywhere" class="flex-grow-1 me-4" [ngModel]="filter" (ngModelChange)="search($event)"></app-card-search-input>
+<div class="modal-header" style="background-color: #8146D3;">
+    <div class="w-100">
+        <h5 class="med d-md-none badge text-bg-primary">
+            Search everywhere
+        </h5>
+        <div class="d-flex w-100 align-items-center">
+            <app-card-search-input
+                #cardSearchInput
+                placeholder="Type your search query here"
+                titleClass="text-bg-primary"
+                title="Search everywhere"
+                class="flex-grow-1 me-4"
+                [ngModel]="filter"
+                (ngModelChange)="search($event)">
+            </app-card-search-input>
+        </div>
     </div>
-
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.close()"></button>
 </div>
 <div class="modal-body">
-    <div class="table-responsive">
+    <div class="result-table mx-n3 mb-3 mt-n3 d-md-none">
+        <div *ngFor="let card of cards; index as i" class="border-bottom px-2 py-1 py-2 result-row">
+            <div class="px-3">
+                <div class="small d-flex justify-content-between align-items-start">
+                    <div class="med">
+                        <a href="javascript:void(0)" (click)="openCard(card.id)">
+                            {{card.id}}
+                        </a>
+                        at
+                        <a href="javascript:void(0)" (click)="openBoard(card.board_id)">
+                            {{card.board.title}}
+                        </a>
+                    </div>
+                    <div class="small text-nowrap d-flex flex-wrap justify-content-center">
+                        <app-card-state-label [state]="card.state"></app-card-state-label>
+                        <span class="ms-2">{{card.updated | timeago}}</span>
+                    </div>
+                </div>
+                <div class="mt-2 med">
+                    {{card.title}}
+                </div>
+                <div class="mt-2 small" *ngIf="getResponsible(card)">
+                    <app-inline-member [profile]="getResponsible(card)"></app-inline-member>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="table-responsive d-none d-md-block">
         <table class="table table-sm table-bordered table-striped">
             <thead>
                 <tr class="med">

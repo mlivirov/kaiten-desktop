@@ -2,14 +2,18 @@ import { Component } from '@angular/core';
 import { Space } from '../../models/space';
 import { ApiService } from '../../services/api.service';
 import { InputFromEventFunction } from '../../functions/input-from-event.function';
-import { NgForOf } from '@angular/common';
+import { NgForOf, NgIf } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-search-board-dialog',
   standalone: true,
   imports: [
-    NgForOf
+    NgForOf,
+    CardSearchInputComponent,
+    NgIf
   ],
   templateUrl: './search-board-dialog.component.html',
   styleUrl: './search-board-dialog.component.scss'
@@ -19,13 +23,18 @@ export class SearchBoardDialogComponent {
 
   allSpaces: Space[] = [];
   filteredSpaces: Space[] = [];
+  isLoading: boolean = false;
 
   constructor(
     private apiService: ApiService,
-    private modal: NgbActiveModal,
+    public modal: NgbActiveModal,
   ) {
+    this.isLoading = true;
     apiService
       .getSpaces()
+      .pipe(
+        finalize(() => this.isLoading = false)
+      )
       .subscribe(spaces => this.allSpaces = this.filteredSpaces = spaces);
   }
 
