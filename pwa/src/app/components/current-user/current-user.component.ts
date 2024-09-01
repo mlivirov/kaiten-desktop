@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/cor
 import { User } from '../../models/user';
 import { ApiService } from '../../services/api.service';
 import { AvatarService } from '../../services/avatar.service';
-import { AsyncPipe, NgOptimizedImage } from '@angular/common';
+import { AsyncPipe, NgIf, NgOptimizedImage } from '@angular/common';
 import { NgbDropdown, NgbDropdownMenu, NgbDropdownToggle } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { DialogService } from '../../services/dialogService';
@@ -15,7 +15,8 @@ import { DialogService } from '../../services/dialogService';
     NgbDropdown,
     NgbDropdownMenu,
     NgbDropdownToggle,
-    AsyncPipe
+    AsyncPipe,
+    NgIf
   ],
   templateUrl: './current-user.component.html',
   styleUrl: './current-user.component.scss'
