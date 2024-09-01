@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="io.mlivirov.torpedo" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Torpedo</name>
+    <description>An enhanced desktop and mobile applications for Kaiten Task Manager.</description>
+    <author email="max.livirov@gmail.com" href="https://github.com/mlivirov/kaiten-desktop">
+        Max Livirov
+    </author>
+    <content src="index.html" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+</widget>
