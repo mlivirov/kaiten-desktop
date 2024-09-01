@@ -75,7 +75,7 @@ export class BoardComponent implements OnInit, OnDestroy {
   ) {
     const cardDragBag = dragulaService.createGroup('CARD', {
       moves: (el, container, handle) => {
-        return !!el.getAttribute('data-card-id') && window.outerWidth > 540;
+        return !!el.getAttribute('data-card-id') && Math.min(window.outerWidth, window.outerHeight) > 540;
       },
       accepts: (el, target, source) => {
         const targetId = Number.parseInt(target.getAttribute('data-column-id'));
@@ -108,7 +108,7 @@ export class BoardComponent implements OnInit, OnDestroy {
       moves: (el, container, handle) => {
         return (handle.parentElement.classList.contains('column-title')
                   || handle.classList.contains('column-title'))
-                &&  window.outerWidth > 540;
+                && Math.min(window.outerWidth, window.outerHeight) > 540;
       },
       accepts: (el, target, source) => {
         const targetIndex = Number.parseInt(target.getAttribute('data-view-column-index'));
