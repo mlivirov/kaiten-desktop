@@ -73,7 +73,7 @@ export class ApiService {
   }
 
   getCards(boardId: number, query?: string): Observable<CardEx[]> {
-    return this.httpClient.get<CardEx[]>(`http://localhost:8080/api/latest/cards?board_id=${boardId}`);
+    return this.httpClient.get<CardEx[]>(`http://server/api/latest/cards?board_id=${boardId}`);
   }
 
   searchCards(offset: number, limit: number, filter: CardFilter): Observable<CardEx[]> {
@@ -100,47 +100,47 @@ export class ApiService {
       params = params.append('tag_ids', ids);
     }
 
-    return this.httpClient.get<CardEx[]>(`http://localhost:8080/api/latest/cards?${params.toString()}`);
+    return this.httpClient.get<CardEx[]>(`http://server/api/latest/cards?${params.toString()}`);
   }
 
   getLanes(boardId: number): Observable<Lane[]> {
-    return this.httpClient.get<Lane[]>(`http://localhost:8080/api/latest/boards/${boardId}/lanes`);
+    return this.httpClient.get<Lane[]>(`http://server/api/latest/boards/${boardId}/lanes`);
   }
 
   getCard(id: number): Observable<CardEx> {
-    return this.httpClient.get<CardEx>(`http://localhost:8080/api/latest/cards/${id}`);
+    return this.httpClient.get<CardEx>(`http://server/api/latest/cards/${id}`);
   }
 
   getBoard(boardId: number): Observable<Board> {
-    return this.httpClient.get<Board>(`http://localhost:8080/api/latest/boards/${boardId}`);
+    return this.httpClient.get<Board>(`http://server/api/latest/boards/${boardId}`);
   }
 
   getColumns(boardId: number): Observable<ColumnEx[]> {
-    return this.httpClient.get<ColumnEx[]>(`http://localhost:8080/api/latest/boards/${boardId}/columns`);
+    return this.httpClient.get<ColumnEx[]>(`http://server/api/latest/boards/${boardId}/columns`);
   }
 
   getSpaces(): Observable<Space[]> {
-    return this.httpClient.get<Space[]>('http://localhost:8080/api/latest/spaces');
+    return this.httpClient.get<Space[]>('http://server/api/latest/spaces');
   }
 
   getCardComments(cardId: number): Observable<CardComment[]> {
-    return this.httpClient.get<CardComment[]>(`http://localhost:8080/api/latest/cards/${cardId}/comments`);
+    return this.httpClient.get<CardComment[]>(`http://server/api/latest/cards/${cardId}/comments`);
   }
 
   addComment(cardId: number, text: string): Observable<CardComment> {
     const form = new FormData();
     form.append('text', text);
 
-    return this.httpClient.post<CardComment>(`http://localhost:8080/api/latest/cards/${cardId}/comments`, form);
+    return this.httpClient.post<CardComment>(`http://server/api/latest/cards/${cardId}/comments`, form);
   }
 
   getCurrentUser(): Observable<User> {
-    return this.httpClient.get<User>('http://localhost:8080/api/latest/users/current');
+    return this.httpClient.get<User>('http://server/api/latest/users/current');
   }
 
   getUsers(offset: number, limit: number, query?: string): Observable<User[]> {
     return this.httpClient
-      .get<User[]>(`http://localhost:8080/api/latest/users`)
+      .get<User[]>(`http://server/api/latest/users`)
       .pipe(
         map(users => {
           return this.filterUsers(users, offset, limit, query);
@@ -150,7 +150,7 @@ export class ApiService {
 
   getCardAllowedUsers(cardId: number, offset: number, limit: number, query?: string): Observable<User[]> {
     return this.httpClient
-      .get<User[]>(`http://localhost:8080/api/latest/cards/${cardId}/allowed-users`)
+      .get<User[]>(`http://server/api/latest/cards/${cardId}/allowed-users`)
       .pipe(
         map(users => {
           return this.filterUsers(users, offset, limit, query);
@@ -177,31 +177,31 @@ export class ApiService {
 
   getUserByUid(uid: string): Observable<User> {
     return this.httpClient
-      .get<User[]>(`http://localhost:8080/api/latest/users`)
+      .get<User[]>(`http://server/api/latest/users`)
       .pipe(
         map(users => users.find(t => t.uid === uid))
       );
   }
 
   updateCard(id: number, properties: Partial<CardEx>): Observable<CardEx> {
-    return this.httpClient.patch<CardEx>(`http://localhost:8080/api/latest/cards/${id}`, properties);
+    return this.httpClient.patch<CardEx>(`http://server/api/latest/cards/${id}`, properties);
   }
 
   addMemberToCard(cardId: number, userId: number): Observable<Owner> {
-    return this.httpClient.post<Owner>(`http://localhost:8080/api/latest/cards/${cardId}/members`, {
+    return this.httpClient.post<Owner>(`http://server/api/latest/cards/${cardId}/members`, {
       user_id: userId,
     });
   }
 
   removeMemberFromCard(cardId: number, userId: number): Observable<void> {
-    return this.httpClient.delete(`http://localhost:8080/api/latest/cards/${cardId}/members/${userId}`)
+    return this.httpClient.delete(`http://server/api/latest/cards/${cardId}/members/${userId}`)
       .pipe(
         map(res => {})
       );
   }
 
   makeMemberResponsible(cardId: number, userId: number): Observable<void> {
-    return this.httpClient.patch(`http://localhost:8080/api/latest/cards/${cardId}/members/${userId}`, {
+    return this.httpClient.patch(`http://server/api/latest/cards/${cardId}/members/${userId}`, {
         type: MemberType.Responsible,
       })
       .pipe(
@@ -210,11 +210,11 @@ export class ApiService {
   }
 
   getCustomProperties(): Observable<CustomProperty[]> {
-    return this.httpClient.get<CustomProperty[]>(`http://localhost:8080/api/latest/company/custom-properties`);
+    return this.httpClient.get<CustomProperty[]>(`http://server/api/latest/company/custom-properties`);
   }
 
   getCustomPropertyValues(id: number): Observable<CustomPropertySelectValue[]> {
-    return this.httpClient.get<CustomPropertySelectValue[]>(`http://localhost:8080/api/latest/company/custom-properties/${id}/select-values`);
+    return this.httpClient.get<CustomPropertySelectValue[]>(`http://server/api/latest/company/custom-properties/${id}/select-values`);
   }
 
   getCustomPropertiesWithValues(): Observable<CustomPropertyAndValues[]> {
@@ -246,18 +246,18 @@ export class ApiService {
       params = params.append('query', query);
     }
 
-    return this.httpClient.get<Tag[]>(`http://localhost:8080/api/latest/tags?${params.toString()}`);
+    return this.httpClient.get<Tag[]>(`http://server/api/latest/tags?${params.toString()}`);
   }
 
   createTag(cardId: number, name: string): Observable<Tag> {
-    return this.httpClient.post<Tag>(`http://localhost:8080/api/latest/cards/${cardId}/tags`, {
+    return this.httpClient.post<Tag>(`http://server/api/latest/cards/${cardId}/tags`, {
       name
     });
   }
 
   removeTag(cardId: number, tagId: number): Observable<void> {
     return this.httpClient
-      .delete(`http://localhost:8080/api/latest/cards/${cardId}/tags/${tagId}`)
+      .delete(`http://server/api/latest/cards/${cardId}/tags/${tagId}`)
       .pipe(
         map(() => {})
       );

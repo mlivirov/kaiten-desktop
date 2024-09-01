@@ -21,7 +21,7 @@ export class AvatarService {
 
     const lastSlash = profile.avatar_uploaded_url.lastIndexOf('/') + 1;
     const fileName = profile.avatar_uploaded_url.substring(lastSlash);
-    const url = `http://localhost:8080/files/64x64/${fileName}`;
+    const url = `http://server/files/64x64/${fileName}`;
 
     return this.apiService
       .getFile(url)

@@ -10,12 +10,19 @@ import { HttpBackendDecorator } from './core/http-backend-decorator';
 import { QtApplication } from './core/qt-application';
 import { throttleInterceptor } from './interceptors/throttle.interceptor';
 import { retryInterceptor } from './interceptors/retry.interceptor';
+import { apiInterceptor } from './interceptors/api.interceptor';
+import { CordovaApplication } from './core/cordova-application';
+
+const interceptors = [errorInterceptor, throttleInterceptor, retryInterceptor];
+if (!QtApplication.isAvailable()) {
+  interceptors.push(apiInterceptor);
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([errorInterceptor, throttleInterceptor, retryInterceptor])
+      withInterceptors(interceptors)
     ),
     importProvidersFrom(
       TimeagoModule.forRoot(),
@@ -25,6 +32,11 @@ export const appConfig: ApplicationConfig = {
       provide: APP_INITIALIZER,
       multi: true,
       useFactory: () => QtApplication.create,
+    },
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: () => CordovaApplication.create,
     },
     {
       provide: HttpBackend,

@@ -3,18 +3,19 @@ server {
     listen       ${NGINX_PORT};
 
     location ~ ^/api/(.*) {
-        proxy_set_header Authorization "Bearer ${KAITEN_TOKEN}";
-
         resolver 8.8.8.8;
+        proxy_pass_request_headers      on;
         proxy_pass https://${KAITEN_HOST}:443${request_uri};
 
         proxy_hide_header 'Access-Control-Allow-Origin';
         add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' '*' always;
         add_header 'Access-Control-Expose-Headers' '*' always;
     }
 
     location ~ ^/files/(.*) {
         resolver 8.8.8.8;
+        proxy_pass_request_headers      on;
         proxy_pass https://${KAITEN_FILES}:443/$1;
     }
 

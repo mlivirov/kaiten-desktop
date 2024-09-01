@@ -9,4 +9,3 @@ services:
       - NGINX_PORT=80
       - KAITEN_HOST=${KAITEN_HOST}
       - KAITEN_FILES=${KAITEN_FILES}
-      - KAITEN_TOKEN=${KAITEN_TOKEN}

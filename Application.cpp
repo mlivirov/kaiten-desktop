@@ -8,8 +8,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-const QString Application::LOCALHOST_API_PATH{"http://localhost:8080/api"};
-const QString Application::LOCALHOST_FILE_PATH{"http://localhost:8080/files"};
+const QString Application::LOCALHOST_API_PATH{"http://server/api"};
+const QString Application::LOCALHOST_FILE_PATH{"http://server/files"};
 const QString Application::SETTINGS_PATH{"app://settings#"};
 
 Application::Application():
