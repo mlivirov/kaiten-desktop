@@ -13,6 +13,8 @@ import { InputFromEventFunction } from '../../functions/input-from-event.functio
 import { NgIf, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import { DialogService } from '../../services/dialogService';
 import { filter } from 'rxjs';
+import { InlineMemberComponent } from '../inline-member/inline-member.component';
+import { NgbDropdownToggle } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-page-header',
@@ -21,7 +23,9 @@ import { filter } from 'rxjs';
     CurrentUserComponent,
     NgOptimizedImage,
     NgIf,
-    NgTemplateOutlet
+    NgTemplateOutlet,
+    InlineMemberComponent,
+    NgbDropdownToggle
   ],
   templateUrl: './page-header.component.html',
   styleUrl: './page-header.component.scss'
@@ -53,5 +57,9 @@ export class PageHeaderComponent {
 
       this.search();
     }
+  }
+
+  searchCard() {
+    this.dialogService.searchCard().subscribe();
   }
 }

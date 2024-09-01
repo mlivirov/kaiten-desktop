@@ -5,6 +5,7 @@ import { AvatarService } from '../../services/avatar.service';
 import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import { NgbDropdown, NgbDropdownMenu, NgbDropdownToggle } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
+import { DialogService } from '../../services/dialogService';
 
 @Component({
   selector: 'app-current-user',
@@ -26,7 +27,8 @@ export class CurrentUserComponent {
   constructor(
     private apiService: ApiService,
     private avatarService: AvatarService,
-    private router: Router
+    private router: Router,
+    private dialogService: DialogService,
   ) {
     apiService
       .getCurrentUser()
@@ -47,5 +49,9 @@ export class CurrentUserComponent {
       .subscribe(url => {
         this.avatarUrl = url;
       });
+  }
+
+  searchCard() {
+    this.dialogService.searchCard().subscribe();
   }
 }

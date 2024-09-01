@@ -1,6 +1,9 @@
-<div class="p-4 d-flex align-items-center bg-kaiten flex-wrap flex-md-nowrap flex-row-reverse">
-    <div class="mx-auto mb-2 mb-md-0 ms-md-4 ms-lg-0">
+<div class="p-4 d-flex align-items-center bg-kaiten flex-column flex-md-row">
+    <div class="d-block d-md-none mb-3 d-flex w-100 justify-content-between">
         <app-current-user></app-current-user>
+        <button type="button" class="btn btn-outline-primary" (click)="searchCard()">
+            <i class="pi pi-search"></i>
+        </button>
     </div>
 
     <div class="flex-grow-1">
@@ -13,5 +16,9 @@
             </h3>
             <ng-container *ngIf="contentTemplate" [ngTemplateOutlet]="contentTemplate"></ng-container>
         </div>
+    </div>
+
+    <div class="mx-auto mb-2 mb-md-0 ms-md-4 ms-lg-0 d-none d-md-inline-block">
+        <app-current-user></app-current-user>
     </div>
 </div>

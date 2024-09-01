@@ -144,8 +144,9 @@ export class PropertiesEditorComponent {
       return;
     }
 
+    const clickedInsideDropdown = (event.target as Element).closest('ngb-typeahead-window');
     const clickedInside = this.editorContainer.nativeElement.contains(event.target);
-    if (!clickedInside) {
+    if (!(clickedInside || clickedInsideDropdown)) {
       this.stopEditing();
     }
   }

@@ -1,9 +1,10 @@
-<div class="text-white align-items-center text-center cursor-pointer d-md-flex" (click)="dropdownMenu.click()">
-    <img alt="avatar" width="64" height="64" class="rounded-circle" [src]="avatarUrl"/>
-    <div class="d-flex mt-2">
+<div class="text-white align-items-center text-center cursor-pointer d-flex" (click)="dropdownMenu.click()">
+    <img alt="avatar" width="64" height="64" class="rounded-circle d-none d-md-block" [src]="avatarUrl"/>
+    <img alt="avatar" width="32" height="32" class="rounded-circle d-block d-md-none" [src]="avatarUrl"/>
+    <div class="d-flex mt-md-2 ms-n1">
         <div class="small d-flex flex-column text-center ms-3">
             <strong>{{profile?.full_name}}</strong>
-            <span class="smaller">&commat;{{profile?.username}}</span>
+            <span class="smaller d-none d-md-inline">&commat;{{profile?.username}}</span>
         </div>
         <div ngbDropdown class="ms-2" container="body">
             <button type="button" class="btn btn-outline-primary d-none d-md-block" id="optionsDropdown" ngbDropdownToggle #dropdownMenu>
@@ -11,6 +12,7 @@
             </button>
             <div ngbDropdownMenu aria-labelledby="optionsDropdown">
                 <li><button class="dropdown-item" type="button" (click)="logout()"><i class="pi pi-sign-out me-2"></i> Logout</button></li>
+                <li><button class="dropdown-item" type="button" (click)="searchCard()"><i class="pi pi-search me-2 "></i> Search cards</button></li>
             </div>
         </div>
     </div>

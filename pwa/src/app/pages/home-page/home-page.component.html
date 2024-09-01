@@ -1,4 +1,4 @@
-<div class="d-flex flex-column align-items-center justify-content-center h-100 w-50 mx-auto">
+<div class="d-flex flex-column align-items-center justify-content-center h-100 col-md-6 mx-3 mx-md-auto">
     <div class="bg-kaiten rounded-1 p-4 mb-5 d-flex align-items-center w-100">
         <img alt="logo" ngSrc="assets/logo.svg" width="32" height="32" class="me-3"/>
         <div class="display-6">Kaiten</div>
@@ -8,8 +8,10 @@
     </div>
 
 
-    <div class="display-2">Welcome to Kaiten!</div>
-    <div class="display-6">Open a board to start</div>
+    <div class="display-2 d-none d-md-block">Welcome to Kaiten!</div>
+    <div class="display-3 d-block d-md-none">Welcome to Kaiten!</div>
+    <div class="display-6 d-none d-md-block">Open a board to start</div>
+    <div class=" d-block d-md-none">Open a board to start</div>
     <div class="position-relative">
         <button type="button" class="btn btn-lg btn-primary mt-4" (click)="search()">Search boards</button>
         <div class="opacity-50 small text-center mt-1">(CTRL+K)</div>
