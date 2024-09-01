@@ -9,15 +9,8 @@ import {
 } from '@angular/common/http';
 import { delay, filter, finalize, Observable, of, Subject, switchMap, take, tap } from 'rxjs';
 import { QtApplication, ResponseData } from './qt-application';
+import { CordovaApplication } from './cordova-application';
 
-function base64ToBlob(val: string) {
-  const separatorIndex = val.indexOf(':');
-  const type = val.substring(0, separatorIndex);
-  const base64 = val.substring(separatorIndex + 1);
-
-  const data = Uint8Array.from(atob(base64).split(''), c => c.charCodeAt(0));
-  return new Blob([data], { type });
-}
 
 export class HttpBackendDecorator implements HttpBackend {
   static readonly APP_SETTINGS_PATH = 'app://settings#';
@@ -25,10 +18,16 @@ export class HttpBackendDecorator implements HttpBackend {
 
 
   handle(request: HttpRequest<any>): Observable<HttpEvent<any>> {
-    return this.handleInner(request);
+    if (CordovaApplication.isAvailable()) {
+      return this.handleByCordova(request);
+    } else if (QtApplication.isAvailable()) {
+      return this.handleByQt(request);
+    }
+
+    return this.handleByBrowser(request);
   }
 
-  private useLocalstorage(request: HttpRequest<string>): HttpResponse<string|void> {
+  private handleByLocalstorage(request: HttpRequest<string>): HttpResponse<string|void> {
     const settingName = request.url.substring(HttpBackendDecorator.APP_SETTINGS_PATH.length);
 
     if (request.method === 'GET') {
@@ -55,81 +54,23 @@ export class HttpBackendDecorator implements HttpBackend {
     }
   }
 
-  private handleInBrowser(req: HttpRequest<any>): Observable<HttpEvent<any>> {
+  private handleByBrowser(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     if (req.url.startsWith(HttpBackendDecorator.APP_SETTINGS_PATH)) {
-      return of(this.useLocalstorage(req));
+      return of(this.handleByLocalstorage(req));
     }
 
     return this._browserBackend.handle(req);
   }
 
-  private parseQtResponseBody(request: HttpRequest<any>, data?: string) {
-    switch (request.responseType) {
-      case 'json':
-        return data ? JSON.parse(data) : null;
-      case 'blob':
-        return data ? base64ToBlob(data) : null;
-      default:
-        return data;
-    }
+  private handleByQt(request: HttpRequest<any>): Observable<HttpEvent<any>> {
+   return QtApplication.instance().sendHttpRequest(request);
   }
 
-  private processQtApplicationResponse(request: HttpRequest<any>, response: ResponseData): HttpResponse<any> {
-    if (response.statusCode !== 200) {
-      return new HttpResponse({
-        status: response.statusCode,
-        statusText: response.data,
-        url: request.url,
-        headers: new HttpHeaders(response.headers),
-      })
+  private handleByCordova(request: HttpRequest<any>): Observable<HttpEvent<any>> {
+    if (request.url.startsWith(HttpBackendDecorator.APP_SETTINGS_PATH)) {
+      return of(this.handleByLocalstorage(request));
     }
 
-    const parsedBody = this.parseQtResponseBody(request, response.data);
-    return new HttpResponse({
-      status: response.statusCode,
-      body: parsedBody,
-      url: request.url,
-      headers: new HttpHeaders(response.headers),
-    });
-  }
-
-  private handleInner(request: HttpRequest<any>): Observable<HttpEvent<any>> {
-    if (!QtApplication.isAvailable()) {
-      return this.handleInBrowser(request);
-    }
-
-    const serializedRequestBody = request.serializeBody();
-    if (!(serializedRequestBody === null || typeof serializedRequestBody === 'string')) {
-      throw('not supported body type');
-    }
-
-    return new Observable(subscriber => {
-      QtApplication
-        .instance()
-        .httpRequest(
-          request.method,
-          request.url,
-          serializedRequestBody as string
-        )
-        .then(response => {
-          try {
-            const httpResponse = this.processQtApplicationResponse(request, response);
-
-            if (httpResponse.status !== 200) {
-              subscriber.error(new HttpErrorResponse(httpResponse));
-            } else {
-              subscriber.next(httpResponse);
-            }
-          } catch (e) {
-            subscriber.error(new HttpErrorResponse({
-              status: 0,
-              statusText: 'Middleware error',
-              error: e
-            }));
-          }
-
-          subscriber.complete();
-        });
-    });
+    return CordovaApplication.instance().sendHttpRequest(request);
   }
 }

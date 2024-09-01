@@ -1,4 +1,5 @@
 import { EMPTY, Observable, of, Subject, take } from 'rxjs';
+import { HttpErrorResponse, HttpEvent, HttpHeaders, HttpRequest, HttpResponse } from '@angular/common/http';
 
 declare interface QObject {}
 
@@ -29,6 +30,15 @@ export interface ResponseData {
 
 interface SentRequest {
   resolve(data: ResponseData): void;
+}
+
+function base64ToBlob(val: string) {
+  const separatorIndex = val.indexOf(':');
+  const type = val.substring(0, separatorIndex);
+  const base64 = val.substring(separatorIndex + 1);
+
+  const data = Uint8Array.from(atob(base64).split(''), c => c.charCodeAt(0));
+  return new Blob([data], { type });
 }
 
 export class QtApplication {
@@ -79,7 +89,75 @@ export class QtApplication {
     this._readySubject.complete();
   }
 
-  httpRequest(method, url, data): Promise<ResponseData> {
+  private parseQtResponseBody(request: HttpRequest<any>, data?: string) {
+    switch (request.responseType) {
+      case 'json':
+        return data ? JSON.parse(data) : null;
+      case 'blob':
+        return data ? base64ToBlob(data) : null;
+      default:
+        return data;
+    }
+  }
+
+  private processQtApplicationResponse(request: HttpRequest<any>, response: ResponseData): HttpResponse<any> {
+    if (response.statusCode !== 200) {
+      return new HttpResponse({
+        status: response.statusCode,
+        statusText: response.data,
+        url: request.url,
+        headers: new HttpHeaders(response.headers),
+      })
+    }
+
+    const parsedBody = this.parseQtResponseBody(request, response.data);
+    return new HttpResponse({
+      status: response.statusCode,
+      body: parsedBody,
+      url: request.url,
+      headers: new HttpHeaders(response.headers),
+    });
+  }
+
+
+  sendHttpRequest(request: HttpRequest<any>): Observable<HttpEvent<any>> {
+    const serializedRequestBody = request.serializeBody();
+    if (!(serializedRequestBody === null || typeof serializedRequestBody === 'string')) {
+      throw('not supported body type');
+    }
+
+    return new Observable(subscriber => {
+      QtApplication
+        .instance()
+        .sendHttpRequestInner(
+          request.method,
+          request.url,
+          serializedRequestBody as string
+        )
+        .then(response => {
+          try {
+            const httpResponse = this.processQtApplicationResponse(request, response);
+
+            if (httpResponse.status !== 200) {
+              subscriber.error(new HttpErrorResponse(httpResponse));
+            } else {
+              subscriber.next(httpResponse);
+            }
+          } catch (e) {
+            subscriber.error(new HttpErrorResponse({
+              status: 0,
+              statusText: 'Middleware error',
+              error: e
+            }));
+          }
+
+          subscriber.complete();
+        });
+    });
+  }
+
+
+  private sendHttpRequestInner(method, url, data): Promise<ResponseData> {
     return this._proxy
       .httpRequest(method, url, data)
       .then(requestId => {

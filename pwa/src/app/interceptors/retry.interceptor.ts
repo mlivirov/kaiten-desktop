@@ -17,7 +17,6 @@ export const retryInterceptor: HttpInterceptorFn = (req, next) => {
       )
       .subscribe({
         next(data) {
-          console.log(data);
           subscriber.next(data);
         },
         error(err) {
@@ -25,7 +24,6 @@ export const retryInterceptor: HttpInterceptorFn = (req, next) => {
             return;
           }
 
-          console.log(err);
           subscriber.error(err);
         },
         complete() { subscriber.complete(); }

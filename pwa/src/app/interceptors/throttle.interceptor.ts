@@ -43,7 +43,7 @@ class ThrottleService {
 
 export const throttleInterceptor: HttpInterceptorFn = (req, next) => {
   const throttleService = inject(ThrottleService);
-  if (req.url.startsWith('http://localhost:8080/api/')) {
+  if (req.url.startsWith('http://server/api/')) {
     return throttleService.throttle(req, next);
   } else {
     return next(req);
