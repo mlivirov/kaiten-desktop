@@ -1,7 +1,7 @@
 <ng-template #boardColumn let-title="title" let-index="index" let-columnId="columnId">
     <div *ngIf="!(hideEmpty && !cardsByColumnId[columnId]?.length)" class="d-flex border-bottom grid-section w-100" style="min-height: 100px; border-bottom-style: dashed !important;">
         <div class="text-uppercase {{'bg-grad-' + index}} z-0">
-            <strong class="sticky-top my-3 user-select-none" style="text-orientation: mixed; writing-mode: vertical-rl; font-size: small; top: 2.5rem">
+            <strong class="sticky-top my-3 user-select-none subcolumn-header" style="text-orientation: mixed; writing-mode: vertical-rl; font-size: small;">
                 {{title}}
             </strong>
         </div>
@@ -20,7 +20,7 @@
 <ng-template #viewColumnsTemplate let-columns="columns" let-viewColumnIndex="viewColumnIndex">
     <div class="d-flex flex-column w-100" dragula="COLUMN" [attr.data-view-column-index]="viewColumnIndex">
         <div *ngFor="let column of columns; index as i" class="column bg-gray" [attr.data-column-index]="i">
-            <div class="d-flex strong small border border-1 p-1 column-title cursor-move sticky-top bg-gray z-1">
+            <div class="d-flex strong small border border-1 p-1 column-title cursor-move sticky-top bg-gray z-1 column-header">
                 <span class="user-select-none">{{column.title}}</span>
                 <span class="ms-auto small"
                       ngbTooltip="WIP limit"
