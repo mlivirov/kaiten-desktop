@@ -12,6 +12,7 @@ import { throttleInterceptor } from './interceptors/throttle.interceptor';
 import { retryInterceptor } from './interceptors/retry.interceptor';
 import { apiInterceptor } from './interceptors/api.interceptor';
 import { CordovaApplication } from './core/cordova-application';
+import { HammerModule } from '@angular/platform-browser';
 
 const interceptors = [errorInterceptor, throttleInterceptor, retryInterceptor];
 if (!QtApplication.isAvailable()) {
@@ -26,7 +27,8 @@ export const appConfig: ApplicationConfig = {
     ),
     importProvidersFrom(
       TimeagoModule.forRoot(),
-      DragulaModule.forRoot()
+      DragulaModule.forRoot(),
+      HammerModule
     ),
     {
       provide: APP_INITIALIZER,

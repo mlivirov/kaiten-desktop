@@ -1,4 +1,4 @@
-<div class="d-flex pb-2 p-md-4 align-items-center bg-kaiten flex-column flex-md-row">
+<div class="d-flex pb-2 p-md-4 align-items-center bg-kaiten flex-column flex-md-row position-relative">
     <div class="d-block d-md-none mb-3 d-flex w-100 align-items-center justify-content-between pb-2 pt-2 px-4 header shadow border-bottom">
         <app-current-user></app-current-user>
         <button type="button" class="btn btn-outline-primary" (click)="searchCard()">
@@ -20,5 +20,11 @@
 
     <div class="mx-auto mb-2 mb-md-0 ms-md-4 ms-lg-0 d-none d-md-inline-block">
         <app-current-user></app-current-user>
+    </div>
+
+    <div class="position-absolute"
+         style="height: 0px; left: 0; right: 0; top: 0; background-color: white; opacity: 30%; border-bottom-left-radius: 100%; border-bottom-right-radius: 100%; color: red;"
+         [ngStyle]="{'height': panDown + 'px'}"
+    >
     </div>
 </div>

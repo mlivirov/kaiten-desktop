@@ -21,6 +21,7 @@ export const routes: Routes = [
         resolve: {
           board: boardResolver
         },
+        runGuardsAndResolvers: 'always'
       },
       {
         path: 'card/:cardId',
@@ -28,6 +29,7 @@ export const routes: Routes = [
         resolve: {
           card: cardResolver
         },
+        runGuardsAndResolvers: 'always'
       },
     ],
     canActivate: [authGuard],
