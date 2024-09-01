@@ -1,6 +1,6 @@
 # This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
-name: CMake on multiple platforms
+name: Build multiple platforms
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  build-desktop:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -68,7 +68,7 @@ jobs:
       run: |
         cd pwa
         npm install
-        npm run build
+        npm run build-desktop
         cd ..
         
     - name: Configure CMake
@@ -98,3 +98,47 @@ jobs:
     #   # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
     #   # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
     #   run: ctest --build-config ${{ matrix.build_type }}
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+
+      - name: Install android sdk
+        run: sudo apt -y install android-sdk sdkmanager
+
+      - name: Install android platform
+        run: sdkmanager "platform-tools" "platforms;android-32"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto' # See 'Supported distributions' for available options
+          java-version: '11'
+
+      - name: Install cordova
+        run: npm install -g cordova
+
+      - name: Build PWA
+        run: |
+          cd pwa
+          npm install
+          npm run build-cordova
+          cd ..
+          cp -r pwa/dist/pwa/browser/* mobile/www/
+
+      - name: Build APK
+        run: |
+          cd mobile
+          cordova platforms add android@12
+          cordova plugin add cordova-plugin-advanced-http
+          cordova build android
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.3.6
+        with:
+          path: mobile/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

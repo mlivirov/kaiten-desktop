@@ -6,7 +6,7 @@ permissions:
 
 on:
   workflow_run:
-    workflows: ["CMake on multiple platforms"] 
+    workflows: ["Build multiple platforms"]
     types:
       - completed
 jobs:
@@ -31,7 +31,7 @@ jobs:
       with:
         name: Latest build
         prerelease: true
-        tag_name: 'master'
+        tag_name: 'build:latest'
         files: |
           binaries-windows.zip
           binaries-ubuntu.zip
