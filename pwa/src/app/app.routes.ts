@@ -6,6 +6,7 @@ import { cardResolver } from './resolvers/card.resolver';
 import { HomePageComponent } from './pages/home-page/home-page.component';
 import { boardResolver } from './resolvers/board.resolver';
 import { authGuard } from './guards/auth.guard';
+import { modalGuard } from './guards/modal.guard';
 
 export const routes: Routes = [
   {
@@ -33,6 +34,7 @@ export const routes: Routes = [
       },
     ],
     canActivate: [authGuard],
+    canActivateChild: [modalGuard]
   },
   {
     path: 'login',

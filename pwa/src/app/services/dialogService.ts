@@ -1,6 +1,6 @@
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { CardEx } from '../models/card-ex';
-import { EMPTY, finalize, Observable, of } from 'rxjs';
+import { EMPTY, Observable, tap } from 'rxjs';
 import {
   CardTransitionConfirmationDialogComponent
 } from '../dialogs/card-transition-confirmation-dialog/card-transition-confirmation-dialog.component';
@@ -13,100 +13,146 @@ import {
   LoginConfirmationDialogComponent
 } from '../dialogs/login-confirmation-dialog/login-confirmation-dialog.component';
 import { ApiService } from './api.service';
-import { LoadingDialogComponent } from '../dialogs/loading-dialog/loading-dialog.component';
 import { Card } from '../models/card';
 import { CardGlobalSearchComponent } from '../dialogs/card-global-search/card-global-search.component';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
-  private isCardSearch = false;
-  private isBoardSearch = false;
+  private activeModals: Array<NgbModalRef> = [];
 
   constructor(
     private apiService: ApiService,
     private modal: NgbModal
   ) {
   }
+
+  private removeActiveModal(modal: NgbModalRef) {
+    this.activeModals.splice(this.activeModals.indexOf(modal), 1);
+  }
+
   cardTransition(card: CardEx, from: Column, to: Column): Observable<CardEx> {
     const instance = this.modal.open(
       CardTransitionConfirmationDialogComponent
     );
 
+    this.activeModals.push(instance);
+
     instance.componentInstance.card = card;
     instance.componentInstance.from = from;
     instance.componentInstance.to = to;
 
-    return instance.closed;
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        })
+      );
   }
 
   loginConfirmation(user: User): Observable<boolean> {
     const instance = this.modal.open(
       LoginConfirmationDialogComponent
     );
+    this.activeModals.push(instance);
 
     instance.componentInstance.user = user;
 
-    return instance.closed;
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        })
+      );
   }
 
   alert(text: string): Observable<any> {
     const instance = this.modal.open(AlertDialogComponent);
+    this.activeModals.push(instance);
+
     instance.componentInstance.text = text;
 
-    return instance.closed;
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        })
+      );
   }
 
   searchCard(): Observable<Card> {
-    if (this.isCardSearch) {
+    if (this.activeModals.some(modal => modal.componentInstance instanceof CardGlobalSearchComponent)) {
       return EMPTY;
     }
 
-    this.isCardSearch = true;
     const instance = this.modal.open(CardGlobalSearchComponent, {
       size: 'lg'
     });
-    return instance.closed.pipe(finalize(() => this.isCardSearch = false));
+    this.activeModals.push(instance);
+
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        })
+      );
   }
 
   searchBoard(closable: boolean = true): Observable<{spaceId: number, boardId: number}> {
-    if (this.isBoardSearch) {
+    if (this.activeModals.some(modal => modal.componentInstance instanceof SearchBoardDialogComponent)) {
       return EMPTY;
     }
 
-    this.isBoardSearch = true;
     const instance = this.modal.open(SearchBoardDialogComponent, {
       beforeDismiss() {
         return closable;
       }
     });
 
-    return instance.closed.pipe(finalize(() => this.isBoardSearch = false));
+    this.activeModals.push(instance);
+
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        })
+      );
   }
 
-  loading<T>(): { close() } {
-    const self = this;
-    let instance: NgbModalRef = null;
+  hasOpenDialog(): boolean {
+    return this.activeModals.length > 0;
+  }
 
-    const timeout = setTimeout(() => {
-      instance = self.modal.open(LoadingDialogComponent, {
-        centered: true,
-        keyboard: false,
-        size: 'sm',
-        backdrop: 'static',
-        beforeDismiss() {
-          return false;
-        },
-      });
-    }, 500);
-
-    return {
-      close() {
-        if (instance == null) {
-          clearTimeout(timeout);
-        } else {
-          instance.close();
-        }
-      }
-    };
+  closeMostRecent() {
+    this.activeModals[this.activeModals.length - 1].close();
   }
 }
