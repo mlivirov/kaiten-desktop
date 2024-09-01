@@ -18,7 +18,6 @@
           "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputPath": "dist/pwa",
-            "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js",
@@ -37,22 +36,33 @@
             ]
           },
           "configurations": {
-            "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "5mb",
-                  "maximumError": "10mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
-                }
-              ],
+            "browser": {
+              "index": {
+                "input": "src/browser.index.html",
+                "output": "index.html"
+              },
               "outputHashing": "all"
             },
+            "desktop": {
+              "index": {
+                "input": "src/desktop.index.html",
+                "output": "index.html"
+              },
+              "outputHashing": "none",
+              "deployUrl": "qrc:/"
+            },
+            "cordova": {
+              "index": {
+                "input": "src/cordova.index.html",
+                "output": "index.html"
+              },
+              "outputHashing": "none"
+            },
             "development": {
+              "index": {
+                "input": "src/browser.index.html",
+                "output": "index.html"
+              },
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true

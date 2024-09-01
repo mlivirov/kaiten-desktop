@@ -4,8 +4,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build --deploy-url=qrc:/ --output-hashing=none",
-    "build-dev": "ng build --deploy-url=qrc:/ --output-hashing=none -c development",
+    "build": "ng build -c browser",
+    "build-desktop": "ng build -c desktop",
+    "build-cordova": "ng build -c cordova",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
