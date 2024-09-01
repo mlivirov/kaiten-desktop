@@ -22,7 +22,7 @@ export interface GroupOfReferences {
   templateUrl: './card-references-accordion.component.html',
   styleUrl: './card-references-accordion.component.scss'
 })
-export class CardReferencesAccordionComponent implements OnInit {
+export class CardReferencesAccordionComponent implements OnChanges {
   @Input({ required: true })
   card: CardEx;
 
@@ -75,7 +75,7 @@ export class CardReferencesAccordionComponent implements OnInit {
     ].filter(t => t.references.length);
   }
 
-  ngOnInit(): void {
+  ngOnChanges(changes: SimpleChanges): void {
     this.references = this.extractReferences();
     this.countOfAllReferences = this.references.reduce((agg, i) => [...agg, ...i.references], []).length;
   }

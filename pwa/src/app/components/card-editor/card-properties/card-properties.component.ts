@@ -1,4 +1,4 @@
-import { Component, Injectable, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Injectable, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import {
   NgbDateAdapter,
   NgbDatepicker,
@@ -88,7 +88,7 @@ export class NgbDateStringAdapter extends NgbDateAdapter<string> {
     { provide: NgbDateAdapter, useClass: NgbDateStringAdapter }
   ]
 })
-export class CardPropertiesComponent implements OnInit {
+export class CardPropertiesComponent implements OnChanges {
   NumberMin = Number.MIN_VALUE;
   NumberMax = Number.MAX_VALUE;
   FindColumnRecursiveFunction = FindColumnRecursiveFunction;
@@ -138,17 +138,13 @@ export class CardPropertiesComponent implements OnInit {
   properties: GroupOfEditorProperties[] = [];
   columns: Column[] = [];
   isSaveInProgress: boolean = false;
+  isLoading: boolean = false;
 
   constructor(private apiService: ApiService) {
   }
 
-
   findSelectValue(values: CustomPropertySelectValue[], id: number) {
     return values.find(value => value.id === id);
-  }
-
-  findUserByUid(uid: string): Observable<User> {
-    return this.apiService.getUserByUid(uid);
   }
 
   getCustomPropertyValue(values: CardProperties, property: CustomProperty) {
@@ -472,12 +468,16 @@ export class CardPropertiesComponent implements OnInit {
       });
   }
 
-  ngOnInit(): void {
+  ngOnChanges(changes: SimpleChanges): void {
+    this.isLoading = true;
     forkJoin({
       card: of(this.card),
       customProperties: this.apiService.getCustomPropertiesWithValues(),
       columns: this.apiService.getColumns(this.card.board_id)
-    }).subscribe((data: { card: CardEx, customProperties: CustomPropertyAndValues[], columns: ColumnEx[] }) => {
+    }).pipe(
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe((data: { card: CardEx, customProperties: CustomPropertyAndValues[], columns: ColumnEx[] }) => {
       this.extractProperties(data.customProperties);
       this.columns = FlattenColumnsFunction(data.columns);
     });

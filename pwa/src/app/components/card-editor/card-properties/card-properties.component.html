@@ -1,4 +1,8 @@
-<app-properties-editor #propertiesEditor [properties]="properties" (saveRequested)="confirmSave($event)">
+<div *ngIf="isLoading" class="pt-2 ps-2 text-center">
+    <i class="pi pi-spin pi-spinner"></i> <span class="ms-2 small">Loading properties</span>
+</div>
+
+<app-properties-editor *ngIf="!isLoading" #propertiesEditor [properties]="properties" (saveRequested)="confirmSave($event)">
     <ng-template [app-editor-property-template] mode="read" type="state" let-data="data">
         <app-card-state-label [state]="data" [colored]="false"></app-card-state-label>
     </ng-template>
