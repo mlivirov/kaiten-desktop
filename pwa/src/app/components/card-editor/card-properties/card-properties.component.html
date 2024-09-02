@@ -25,7 +25,7 @@
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="read" type="column" let-data="data">
-        <span>{{data?.title?.length ? data.tittle : 'Default'}}</span>
+        <span>{{data?.title?.length ? data.title : 'Default'}}</span>
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="write" type="column" let-property="property" let-isSaveInProgress="isSaveInProgress">
