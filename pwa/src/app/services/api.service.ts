@@ -223,7 +223,7 @@ export class ApiService {
         map(users => users.find(t => t.uid === uid))
       );
 
-    return user$;
+    return getSingleWithCache(user$, Database.users, { uid });
   }
 
   updateCard(id: number, properties: Partial<CardEx>): Observable<CardEx> {
