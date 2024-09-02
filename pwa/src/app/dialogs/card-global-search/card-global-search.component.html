@@ -36,7 +36,7 @@
                         <span class="ms-2">{{card.updated | timeago}}</span>
                     </div>
                 </div>
-                <div class="mt-2 med">
+                <div class="mt-2 med cursor-pointer" (click)="openCard(card.id)">
                     {{card.title}}
                 </div>
                 <div class="mt-2 small" *ngIf="getResponsible(card)">
