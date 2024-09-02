@@ -42,8 +42,12 @@ export class InlineMemberComponent implements OnChanges {
   }
 
   loadAvatarUrl(): void {
+    this.isLoading = true;
     this.avatarService
       .getUrl(this.profile)
+      .pipe(
+        finalize(() => this.isLoading = false),
+      )
       .subscribe(url => {
         this.avatarUrl = url;
       });
