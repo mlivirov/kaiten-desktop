@@ -73,6 +73,9 @@ export class PropertiesEditorComponent {
   @Output()
   saveRequested: EventEmitter<EditorProperty> = new EventEmitter();
 
+  @Output()
+  editingStarted: EventEmitter<EditorProperty> = new EventEmitter();
+
   isSaveInProgress: boolean = false;
 
   getPropertyReaderTemplate(property: EditorProperty): TemplateRef<any> {
@@ -99,6 +102,7 @@ export class PropertiesEditorComponent {
       this.editorContainer.nativeElement.querySelector('.editor')?.focus();
     }, 0);
 
+    this.editingStarted.emit(this.editingProperty);
     event.preventDefault();
     event.stopPropagation()
   }

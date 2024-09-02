@@ -25,7 +25,7 @@
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="read" type="column" let-data="data">
-        <span>{{data.title}}</span>
+        <span>{{data?.title?.length ? data.tittle : 'Default'}}</span>
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="write" type="column" let-property="property" let-isSaveInProgress="isSaveInProgress">
@@ -34,7 +34,7 @@
                 (ngModelChange)="property.value = FindColumnRecursiveFunction(columns, $event)"
                 [disabled]="isSaveInProgress"
         >
-            <option *ngFor="let column of columns" [ngValue]="column.id">{{column.title}}</option>
+            <option *ngFor="let column of columns" [ngValue]="column.id">{{column.title?.length ? column.title : 'Default'}}</option>
         </select>
     </ng-template>
 
@@ -62,13 +62,10 @@
             <app-inline-member [profile]="profile"></app-inline-member>
         </ng-template>
 
-        <app-inline-member #member class="d-none" [profileUid]="property.value"></app-inline-member>
-
         <input type="text"
                class="form-control form-control-sm editor"
                [placeholder]="'Type user name'"
-               [ngModel]="member.profile"
-               (ngModelChange)="property.value = $event"
+               [(ngModel)]="newMember"
                [ngbTypeahead]="cardUsersTypeaheadSearch"
                [resultTemplate]="userTypeahead"
                [editable]="false"

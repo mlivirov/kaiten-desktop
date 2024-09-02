@@ -100,6 +100,8 @@ export class CardPropertiesComponent implements OnChanges {
   @Input({ required: true })
   card: CardEx;
 
+  newMember: Owner = null;
+
   cardUsersTypeaheadSearch: OperatorFunction<string, readonly User[]>
     = (text$: Observable<string>) =>
     text$
@@ -413,7 +415,7 @@ export class CardPropertiesComponent implements OnChanges {
 
   addMember(property: EditorProperty<User>) {
     this.apiService
-      .addMemberToCard(this.card.id, property.value.id)
+      .addMemberToCard(this.card.id, this.newMember.id)
       .pipe(
         catchError(() => {
           this.propertiesEditor.abortSave();
