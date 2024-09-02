@@ -11,7 +11,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   return apiService.getCredentials()
     .pipe(
       map(credentials => {
-        return credentials ? true : router.parseUrl('login');
+        return credentials.apiToken && credentials.apiEndpoint && credentials.resourcesEndpoint ? true : router.parseUrl('login');
       })
     );
 };

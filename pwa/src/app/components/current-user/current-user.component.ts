@@ -44,8 +44,9 @@ export class CurrentUserComponent {
   }
 
   logout() {
-    this.apiService.setCredentials({});
-    this.router.navigate(['login']);
+    this.apiService.logout().subscribe(
+      () => this.router.navigate(['login'])
+    );
   }
 
   loadAvatarUrl(): void {

@@ -1,5 +1,19 @@
 import { Injectable } from '@angular/core';
-import { forkJoin, map, Observable, of, switchMap, zip } from 'rxjs';
+import {
+  EMPTY,
+  expand,
+  forkJoin,
+  from,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  switchMap,
+  take,
+  tap,
+  timer,
+  zip
+} from 'rxjs';
 import { CardEx } from '../models/card-ex';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Board } from '../models/board';
@@ -15,19 +29,45 @@ import { Tag } from '../models/tag';
 import { CardFilter } from '../components/card-search-input/card-search-input.component';
 import { MemberType } from '../models/member-type';
 import { Owner } from '../models/owner';
+import { Database, getManyWithCache, getSingleWithCache } from './db';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
+  currentUser$: Observable<User> = EMPTY;
+
   constructor(private httpClient: HttpClient) {
+    this.resetCurrentUser();
   }
 
-  setCredentials(creds: Credentials): Observable<User> {
+  resetCurrentUser() {
+    this.currentUser$ = this.httpClient.get<User>('http://server/api/latest/users/current')
+      .pipe(
+        shareReplay()
+      );
+  }
+
+  logout(): Observable<void> {
+    return zip(
+      this.setSetting(Setting.Token, ''),
+      from(Database.delete({ disableAutoOpen: false }))
+    ).pipe(
+      map(t => {}),
+      tap(() => {
+        this.resetCurrentUser();
+      })
+    );
+  }
+
+  login(creds: Credentials): Observable<User> {
     return zip([
       this.setSetting(Setting.ApiUrl, creds.apiEndpoint),
       this.setSetting(Setting.FilesUrl, creds.resourcesEndpoint),
       this.setSetting(Setting.Token, creds.apiToken)
     ]).pipe(
-      switchMap(() => this.getCurrentUser())
+      switchMap(() => this.httpClient.get<User>('http://server/api/latest/users/current')),
+      tap(() => {
+        this.resetCurrentUser();
+      })
     );
   }
 
@@ -38,16 +78,13 @@ export class ApiService {
       Token: this.getSetting(Setting.Token),
     })
       .pipe(
+        take(1),
         map(r => {
-          const isAuthenticated = !(!r.ApiUrl || !r.FilesUrl || !r.Token);
-
-          return isAuthenticated
-            ? <Credentials>{
+          return <Credentials>{
               apiEndpoint: r.ApiUrl,
               apiToken: r.Token,
               resourcesEndpoint: r.FilesUrl,
-            }
-            : null;
+            };
         })
       );
   }
@@ -112,15 +149,18 @@ export class ApiService {
   }
 
   getBoard(boardId: number): Observable<Board> {
-    return this.httpClient.get<Board>(`http://server/api/latest/boards/${boardId}`);
+    const board$ = this.httpClient.get<Board>(`http://server/api/latest/boards/${boardId}`);
+    return getSingleWithCache(board$, Database.boards, boardId);
   }
 
   getColumns(boardId: number): Observable<ColumnEx[]> {
-    return this.httpClient.get<ColumnEx[]>(`http://server/api/latest/boards/${boardId}/columns`);
+    const request$ = this.httpClient.get<ColumnEx[]>(`http://server/api/latest/boards/${boardId}/columns`);
+    return getManyWithCache(request$, Database.columns, t => t.where({ board_id: boardId }));
   }
 
   getSpaces(): Observable<Space[]> {
-    return this.httpClient.get<Space[]>('http://server/api/latest/spaces');
+    const request$ = this.httpClient.get<Space[]>('http://server/api/latest/spaces');
+    return getManyWithCache(request$, Database.spaces);
   }
 
   getCardComments(cardId: number): Observable<CardComment[]> {
@@ -135,12 +175,13 @@ export class ApiService {
   }
 
   getCurrentUser(): Observable<User> {
-    return this.httpClient.get<User>('http://server/api/latest/users/current');
+    return this.currentUser$.pipe(take(1));
   }
 
   getUsers(offset: number, limit: number, query?: string): Observable<User[]> {
-    return this.httpClient
-      .get<User[]>(`http://server/api/latest/users`)
+    const users$ = this.httpClient.get<User[]>(`http://server/api/latest/users`);
+
+    return getManyWithCache(users$, Database.users)
       .pipe(
         map(users => {
           return this.filterUsers(users, offset, limit, query);
@@ -176,11 +217,13 @@ export class ApiService {
   }
 
   getUserByUid(uid: string): Observable<User> {
-    return this.httpClient
+    const user$ = this.httpClient
       .get<User[]>(`http://server/api/latest/users`)
       .pipe(
         map(users => users.find(t => t.uid === uid))
       );
+
+    return user$;
   }
 
   updateCard(id: number, properties: Partial<CardEx>): Observable<CardEx> {
@@ -210,11 +253,13 @@ export class ApiService {
   }
 
   getCustomProperties(): Observable<CustomProperty[]> {
-    return this.httpClient.get<CustomProperty[]>(`http://server/api/latest/company/custom-properties`);
+    const request$ = this.httpClient.get<CustomProperty[]>(`http://server/api/latest/company/custom-properties`);
+    return getManyWithCache(request$, Database.customProperties);
   }
 
   getCustomPropertyValues(id: number): Observable<CustomPropertySelectValue[]> {
-    return this.httpClient.get<CustomPropertySelectValue[]>(`http://server/api/latest/company/custom-properties/${id}/select-values`);
+    const request$ = this.httpClient.get<CustomPropertySelectValue[]>(`http://server/api/latest/company/custom-properties/${id}/select-values`);
+    return getManyWithCache(request$, Database.customPropertySelectValues, t => t.where({ custom_property_id: id }));
   }
 
   getCustomPropertiesWithValues(): Observable<CustomPropertyAndValues[]> {

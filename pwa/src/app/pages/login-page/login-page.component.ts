@@ -34,7 +34,9 @@ export class LoginPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.initializeForm({apiToken: null, resourcesEndpoint: null, apiEndpoint: null});
+    this.apiService
+      .getCredentials()
+      .subscribe(creds => this.initializeForm(creds));
   }
 
   initializeForm(creds: Credentials) {
@@ -47,7 +49,7 @@ export class LoginPageComponent implements OnInit {
 
   submit() {
     this.apiService
-      .setCredentials(this.form.value)
+      .login(this.form.value)
       .pipe(
         switchMap(v => this.dialogService.loginConfirmation(v)),
         catchError((err) => this.dialogService.alert('Failed to login. Please make sure that credentials are valid.')),
