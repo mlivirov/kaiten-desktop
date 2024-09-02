@@ -35,7 +35,7 @@
         <div class="small ms-1 ms-md-0 text-nowrap opacity-75 d-inline d-sm-none"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
         <div class="small ms-1 ms-md-0 text-nowrap opacity-75 d-none d-sm-inline cursor-pointer" (click)="openCard(card.id)"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
     </div>
-    <div class="p-1 small my-2 rounded-1 d-none d-lg-block"
+    <div class="p-1 small my-2 rounded-1"
        style="background-color: #EDD1CE"
        *ngFor="let blocker of card?.blockers"
     >
@@ -51,7 +51,7 @@
             </span>
         </div>
     </div>
-    <p class="p-1 small my-2 d-none d-lg-block cursor-pointer"
+    <p class="p-1 small my-2 cursor-pointer"
        style="background-color: #FDF8E4"
        *ngFor="let blocker of card?.blocking_blockers"
        (click)="openCard(blocker.blocked_card?.id)"
