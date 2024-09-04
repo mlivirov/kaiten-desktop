@@ -31,6 +31,9 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
   @Input()
   hideBorder: boolean = false;
 
+  @Input()
+  placeholder: string;
+
   value: string;
 
   changeCallback: (value: string) => void;
@@ -43,12 +46,13 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     const self = this;
     this.editor = new Editor({
       el: this.editorRef.nativeElement,
-      minHeight: `100px`,
+      minHeight: `35px`,
       height: 'auto',
       initialEditType: 'wysiwyg',
       hideModeSwitch: true,
       initialValue: this.value,
       previewStyle: 'vertical',
+      placeholder: this.placeholder,
       events: {
         change() {
           self.changeCallback?.call(self, self.editor.getMarkdown());

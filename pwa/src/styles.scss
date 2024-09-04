@@ -88,6 +88,19 @@ app-list-of-related-cards .list .item:last-child {
   border: none;
 }
 
+.inline-editor .tui-editor-contents {
+  padding: 0 !important;
+}
+
+.inline-editor .tui-editor-contents  p:first-of-type {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.inline-editor .te-toolbar-section {
+  display: none;
+}
+
 .typeahead-popover > .popover-body {
   padding: 0 !important;
 }
@@ -103,4 +116,24 @@ app-list-of-related-cards .list .item:last-child {
 
 .pi {
   font-size: 0.8em;
+}
+
+.btn-icon-sm {
+  padding: 0;
+  width: 1rem;
+  height: 1rem;
+  position: relative;
+}
+
+.btn-icon-sm i.pi {
+  font-size: 0.8em;
+  position: absolute;
+  top: 2px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.btn-icon-sm.dropdown-toggle:after {
+  display: none;
 }
