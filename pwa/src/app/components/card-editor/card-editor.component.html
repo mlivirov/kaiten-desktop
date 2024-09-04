@@ -11,7 +11,7 @@
 
         <div class="form-check form-switch ms-auto mt-1">
             <label class="form-check-label" for="flexSwitchCheckDefault">ASAP</label>
-            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" [ngModel]="card.asap" (ngModelChange)="updateAsap($event)" [disabled]="isSaveInProgress">
+            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" [ngModel]="card.asap" (ngModelChange)="updateAsap($event)" [disabled]="isSaving">
         </div>
 
     </div>
@@ -28,7 +28,7 @@
                     triggers="click hover"
                     ngbDropdownAnchor
                     (focus)="myDrop.open()"
-                    [disabled]="isSaveInProgress"
+                    [disabled]="isSaving"
             >
                 <i class="pi pi-ellipsis-v"></i>
             </button>
@@ -54,7 +54,26 @@
             {{card.block_reason}}
         </div>
         <div class="mt-3 mt-md-4">
-            <app-md-editor [(ngModel)]="card.description"></app-md-editor>
+            <app-md-editor [(ngModel)]="card.description" placeholder="Type description here" [minHeight]="100"></app-md-editor>
+            <div class="my-2 text-end" *ngIf="!CheckTextEqualsFunction(card.description, originalDescription)">
+                <button type="button"
+                        class="btn btn-sm btn-outline-primary me-2"
+                        (click)="saveDescription($event);"
+                        [disabled]="isSaving"
+                >
+                    <i class="pi pi-check text-success" *ngIf="!isSaving"></i>
+                    <i class="pi pi-spinner pi-spin" *ngIf="isSaving"></i>
+                    Save
+                </button>
+
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        (click)="discardChanges($event);"
+                        [disabled]="isSaving"
+                >
+                    Discard
+                </button>
+            </div>
         </div>
 
         <div class="mt-3">

@@ -33,6 +33,9 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
   @Input()
   placeholder: string;
 
+  @Input()
+  minHeight: number = 35;
+
   value: string;
 
   changeCallback: (value: string) => void;
@@ -45,7 +48,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     const self = this;
     this.editor = new Editor({
       el: this.editorRef.nativeElement,
-      minHeight: `35px`,
+      minHeight: `${this.minHeight}px`,
       height: 'auto',
       initialEditType: 'wysiwyg',
       hideModeSwitch: true,
