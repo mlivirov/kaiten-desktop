@@ -23,6 +23,9 @@ import { Router } from '@angular/router';
   styleUrl: './page-header.component.scss'
 })
 export class PageHeaderComponent {
+  readonly window = window
+  readonly pullDownBorderOffset = 20;
+
   @Input()
   title?: string
 
@@ -63,14 +66,15 @@ export class PageHeaderComponent {
   @HostListener('pandown', ['$event'])
   @HostListener('panup', ['$event'])
   handlePanDown(event: { deltaY: number }) {
-    this.panDown = event.deltaY;
+    const maxDown = (window.innerWidth - this.pullDownBorderOffset) / 2;
+    this.panDown = Math.min(maxDown, event.deltaY);
   }
 
   @HostListener('panend', ['$event'])
   handlePanEnd(event: { deltaY: number }) {
     this.panDown = 0;
 
-    if (event.deltaY > 130) {
+    if (event.deltaY > (window.innerWidth - this.pullDownBorderOffset) / 2) {
       this.router.navigateByUrl(this.router.url, {
         onSameUrlNavigation: 'reload'
       });
