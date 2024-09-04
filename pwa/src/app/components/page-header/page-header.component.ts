@@ -35,8 +35,6 @@ export class PageHeaderComponent {
   @ContentChild('content')
   contentTemplate: TemplateRef<any>;
 
-  panDown: number = 0;
-
   constructor(
     private dialogService: DialogService,
     private router: Router,
@@ -61,28 +59,5 @@ export class PageHeaderComponent {
 
   searchCard() {
     this.dialogService.searchCard().subscribe();
-  }
-
-  @HostListener('pandown', ['$event'])
-  @HostListener('panup', ['$event'])
-  handlePanDown(event: { deltaY: number }) {
-    const maxDown = (window.innerWidth - this.pullDownBorderOffset) / 2;
-    this.panDown = Math.min(maxDown, event.deltaY);
-  }
-
-  @HostListener('panend', ['$event'])
-  handlePanEnd(event: { deltaY: number }) {
-    this.panDown = 0;
-
-    if (event.deltaY > (window.innerWidth - this.pullDownBorderOffset) / 2) {
-      this.router.navigateByUrl(this.router.url, {
-        onSameUrlNavigation: 'reload'
-      });
-    }
-  }
-
-  @HostListener('pancancel', ['$event'])
-  handlePanCancel() {
-    this.panDown = 0;
   }
 }

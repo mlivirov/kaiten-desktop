@@ -21,8 +21,7 @@
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js",
-              "src/scripts/polyfill.js",
-              "node_modules/hammerjs/hammer.min.js"
+              "src/scripts/polyfill.js"
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",

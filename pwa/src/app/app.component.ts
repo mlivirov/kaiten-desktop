@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { AfterViewInit, Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   NavigationCancel,
@@ -23,6 +23,8 @@ import { TypeaheadComponent } from './components/typeahead/typeahead.component';
 import { CardSearchInputComponent } from './components/card-search-input/card-search-input.component';
 import { DialogService } from './services/dialogService';
 import { ToastContainerComponent } from './components/toast/toast-container/toast-container.component';
+import PullToRefresh from 'pulltorefreshjs';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-root',
@@ -31,13 +33,14 @@ import { ToastContainerComponent } from './components/toast/toast-container/toas
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
   isLoading: boolean = false;
 
   constructor(
     private router: Router,
     private apiService: ApiService,
     private dialogService: DialogService,
+    private modal: NgbModal
   ) {
     router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
@@ -64,5 +67,20 @@ export class AppComponent {
         .searchCard()
         .subscribe(t => this.router.navigate(['card', t.id]));
     }
+  }
+
+  ngAfterViewInit(): void {
+    const self = this;
+    PullToRefresh.init({
+      mainElement: 'body',
+      onRefresh() {
+        self.router.navigateByUrl(self.router.url, {
+          onSameUrlNavigation: 'reload'
+        });
+      },
+      shouldPullToRefresh() {
+        return !self.modal.hasOpenModals();
+      }
+    });
   }
 }
