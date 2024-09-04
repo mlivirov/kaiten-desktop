@@ -10,7 +10,7 @@ import {
   shareReplay,
   switchMap,
   take,
-  tap,
+  tap, timeout,
   timer,
   zip
 } from 'rxjs';
@@ -30,13 +30,25 @@ import { CardFilter } from '../components/card-search-input/card-search-input.co
 import { MemberType } from '../models/member-type';
 import { Owner } from '../models/owner';
 import { Database, getManyWithCache, getSingleWithCache } from './db';
+import { CheckListItem } from '../models/check-list-item';
+import { CheckList } from '../models/check-list';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   currentUser$: Observable<User> = EMPTY;
+  users$: Observable<User[]> = EMPTY;
 
   constructor(private httpClient: HttpClient) {
     this.resetCurrentUser();
+    this.loadUsers()
+  }
+
+  loadUsers() {
+    const serverUsers$ = this.httpClient.get<User[]>(`http://server/api/latest/users`);
+    this.users$ = serverUsers$
+      .pipe(
+        shareReplay(),
+      );
   }
 
   resetCurrentUser() {
@@ -179,11 +191,9 @@ export class ApiService {
   }
 
   getUsers(offset: number, limit: number, query?: string): Observable<User[]> {
-    const users$ = this.httpClient.get<User[]>(`http://server/api/latest/users`);
-
-    return getManyWithCache(users$, Database.users)
+    return getManyWithCache(this.users$.pipe(take(1)), Database.users)
       .pipe(
-        map(users => {
+        map((users: User[]) => {
           return this.filterUsers(users, offset, limit, query);
         })
       );
@@ -216,10 +226,20 @@ export class ApiService {
     return filtered;
   }
 
-  getUserByUid(uid: string): Observable<User> {
-    const user$ = this.httpClient
-      .get<User[]>(`http://server/api/latest/users`)
+  getUserById(id: number): Observable<User> {
+    const user$ = this.users$
       .pipe(
+        take(1),
+        map(users => users.find(t => t.id === id))
+      );
+
+    return getSingleWithCache(user$, Database.users, id);
+  }
+
+  getUserByUid(uid: string): Observable<User> {
+    const user$ = this.users$
+      .pipe(
+        take(1),
         map(users => users.find(t => t.uid === uid))
       );
 
@@ -306,5 +326,44 @@ export class ApiService {
       .pipe(
         map(() => {})
       );
+  }
+
+  updateCardCheckListItem(cardId: number, checklistId: number, checkListItemId: number, checklistItem: Partial<CheckListItem>): Observable<CheckListItem> {
+    return this.httpClient
+      .patch<CheckListItem>(`http://server/api/latest/cards/${cardId}/checklists/${checklistId}/items/${checkListItemId}`, checklistItem);
+  }
+
+  updateCardCheckList(cardId: number, checklistId: number, checklist: Partial<CheckList>): Observable<CheckList> {
+    return this.httpClient
+      .patch<CheckList>(`http://server/api/latest/cards/${cardId}/checklists/${checklistId}`, checklist);
+  }
+
+  addCheckListItem(cardId: number, checklistId: number, text: string, position: number|undefined): Observable<CheckListItem> {
+    return this.httpClient
+      .post<CheckListItem>(`http://server/api/latest/cards/${cardId}/checklists/${checklistId}/items`, <Partial<CheckListItem>>{
+        text,
+        sort_order: position
+      });
+  }
+
+  deleteCheckListItem(cardId: number, checklistId: number, checklistItemId: number): Observable<void> {
+    return this.httpClient
+      .delete(`http://server/api/latest/cards/${cardId}/checklists/${checklistId}/items/${checklistItemId}`)
+      .pipe(
+        map(() => {})
+      );
+  }
+
+  deleteCheckList(cardId: number, checklistId: number): Observable<void> {
+    return this.httpClient
+      .delete(`http://server/api/latest/cards/${cardId}/checklists/${checklistId}`)
+      .pipe(
+        map(() => {})
+      );
+  }
+
+  addCardCheckList(cardId: number, checklist: Partial<CheckList>): Observable<CheckList> {
+    return this.httpClient
+      .post<CheckList>(`http://server/api/latest/cards/${cardId}/checklists`, checklist);
   }
 }
