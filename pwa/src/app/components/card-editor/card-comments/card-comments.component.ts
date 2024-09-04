@@ -45,6 +45,10 @@ export class CardCommentsComponent implements OnChanges {
   }
 
   submit() {
+    if (this.isSavingInProgress) {
+      return;
+    }
+
     this.isSavingInProgress = true;
 
     this.apiService
