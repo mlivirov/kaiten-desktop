@@ -1,13 +1,14 @@
-import { Component, ElementRef, forwardRef, Injectable, Input, ViewChild } from '@angular/core';
+import { Component, forwardRef, Injectable, Input, ViewChild } from '@angular/core';
 import {
   Badge,
   BADGE_SERVICE,
   BadgeService,
   BadgeType,
   TypeaheadBadgeItemTemplate,
-  TypeaheadComponent, TypeaheadComponentValue
+  TypeaheadComponent,
+  TypeaheadComponentValue
 } from '../typeahead/typeahead.component';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { User } from '../../models/user';
 import { Tag } from '../../models/tag';

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { User } from '../models/user';
-import { catchError, from, map, Observable, of, switchMap, take, tap } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { AvatarEntity, Database, getSingleWithCache, getSingleWithCacheWithMap } from './db';
+import { AvatarEntity, Database, getSingleWithCacheWithMap } from './db';
 
 interface CacheItem {
   dataUrl: string;

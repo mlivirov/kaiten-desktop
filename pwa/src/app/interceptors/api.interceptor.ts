@@ -1,7 +1,6 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { HttpInterceptorFn } from '@angular/common/http';
+import { switchMap } from 'rxjs';
 import { inject } from '@angular/core';
-import { ToastService } from '../services/toast.service';
 import { ApiService } from '../services/api.service';
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {

@@ -1,10 +1,16 @@
 import {
-  Component, ElementRef,
-  EventEmitter, HostListener, Injectable,
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Injectable,
   Input,
   OnChanges,
-  Output, QueryList,
-  SimpleChanges, ViewChild, ViewChildren,
+  Output,
+  QueryList,
+  SimpleChanges,
+  ViewChild,
+  ViewChildren,
 } from '@angular/core';
 import { CheckList } from '../../../../models/check-list';
 import { DatePipe, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
@@ -14,10 +20,12 @@ import {
   NgbDropdown,
   NgbDropdownAnchor,
   NgbDropdownItem,
-  NgbDropdownMenu, NgbInputDatepicker, NgbPopover,
-  NgbTooltip, NgbTypeahead
+  NgbDropdownMenu,
+  NgbInputDatepicker,
+  NgbPopover,
+  NgbTooltip,
+  NgbTypeahead
 } from '@ng-bootstrap/ng-bootstrap';
-import { FetchUserDirective } from '../../../../directives/fetch-user.directive';
 import { FormsModule } from '@angular/forms';
 import { TimeagoModule } from 'ngx-timeago';
 import { MdViewerComponent } from '../../../md-viewer/md-viewer.component';
@@ -46,7 +54,6 @@ export class CardChecklistService {
     NgIf,
     NgbTooltip,
     DatePipe,
-    FetchUserDirective,
     FormsModule,
     TimeagoModule,
     NgTemplateOutlet,

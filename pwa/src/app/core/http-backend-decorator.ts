@@ -1,14 +1,6 @@
-import {
-  FetchBackend,
-  HttpBackend, HttpClient,
-  HttpErrorResponse,
-  HttpEvent,
-  HttpHeaders,
-  HttpRequest,
-  HttpResponse
-} from '@angular/common/http';
-import { delay, filter, finalize, Observable, of, Subject, switchMap, take, tap } from 'rxjs';
-import { QtApplication, ResponseData } from './qt-application';
+import { FetchBackend, HttpBackend, HttpEvent, HttpHeaders, HttpRequest, HttpResponse } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { QtApplication } from './qt-application';
 import { CordovaApplication } from './cordova-application';
 
 

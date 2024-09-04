@@ -1,4 +1,4 @@
-import { Component, Injectable, Input, OnChanges, SimpleChanges, ViewChild, ViewChildren } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import {
   AsyncPipe,
   DatePipe,
@@ -14,28 +14,23 @@ import { MdEditorComponent } from '../md-editor/md-editor.component';
 import { FormsModule } from '@angular/forms';
 import { CardEx } from '../../models/card-ex';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
-import { CustomProperty, CustomPropertyAndValues, CustomPropertySelectValue } from '../../models/custom-property';
 import { ApiService } from '../../services/api.service';
-import { debounceTime, finalize, forkJoin, Observable, of, OperatorFunction, switchMap } from 'rxjs';
-import { Lane } from '../../models/lane';
-import { DialogService } from '../../services/dialogService';
-import { CardReference, ListOfRelatedCardsComponent } from './card-references-accordion/list-of-related-cards/list-of-related-cards.component';
-import { CardState } from '../../models/card-state';
-import { CardStateLabelComponent } from './card-state-label/card-state-label.component';
+import { finalize } from 'rxjs';
 import {
-  CardReferencesAccordionComponent,
-  GroupOfReferences
-} from './card-references-accordion/card-references-accordion.component';
-import { Router, RouterLink } from '@angular/router';
-import { ColumnEx } from '../../models/column-ex';
+  ListOfRelatedCardsComponent
+} from './card-references-accordion/list-of-related-cards/list-of-related-cards.component';
+import { CardStateLabelComponent } from './card-state-label/card-state-label.component';
+import { CardReferencesAccordionComponent } from './card-references-accordion/card-references-accordion.component';
+import { RouterLink } from '@angular/router';
 import { TimeagoModule } from 'ngx-timeago';
 import { CardCommentsComponent } from './card-comments/card-comments.component';
+import { EditorPropertyTemplate, PropertiesEditorComponent, } from '../properties-editor/properties-editor.component';
 import {
-  PropertiesEditorComponent,
-  EditorPropertyTemplate,
-} from '../properties-editor/properties-editor.component';
-import {
-  NgbDatepicker, NgbDropdown, NgbDropdownAnchor, NgbDropdownItem, NgbDropdownMenu,
+  NgbDatepicker,
+  NgbDropdown,
+  NgbDropdownAnchor,
+  NgbDropdownItem,
+  NgbDropdownMenu,
   NgbInputDatepicker,
   NgbTooltip,
   NgbTypeahead

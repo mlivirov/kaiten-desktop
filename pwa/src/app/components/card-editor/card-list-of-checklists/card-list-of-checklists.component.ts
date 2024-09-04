@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, QueryList, SimpleChanges, ViewChild, ViewChildren } from '@angular/core';
+import { Component, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { CardEx } from '../../../models/card-ex';
 import { CardChecklistComponent } from './card-checklist/card-checklist.component';
 import { NgForOf } from '@angular/common';

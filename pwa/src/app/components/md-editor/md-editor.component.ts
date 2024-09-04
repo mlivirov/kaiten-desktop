@@ -2,7 +2,6 @@ import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, Vie
 import Editor from '@toast-ui/editor';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { NgClass } from '@angular/common';
-import Viewer = toastui.Viewer;
 
 @Component({
   selector: 'app-md-editor',

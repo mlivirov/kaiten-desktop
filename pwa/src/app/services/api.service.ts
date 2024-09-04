@@ -1,19 +1,5 @@
 import { Injectable } from '@angular/core';
-import {
-  EMPTY,
-  expand,
-  forkJoin,
-  from,
-  map,
-  Observable,
-  of,
-  shareReplay,
-  switchMap,
-  take,
-  tap, timeout,
-  timer,
-  zip
-} from 'rxjs';
+import { EMPTY, forkJoin, from, map, Observable, of, shareReplay, switchMap, take, tap, zip } from 'rxjs';
 import { CardEx } from '../models/card-ex';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Board } from '../models/board';

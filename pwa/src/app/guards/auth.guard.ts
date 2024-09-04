@@ -1,8 +1,7 @@
-import { CanActivateFn, GuardResult, Router, UrlTree } from '@angular/router';
-import { forkJoin, map, of, switchMap } from 'rxjs';
+import { CanActivateFn, Router } from '@angular/router';
+import { map } from 'rxjs';
 import { inject } from '@angular/core';
 import { ApiService } from '../services/api.service';
-import { Setting } from '../models/setting';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const apiService = inject(ApiService);

@@ -1,10 +1,9 @@
-import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, HostListener, ViewChild } from '@angular/core';
 import { CurrentUserComponent } from '../../components/current-user/current-user.component';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { BoardComponent } from '../../components/board/board.component';
 import { Board } from '../../models/board';
 import { ActivatedRoute, Router } from '@angular/router';
-import { InputFromEventFunction } from '../../functions/input-from-event.function';
 import { NgIf } from '@angular/common';
 import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
 import { FormsModule } from '@angular/forms';

@@ -1,4 +1,4 @@
-import { Column, ColumnBase } from '../models/column';
+import { ColumnBase } from '../models/column';
 import { ColumnEx } from '../models/column-ex';
 
 export function FlattenColumnsFunction(columns: ColumnEx[]): ColumnBase[] {

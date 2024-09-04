@@ -1,25 +1,18 @@
-import {
-  Component, ElementRef,
-  EventEmitter,
-  HostListener,
-  Injectable,
-  Input, OnDestroy,
-  Output,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Injectable, Input, Output, ViewChild } from '@angular/core';
 import { CheckListItem } from '../../../../models/check-list-item';
 import {
   NgbDropdown,
   NgbDropdownAnchor,
   NgbDropdownItem,
-  NgbDropdownMenu, NgbInputDatepicker,
-  NgbPopover, NgbTooltip, NgbTypeahead
+  NgbDropdownMenu,
+  NgbInputDatepicker,
+  NgbPopover,
+  NgbTooltip,
+  NgbTypeahead
 } from '@ng-bootstrap/ng-bootstrap';
-import { debounceTime, finalize, map, Observable, OperatorFunction, Subject, switchMap, tap } from 'rxjs';
+import { debounceTime, finalize, map, Observable, OperatorFunction, switchMap, tap } from 'rxjs';
 import { User } from '../../../../models/user';
 import { ApiService } from '../../../../services/api.service';
-import { DialogService } from '../../../../services/dialogService';
 import { DatePipe, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { InlineMemberComponent } from '../../../inline-member/inline-member.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';

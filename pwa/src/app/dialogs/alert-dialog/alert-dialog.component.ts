@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { TimeDotsComponent } from '../../components/time-dots/time-dots.component';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';

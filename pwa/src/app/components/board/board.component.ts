@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, Input, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, HostListener, Input, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { JsonPipe, NgClass, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { CardComponent } from '../card/card.component';
 import { CardEx } from '../../models/card-ex';
@@ -8,10 +8,8 @@ import { User } from '../../models/user';
 import { ColumnEx } from '../../models/column-ex';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { DragulaModule, DragulaService } from 'ng2-dragula';
-import { Setting } from '../../models/setting';
 import { BoardService } from '../../services/board.service';
 import { DialogService } from '../../services/dialogService';
-import { TypeaheadComponentValue } from '../typeahead/typeahead.component';
 import { CardFilter } from '../card-search-input/card-search-input.component';
 import { FindColumnRecursiveFunction } from '../../functions/find-column-recursive.function';
 

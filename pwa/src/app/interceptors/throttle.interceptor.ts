@@ -1,15 +1,5 @@
-import {
-  HttpEvent, HttpHandlerFn,
-  HttpInterceptorFn, HttpRequest,
-} from '@angular/common/http';
-import {
-  BehaviorSubject,
-  filter,
-  interval, map,
-  Observable,
-  switchMap,
-  take,
-} from 'rxjs';
+import { HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest, } from '@angular/common/http';
+import { BehaviorSubject, filter, interval, map, Observable, switchMap, take, } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })

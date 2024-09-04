@@ -1,20 +1,11 @@
-import {
-  Component, ContentChild, ContentChildren,
-  ElementRef,
-  EventEmitter,
-  HostListener,
-  Input,
-  Output, QueryList,
-  TemplateRef,
-  ViewChild
-} from '@angular/core';
+import { Component, ContentChild, EventEmitter, HostListener, Input, Output, TemplateRef } from '@angular/core';
 import { CurrentUserComponent } from '../current-user/current-user.component';
 import { NgIf, NgOptimizedImage, NgStyle, NgTemplateOutlet } from '@angular/common';
 import { DialogService } from '../../services/dialogService';
 import { filter } from 'rxjs';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
 import { NgbDropdownToggle } from '@ng-bootstrap/ng-bootstrap';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-page-header',

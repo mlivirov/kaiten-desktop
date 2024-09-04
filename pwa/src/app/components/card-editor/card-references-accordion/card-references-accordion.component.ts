@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnInit, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { CardReference, ListOfRelatedCardsComponent } from './list-of-related-cards/list-of-related-cards.component';
 import { NgForOf, NgIf, NgStyle } from '@angular/common';
 import { CardEx } from '../../../models/card-ex';

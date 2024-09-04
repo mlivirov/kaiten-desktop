@@ -1,10 +1,15 @@
 import {
   Component,
-  ContentChildren, Directive,
-  ElementRef, forwardRef,
-  HostListener, Inject, InjectionToken,
+  ContentChildren,
+  Directive,
+  ElementRef,
+  forwardRef,
+  HostListener,
+  Inject,
+  InjectionToken,
   Input,
-  QueryList, Self,
+  QueryList,
+  Self,
   TemplateRef,
   ViewChild
 } from '@angular/core';

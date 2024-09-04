@@ -1,9 +1,5 @@
-import { CanActivateChildFn, CanActivateFn, GuardResult, Router, UrlTree } from '@angular/router';
-import { forkJoin, map, of, switchMap } from 'rxjs';
+import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
-import { ApiService } from '../services/api.service';
-import { Setting } from '../models/setting';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { DialogService } from '../services/dialogService';
 
 export const modalGuard: CanActivateFn = (route, state) => {
