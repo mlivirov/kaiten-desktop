@@ -6,6 +6,7 @@ import { PathData } from './path-data';
 import { CardFile } from './card-file';
 import { CardWithReference } from './card-with-reference';
 import { Card } from './card';
+import { CheckList } from './check-list';
 
 export interface CardEx extends Card {
     board:                          Board;
@@ -20,5 +21,6 @@ export interface CardEx extends Card {
     blocker_id?:                    number;
     block_reason?:                  string;
     blocking_blockers?:             BlockBlocker[];
+    checklists?:                    CheckList[];
 }
 
