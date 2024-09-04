@@ -3,7 +3,13 @@
 window.global = window;
 
 Date.prototype.elapsed = function() {
-    var now = new Date();
+    return Date.now() - this.getTime();
+}
 
-    return now - this.getTime();
+
+Element.prototype.getAttributeAsNumber = function(name) {
+    const value = this.getAttribute(name);
+    const parsedValue = Number.parseInt(value, 10);
+
+    return parsedValue === Number.NaN ? null : parsedValue;
 }
