@@ -1,4 +1,4 @@
-import { Component, Injectable, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Injectable, Input, OnChanges, SimpleChanges, ViewChild, ViewChildren } from '@angular/core';
 import {
   AsyncPipe,
   DatePipe,
@@ -35,12 +35,15 @@ import {
   EditorPropertyTemplate,
 } from '../properties-editor/properties-editor.component';
 import {
-  NgbDatepicker,
+  NgbDatepicker, NgbDropdown, NgbDropdownAnchor, NgbDropdownItem, NgbDropdownMenu,
   NgbInputDatepicker,
   NgbTooltip,
   NgbTypeahead
 } from '@ng-bootstrap/ng-bootstrap';
 import { CardPropertiesComponent } from './card-properties/card-properties.component';
+import { CardChecklistComponent } from './card-list-of-checklists/card-checklist/card-checklist.component';
+import { CardListOfChecklistsComponent } from './card-list-of-checklists/card-list-of-checklists.component';
+import { UnionIfNotExistsFunction } from '../../functions/union-if-not-exists.function';
 
 
 @Component({
@@ -72,6 +75,12 @@ import { CardPropertiesComponent } from './card-properties/card-properties.compo
     NgbTooltip,
     CardPropertiesComponent,
     NgTemplateOutlet,
+    CardChecklistComponent,
+    CardListOfChecklistsComponent,
+    NgbDropdown,
+    NgbDropdownAnchor,
+    NgbDropdownItem,
+    NgbDropdownMenu,
   ],
   templateUrl: './card-editor.component.html',
   styleUrl: './card-editor.component.scss',
@@ -84,6 +93,9 @@ export class CardEditorComponent {
   card: CardEx;
 
   isSaveInProgress: boolean = false;
+
+  @ViewChild(CardListOfChecklistsComponent)
+  cardListOfChecklists: CardListOfChecklistsComponent;
 
   constructor(private apiService: ApiService) {
   }
@@ -100,5 +112,24 @@ export class CardEditorComponent {
       .subscribe(card => {
         this.card.asap = value;
       })
+  }
+
+  addChecklist() {
+    this.isSaveInProgress = true;
+    this.apiService
+      .addCardCheckList(this.card.id, {
+        name: `This is your ${this.card.checklists?.length ?? 1} checklist`,
+      })
+      .pipe(
+        finalize(() => this.isSaveInProgress = false)
+      )
+      .subscribe(checklist => {
+        this.card.checklists = UnionIfNotExistsFunction(this.card.checklists, checklist, 'id');
+
+        setTimeout(() => {
+          const found = this.cardListOfChecklists.checklists.find(t => t.checklist.id == checklist.id);
+          found.openTextEditor(null, true);
+        }, 0);
+      });
   }
 }
