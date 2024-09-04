@@ -29,6 +29,9 @@ export class InlineMemberComponent implements OnChanges {
   profileUid: any = null;
 
   @Input()
+  profileId: any = null;
+
+  @Input()
   showAvatar: boolean = true;
 
   @Input()
@@ -58,6 +61,19 @@ export class InlineMemberComponent implements OnChanges {
       this.isLoading = true;
       this.apiService
         .getUserByUid(this.profileUid)
+        .pipe(
+          finalize(() => this.isLoading = false),
+        )
+        .subscribe(d => {
+          this.profile = d;
+          this.loadAvatarUrl();
+        });
+    }
+
+    if (this.profileId) {
+      this.isLoading = true;
+      this.apiService
+        .getUserById(this.profileId)
         .pipe(
           finalize(() => this.isLoading = false),
         )

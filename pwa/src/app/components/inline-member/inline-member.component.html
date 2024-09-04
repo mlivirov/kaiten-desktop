@@ -1,11 +1,13 @@
 <div *ngIf="isLoading" class="d-flex align-items-center">
-    <span class="placeholder rounded-circle" style="width: 24px; height: 24px;"></span>
-    <span class="placeholder ms-2" style="width: 20px; height: 12px;"></span>
-    <span class="placeholder ms-1" style="width: 45px; height: 12px;"></span>
+    <span class="placeholder rounded-circle" *ngIf="showAvatar" style="width: 24px; height: 24px;"></span>
+    <span class="placeholder ms-2" *ngIf="showName" style="width: 20px; height: 12px;"></span>
+    <span class="placeholder ms-1" *ngIf="showName" style="width: 45px; height: 12px;"></span>
 </div>
-<div *ngIf="!profile && showName && !isLoading" class="d-flex align-items-center">
-    <i class="pi pi-user"></i>
-    <span class="ms-2">Unassigned</span>
+<div *ngIf="!profile && !isLoading" class="d-flex align-items-center">
+    <span style="min-width: 24px; min-height: 24px;" class="rounded-circle border d-flex align-items-center justify-content-center">
+        <i class="pi pi-user"></i>
+    </span>
+    <span class="ms-2" *ngIf="showName">Unassigned</span>
 </div>
 <div *ngIf="profile && !isLoading" class="d-flex align-items-center">
     <img *ngIf="showAvatar" class="rounded-circle" alt="logo" [src]="avatarUrl" width="24" height="24" [ngbTooltip]="profile?.full_name" [disableTooltip]="showName"/>
