@@ -97,6 +97,28 @@ export class DialogService {
       );
   }
 
+  confirmation(prompt: string, title?: string): Observable<boolean> {
+    const instance = this.modal.open(AlertDialogComponent);
+    this.activeModals.push(instance);
+
+    instance.componentInstance.text = prompt;
+    instance.componentInstance.title = title ?? 'Confirmation';
+    instance.componentInstance.cancelable = true;
+
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        })
+      );
+  }
+
   searchCard(): Observable<Card> {
     if (this.activeModals.some(modal => modal.componentInstance instanceof CardGlobalSearchComponent)) {
       return EMPTY;

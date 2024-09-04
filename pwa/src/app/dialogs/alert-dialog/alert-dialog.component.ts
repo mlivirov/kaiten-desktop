@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { TimeDotsComponent } from '../../components/time-dots/time-dots.component';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -16,7 +16,18 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 export class AlertDialogComponent {
   text: string;
   title: string = 'Information';
+  cancelable = false;
 
   constructor(public modal: NgbActiveModal) {
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKey(event: KeyboardEvent): void {
+    if (event.code === 'Enter' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.modal.close(true);
+    }
   }
 }
