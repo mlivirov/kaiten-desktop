@@ -1,13 +1,14 @@
-import { Component, Injectable, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import {
   NgbDateAdapter,
   NgbDatepicker,
-  NgbDateStruct,
-  NgbInputDatepicker, NgbTooltip,
+  NgbInputDatepicker,
+  NgbTooltip,
   NgbTypeahead
 } from '@ng-bootstrap/ng-bootstrap';
 import {
-  EditorProperty, EditorPropertyTemplate,
+  EditorProperty,
+  EditorPropertyTemplate,
   GroupOfEditorProperties,
   PropertiesEditorComponent
 } from '../../properties-editor/properties-editor.component';
@@ -30,37 +31,7 @@ import { InlineMemberComponent } from '../../inline-member/inline-member.compone
 import { FindColumnRecursiveFunction } from '../../../functions/find-column-recursive.function';
 import { ColumnEx } from '../../../models/column-ex';
 import { FlattenColumnsFunction } from '../../../functions/flatten-columns.function';
-
-@Injectable()
-export class NgbDateStringAdapter extends NgbDateAdapter<string> {
-  fromModel(value: string | null): NgbDateStruct | null {
-
-    if (value) {
-      const date = new Date(value);
-      return {
-        day: date.getDate(),
-        month: date.getMonth() + 1,
-        year: date.getFullYear(),
-      };
-    }
-    return null;
-  }
-
-  toModel(value: NgbDateStruct | null): string | null {
-    if (!value) {
-      return null;
-    }
-
-    const date = new Date(value.year, value.month - 1, value.day);
-    const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-    const msLocal =  date.getTime() - offsetMs;
-    const dateLocal = new Date(msLocal);
-    const iso = dateLocal.toISOString();
-    const isoLocal = iso.slice(0, 19);
-
-    return isoLocal;
-  }
-}
+import { NgbDateStringAdapter } from '../ngb-date-string-adapter.service';
 
 @Component({
   selector: 'app-card-properties',
