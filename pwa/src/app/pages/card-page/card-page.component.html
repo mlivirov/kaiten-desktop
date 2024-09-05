@@ -4,7 +4,7 @@
 >
     <ng-template #content>
         <div class="mt-2 w-100 mt-lg-0 me-2 mx-lg-4 flex-grow-1 text-center text-md-start">
-            <button class="btn btn-sm btn-outline-primary" [routerLink]="['/board', card.board_id]">Open board</button>
+            <button class="btn btn-sm btn-outline-primary" (click)="switchBoard(0, this.card.board_id, this.card.id)" >Open board</button>
         </div>
     </ng-template>
 </app-page-header>

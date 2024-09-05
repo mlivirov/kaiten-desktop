@@ -7,7 +7,7 @@
         </div>
         <div class="m-2 py-2 w-100" dragula="CARD" [attr.data-column-id]="columnId">
             <ng-container *ngFor="let card of cardsByColumnId[columnId]">
-                <app-card [card]="card" (updated)="refresh()" [attr.data-card-id]="card.id"></app-card>
+                <app-card [card]="card" (updated)="refresh(true)" [attr.data-card-id]="card.id"></app-card>
             </ng-container>
 
             <div *ngIf="!cardsByColumnId[columnId]?.length" class="text-center">

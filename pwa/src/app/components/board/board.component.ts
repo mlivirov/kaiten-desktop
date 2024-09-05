@@ -1,9 +1,18 @@
-import { Component, HostListener, Input, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import {
+  AfterViewInit,
+  Component, ElementRef,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit, Self,
+  SimpleChanges
+} from '@angular/core';
 import { JsonPipe, NgClass, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { CardComponent } from '../card/card.component';
 import { CardEx } from '../../models/card-ex';
 import { ApiService } from '../../services/api.service';
-import { finalize, map, Observable, Subject, switchMap, takeUntil, tap, zip } from 'rxjs';
+import { finalize, from, map, Observable, of, Subject, switchMap, takeUntil, tap, zip } from 'rxjs';
 import { User } from '../../models/user';
 import { ColumnEx } from '../../models/column-ex';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
@@ -12,6 +21,7 @@ import { BoardService } from '../../services/board.service';
 import { DialogService } from '../../services/dialogService';
 import { CardFilter } from '../card-search-input/card-search-input.component';
 import { FindColumnRecursiveFunction } from '../../functions/find-column-recursive.function';
+import { ActivatedRoute, Params } from '@angular/router';
 
 function colSortPredicate(a, b) {
   if (a.sort_order < b.sort_order) {
@@ -43,17 +53,21 @@ class BoardViewColumn {
   templateUrl: './board.component.html',
   styleUrl: './board.component.scss'
 })
-export class BoardComponent implements OnInit, OnDestroy {
+export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   @Input()
   spaceId: number;
 
   @Input()
   boardId: number;
 
+  @Input()
+  columns: ColumnEx[];
+
+  @Input()
+  cards: CardEx[];
+
   filterValue?: CardFilter;
   currentUser?: User;
-  columns: ColumnEx[];
-  cards: CardEx[];
   viewColumns: BoardViewColumn[];
 
   isBoardLoading: boolean = false;
@@ -69,7 +83,10 @@ export class BoardComponent implements OnInit, OnDestroy {
     private apiService: ApiService,
     private dragulaService: DragulaService,
     private boardService: BoardService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private activatedRoute: ActivatedRoute,
+    @Self()
+    private elementRef: ElementRef
   ) {
     const cardDragBag = dragulaService.createGroup('CARD', {
       moves: (el, container, handle) => {
@@ -165,7 +182,7 @@ export class BoardComponent implements OnInit, OnDestroy {
     return this.dialogService.cardTransition(card, from, to)
       .pipe(
         tap(card => {
-          this.refresh();
+          this.refresh(true);
         }),
         map(() => {})
       );
@@ -277,35 +294,47 @@ export class BoardComponent implements OnInit, OnDestroy {
     this.cardsByColumnId = cardsByColumnId;
   }
 
-  refresh() {
+  refresh(pullData: boolean) {
     if (this.isBoardLoading) {
       return;
     }
 
     this.isBoardLoading = true;
     zip(
-      this.apiService.getColumns(this.boardId),
-      this.apiService.getCards(this.boardId),
-      this.boardService.getCustomColumns(this.boardId)
+      pullData ? this.apiService.getColumns(this.boardId) : of(this.columns),
+      pullData ? this.apiService.getCards(this.boardId) : of(this.cards),
+      this.boardService.getCustomColumns(this.boardId),
+      this.activatedRoute.queryParams.pipe(map((params: Params) => { return params['cardId']})),
     )
       .pipe(
         finalize(() => this.isBoardLoading = false)
       )
-      .subscribe(([columns, cards, customColumns]) => {
+      .subscribe(([columns, cards, customColumns, activeCardId]) => {
         this.columns = columns;
         this.cards = cards;
         this.customColumns = customColumns;
 
-        this.mapCardsByColumnId(cards);
+        this.mapCardsByColumnId(this.cards);
         this.sortColumns();
         this.rearrangeColumns();
         this.countCards();
+
+        if (activeCardId) {
+          setTimeout(() => {
+            const cardElement = (this.elementRef.nativeElement as HTMLElement).querySelector(`[data-card-id="${activeCardId}"]`) as HTMLElement;
+            cardElement.scrollIntoView({
+              block: 'center'
+            });
+          }, 1);
+        }
       });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.boardId) {
-      this.refresh();
+    if (changes['cards'].currentValue && changes['columns']?.currentValue) {
+      this.refresh(false)
+    } else if (changes['boardId']) {
+      this.refresh(true);
     }
   }
 
@@ -316,11 +345,6 @@ export class BoardComponent implements OnInit, OnDestroy {
       event.stopPropagation();
 
       this.hideEmpty = !this.hideEmpty;
-    } else if (event.code === 'KeyR' && event.ctrlKey) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      this.refresh();
     }
   }
 

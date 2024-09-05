@@ -7,6 +7,8 @@ import { HomePageComponent } from './pages/home-page/home-page.component';
 import { boardResolver } from './resolvers/board.resolver';
 import { authGuard } from './guards/auth.guard';
 import { modalGuard } from './guards/modal.guard';
+import { boardColumnsResolver } from './resolvers/board-columns.resolver';
+import { boardCardsResolver } from './resolvers/board-cards.resolver';
 
 export const routes: Routes = [
   {
@@ -20,7 +22,9 @@ export const routes: Routes = [
         path: 'board/:boardId',
         component: BoardPageComponent,
         resolve: {
-          board: boardResolver
+          board: boardResolver,
+          columns: boardColumnsResolver,
+          cards: boardCardsResolver
         },
         runGuardsAndResolvers: 'always'
       },

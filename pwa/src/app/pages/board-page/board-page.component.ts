@@ -7,6 +7,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
 import { FormsModule } from '@angular/forms';
+import { CardEx } from '../../models/card-ex';
+import { ColumnEx } from '../../models/column-ex';
 
 @Component({
   selector: 'app-board-page',
@@ -25,6 +27,8 @@ import { FormsModule } from '@angular/forms';
 export class BoardPageComponent {
   title: string;
   boardId: number;
+  boardCards: CardEx[] = [];
+  boardColumns: ColumnEx[] = [];
 
   @ViewChild('cardSearchInput', { read: CardSearchInputComponent })
   cardSearchInput: CardSearchInputComponent;
@@ -34,8 +38,11 @@ export class BoardPageComponent {
       .data
       .subscribe(data => {
         const board: Board = data['board'];
+
         this.title = board.title;
         this.boardId = board.id;
+        this.boardCards = data['cards'];
+        this.boardColumns = data['columns'];
       });
   }
 

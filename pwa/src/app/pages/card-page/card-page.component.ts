@@ -30,7 +30,11 @@ export class CardPageComponent {
     this.activatedRoute.data.subscribe(data => this.card = data['card']);
   }
 
-  switchBoard(spaceId: number, boardId: number) {
-    this.router.navigate(['board', boardId]);
+  switchBoard(spaceId: number, boardId: number, cardId?: number) {
+    this.router.navigate(['board', boardId], {
+      queryParams: {
+        cardId
+      }
+    });
   }
 }
