@@ -79,7 +79,7 @@ export class AppComponent implements AfterViewInit {
         });
       },
       shouldPullToRefresh() {
-        return !self.modal.hasOpenModals();
+        return !self.modal.hasOpenModals() && window.scrollY <= 0;
       }
     });
   }
