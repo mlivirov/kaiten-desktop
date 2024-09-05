@@ -53,7 +53,6 @@
         <div ngbDropdownMenu [attr.aria-labelledby]="'actions' + item.id">
             <button ngbDropdownItem type="button" (click)="insertBefore.emit(item)"><i class="pi pi-arrow-up"></i> Insert before</button>
             <button ngbDropdownItem type="button" (click)="insertAfter.emit(item)"><i class="pi pi-arrow-down"></i> Insert after</button>
-            <button ngbDropdownItem type="button" (click)="openItemTextEditor($event)"><i class="pi pi-pencil"></i> Edit</button>
             <button ngbDropdownItem type="button" (click)="delete.emit(item)"><i class="pi pi-trash"></i> Delete</button>
         </div>
     </div>
@@ -113,83 +112,51 @@
 ></div>
 
 <div class="mt-2 ps-1 py-1 item"
-     [class.editing-text]="isEditingText"
+
      [class.has-popover]="editDatePopover.isOpen() || editUserPopover.isOpen()"
      [attr.data-checklist-item-id]="item.id">
+
     <div class="d-flex align-items-start">
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" [ngModel]="item.checked" (ngModelChange)="updateChecklistItemState($event)" [id]="item.id" [disabled]="isSaving || disabled">
-            <label class="form-check-label" [for]="item.id" (dblclick)="openItemTextEditor($event)" (click)="$event.preventDefault(); $event.stopPropagation();">
-                <app-md-viewer class="inline-editor"
-                               [ngModel]="item.text"
-                               [hideBorder]="true"
-                               *ngIf="!(isEditingText && editing.id === item.id)"
-                ></app-md-viewer>
-            </label>
-        </div>
-
-        <div class="d-flex flex-column mx-2 flex-grow-1" *ngIf="isEditingText">
-            <app-md-editor class="inline-editor p-2 border border-1"
-                           #editor
-                           [(ngModel)]="editing.text"
-                           [hideBorder]="true"
-                           placeholder="Type text here"></app-md-editor>
-
-            <div class="my-2 d-none d-md-block text-end">
-                <button type="button"
-                        class="btn btn-sm btn-outline-primary me-2"
-                        (click)="saveText($event);"
-                        [disabled]="isSaving || disabled"
-                >
-                    <i class="pi pi-check text-success" *ngIf="!isSaving"></i>
-                    <i class="pi pi-spinner pi-spin" *ngIf="isSaving"></i>
-                    Save
-                </button>
-
-                <button type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        (click)="discardChanges($event);"
-                        [disabled]="isSaving || disabled"
-                >
-                    Discard
-                </button>
-            </div>
-        </div>
-
-        <div class="ms-auto align-items-center small opacity-75 d-none d-md-flex ms-2">
-            <ng-container [ngTemplateOutlet]="controls"></ng-container>
-        </div>
-    </div>
-
-    <div class="d-flex align-items-center small opacity-75 ms-4 d-md-none">
-        <div *ngIf="item.checker_id && item.checked && !isEditingText" class="flex-grow-1 d-flex align-items-center flex-wrap">
-            <span class="small">Checked by</span>
-            <app-inline-member class="mx-2 d-none d-md-inline" [profileId]="item.checker_id"></app-inline-member>
-            <app-inline-member class="mx-2 d-inline d-md-none" [showName]="false" [profileId]="item.checker_id"></app-inline-member>
-            <span class="small d-none d-sm-block">{{item.checked_at | timeago}})</span>
-        </div>
-
-        <div class="my-2 ms-2" *ngIf="isEditingText">
-            <button type="button"
-                    class="btn btn-sm btn-outline-primary me-2"
-                    (click)="saveText($event);"
+            <input
+                    class="form-check-input"
+                    type="checkbox"
+                    style="margin-top: 2px;"
+                    [ngModel]="item.checked"
+                    (ngModelChange)="updateChecklistItemState($event)"
+                    [id]="item.id"
                     [disabled]="isSaving || disabled"
             >
-                <i class="pi pi-check text-success" *ngIf="!isSaving"></i>
-                <i class="pi pi-spinner pi-spin" *ngIf="isSaving"></i>
-                Save
-            </button>
-
-            <button type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    (click)="discardChanges($event)"
-                    [disabled]="isSaving || disabled"
-            >
-                Discard
-            </button>
         </div>
 
-        <div class="d-flex d-md-none ms-auto align-items-center">
+        <div class="flex-grow-1 pe-2">
+            <app-text-editor
+                #textEditor
+                type="markdown"
+                class="me-2"
+                [ngModel]="item.text"
+                [disabled]="disabled"
+                [isLoading]="isSaving"
+                (save)="saveText($event)"
+                [minHeight]="85"
+                [additionalControls]="editorControls"
+            >
+                <ng-template #editorControls>
+                    <div *ngIf="item.checker_id && item.checked && !textEditor.isEditing" class="flex-grow-1 d-flex align-items-center flex-wrap small opacity-75">
+                        <span class="small">Checked by</span>
+                        <app-inline-member class="mx-2 d-none d-md-inline" [profileId]="item.checker_id"></app-inline-member>
+                        <app-inline-member class="mx-2 d-inline d-md-none" [showName]="false" [profileId]="item.checker_id"></app-inline-member>
+                        <span class="small d-none d-sm-block">({{item.checked_at | timeago}})</span>
+                    </div>
+
+                    <div class="d-flex d-md-none ms-auto align-items-center opacity-75 me-n2">
+                        <ng-container [ngTemplateOutlet]="controls"></ng-container>
+                    </div>
+                </ng-template>
+            </app-text-editor>
+        </div>
+
+        <div class="opacity-75 d-none d-md-flex d-flex align-items-center" style="margin-top: 2px">
             <ng-container [ngTemplateOutlet]="controls"></ng-container>
         </div>
     </div>

@@ -12,7 +12,7 @@ import { throttleInterceptor } from './interceptors/throttle.interceptor';
 import { retryInterceptor } from './interceptors/retry.interceptor';
 import { apiInterceptor } from './interceptors/api.interceptor';
 import { CordovaApplication } from './core/cordova-application';
-import { HammerModule } from '@angular/platform-browser';
+import { AutosizeModule } from 'ngx-autosize';
 
 const interceptors = [errorInterceptor, throttleInterceptor, retryInterceptor];
 if (!QtApplication.isAvailable()) {
@@ -28,7 +28,7 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(
       TimeagoModule.forRoot(),
       DragulaModule.forRoot(),
-      HammerModule
+      AutosizeModule
     ),
     {
       provide: APP_INITIALIZER,

@@ -40,6 +40,7 @@ import { CardChecklistComponent } from './card-list-of-checklists/card-checklist
 import { CardListOfChecklistsComponent } from './card-list-of-checklists/card-list-of-checklists.component';
 import { UnionIfNotExistsFunction } from '../../functions/union-if-not-exists.function';
 import { CheckTextEqualsFunction } from '../../functions/check-text-equals.function';
+import { TextEditorComponent, TextEditorSaveEvent } from '../text-editor/text-editor.component';
 
 
 @Component({
@@ -77,13 +78,12 @@ import { CheckTextEqualsFunction } from '../../functions/check-text-equals.funct
     NgbDropdownAnchor,
     NgbDropdownItem,
     NgbDropdownMenu,
+    TextEditorComponent,
   ],
   templateUrl: './card-editor.component.html',
   styleUrl: './card-editor.component.scss',
 })
 export class CardEditorComponent implements OnChanges {
-  CheckTextEqualsFunction = CheckTextEqualsFunction;
-
   @Input()
   showTitle: boolean = true;
 
@@ -119,7 +119,7 @@ export class CardEditorComponent implements OnChanges {
 
         setTimeout(() => {
           const found = this.cardListOfChecklists.checklists.find(t => t.checklist.id == checklist.id);
-          found.openTextEditor(null, true);
+          found.openTextEditor();
         }, 0);
       });
   }
@@ -129,20 +129,16 @@ export class CardEditorComponent implements OnChanges {
     this.originalTitle = this.card.title;
   }
 
-  saveDescription($event: Event): void {
-    this.updateCard({ description: this.card.description }).subscribe();
+  saveTitle(saveEvent: TextEditorSaveEvent): void {
+    this
+      .updateCard({ title: saveEvent.value })
+      .subscribe(saveEvent.commit.bind(saveEvent));
   }
 
-  saveTitle($event: Event): void {
-    this.updateCard({ title: this.card.title }).subscribe();
-  }
-
-  discardChanges(event: Event) {
-    this.card.description = this.originalDescription;
-    this.card.title = this.originalTitle;
-
-    event.preventDefault();
-    event.stopPropagation();
+  saveDescription(saveEvent: TextEditorSaveEvent): void {
+    this
+      .updateCard({ description: saveEvent.value })
+      .subscribe(saveEvent.commit.bind(saveEvent));
   }
 
   updateCard(data: Partial<CardEx>): Observable<void> {
@@ -158,16 +154,5 @@ export class CardEditorComponent implements OnChanges {
         }),
         map(() => {})
       );
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
-    if (event.code === 'Escape' && (this.card.title !== this.originalTitle || this.card.description !== this.originalDescription)) {
-      this.discardChanges(event);
-    } else if (event.code === 'Enter' && event.ctrlKey && this.card.title !== this.originalTitle) {
-      this.saveTitle(event);
-    } else if (event.code === 'Enter' && event.ctrlKey && this.card.description !== this.originalDescription) {
-      this.saveDescription(event);
-    }
   }
 }

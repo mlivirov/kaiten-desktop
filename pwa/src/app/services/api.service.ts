@@ -166,11 +166,17 @@ export class ApiService {
   }
 
   addComment(cardId: number, text: string): Observable<CardComment> {
-    const form = new FormData();
-    form.append('text', text);
-
-    return this.httpClient.post<CardComment>(`http://server/api/latest/cards/${cardId}/comments`, form);
+    return this.httpClient.post<CardComment>(`http://server/api/latest/cards/${cardId}/comments`, {
+      text
+    });
   }
+
+  updateComment(cardId: number, commentId: number, text: string): Observable<CardComment> {
+    return this.httpClient.patch<CardComment>(`http://server/api/latest/cards/${cardId}/comments/${commentId}`, {
+      text
+    });
+  }
+
 
   getCurrentUser(): Observable<User> {
     return this.currentUser$.pipe(take(1));

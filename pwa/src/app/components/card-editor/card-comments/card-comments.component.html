@@ -7,7 +7,7 @@
         <app-inline-member [showName]="false" [profile]="currentUser"></app-inline-member>
     </div>
     <div class="flex-grow-1 ms-2" (keyup.control.enter)="submit()">
-        <app-md-editor [(ngModel)]="text"></app-md-editor>
+        <app-md-editor [(ngModel)]="text" [minHeight]="100"></app-md-editor>
         <div class="mt-2">
             <button class="btn btn-sm btn-outline-secondary"
                     [disabled]="isSavingInProgress || !text"
@@ -27,8 +27,15 @@
     </div>
     <div style="margin-left: 32px">
         <div *ngIf="comment.type === CardCommentType.Html" [innerHTML]="comment.text"></div>
-        <div *ngIf="comment.type === CardCommentType.Markdown">
-            <app-md-viewer [ngModel]="comment.text" [hideBorder]="true"></app-md-viewer>
+        <div *ngIf="comment.type === CardCommentType.Markdown" class="pt-2">
+            <app-text-editor
+                    type="markdown"
+                    [ngModel]="comment.text"
+                    [minHeight]="100"
+                    [disabled]="comment.author_id !== currentUser?.id"
+                    [isLoading]="isSavingInProgress"
+                    (save)="update(comment, $event)"
+            ></app-text-editor>
         </div>
     </div>
 </div>

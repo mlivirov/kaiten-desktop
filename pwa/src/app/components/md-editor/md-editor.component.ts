@@ -78,6 +78,16 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     this.touchedCallback = fn;
   }
 
+  setDisabledState(isDisabled: boolean) {
+    setTimeout(() => {
+      if (isDisabled) {
+        this.editor?.getUI().getToolbar().disableAllButton();
+      } else {
+        this.editor?.getUI().getToolbar().enableAllButton();
+      }
+    }, 1);
+  }
+
   writeValue(obj: any): void {
     this.value = obj;
     this.editor?.setMarkdown(this.value);

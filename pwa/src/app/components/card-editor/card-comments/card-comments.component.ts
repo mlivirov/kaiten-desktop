@@ -9,6 +9,7 @@ import { MdViewerComponent } from '../../md-viewer/md-viewer.component';
 import { TimeagoModule } from 'ngx-timeago';
 import { User } from '../../../models/user';
 import { finalize } from 'rxjs';
+import { TextEditorComponent, TextEditorSaveEvent } from '../../text-editor/text-editor.component';
 
 @Component({
   selector: 'app-card-comments',
@@ -20,7 +21,8 @@ import { finalize } from 'rxjs';
     FormsModule,
     InlineMemberComponent,
     MdViewerComponent,
-    TimeagoModule
+    TimeagoModule,
+    TextEditorComponent
   ],
   templateUrl: './card-comments.component.html',
   styleUrl: './card-comments.component.scss'
@@ -50,7 +52,6 @@ export class CardCommentsComponent implements OnChanges {
     }
 
     this.isSavingInProgress = true;
-
     this.apiService
       .addComment(this.cardId, this.text)
       .pipe(
@@ -68,6 +69,24 @@ export class CardCommentsComponent implements OnChanges {
       .getCardComments(this.cardId)
       .subscribe(d => {
         this.comments = d.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
+      });
+  }
+
+  update(comment: CardComment, event: TextEditorSaveEvent) {
+    if (this.isSavingInProgress) {
+      return;
+    }
+
+    this.isSavingInProgress = true;
+    this.apiService
+      .updateComment(this.cardId, comment.id, event.value)
+      .pipe(
+        finalize(() => this.isSavingInProgress = false),
+      )
+      .subscribe(updated => {
+        event.commit();
+        Object.assign(comment, updated);
+        comment.author = this.currentUser;
       });
   }
 }

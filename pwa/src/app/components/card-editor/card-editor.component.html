@@ -17,7 +17,10 @@
     </div>
 
     <h3 *ngIf="showTitle" class="mt-2 d-flex">
-        <span class="flex-grow-1">{{card.title}}</span>
+
+        <div class="flex-grow-1">
+            <app-text-editor type="textarea" [isLoading]="isSaving" [ngModel]="card.title" (save)="saveTitle($event)" [disabled]="isSaving"></app-text-editor>
+        </div>
 
         <div class="d-inline-block" ngbDropdown #myDrop="ngbDropdown" container="body">
             <button
@@ -54,26 +57,7 @@
             {{card.block_reason}}
         </div>
         <div class="mt-3 mt-md-4">
-            <app-md-editor [(ngModel)]="card.description" placeholder="Type description here" [minHeight]="100"></app-md-editor>
-            <div class="my-2 text-end" *ngIf="!CheckTextEqualsFunction(card.description, originalDescription)">
-                <button type="button"
-                        class="btn btn-sm btn-outline-primary me-2"
-                        (click)="saveDescription($event);"
-                        [disabled]="isSaving"
-                >
-                    <i class="pi pi-check text-success" *ngIf="!isSaving"></i>
-                    <i class="pi pi-spinner pi-spin" *ngIf="isSaving"></i>
-                    Save
-                </button>
-
-                <button type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        (click)="discardChanges($event);"
-                        [disabled]="isSaving"
-                >
-                    Discard
-                </button>
-            </div>
+            <app-text-editor type="markdown" [isLoading]="isSaving" [ngModel]="card.description" (save)="saveDescription($event)" placeholder="Type description here" [minHeight]="100"></app-text-editor>
         </div>
 
         <div class="mt-3">

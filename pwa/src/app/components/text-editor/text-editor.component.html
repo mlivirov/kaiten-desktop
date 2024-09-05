@@ -1,0 +1,61 @@
+<div>
+
+
+<app-md-viewer
+        [hideBorder]="true"
+        class="inline-editor"
+        *ngIf="!isEditing && type === 'markdown'"
+        [ngModel]="originalValue"
+        (dblclick)="openEditor($event)"
+></app-md-viewer>
+
+<span
+        class="text-break"
+        (dblclick)="openEditor($event)"
+        *ngIf="!isEditing && type === 'textarea'"
+>{{originalValue}}</span>
+
+<ng-container *ngIf="isEditing">
+    <app-md-editor
+            #mdEditor
+            [(ngModel)]="newValue"
+            [minHeight]="minHeight"
+            [placeholder]="placeholder"
+            [disabled]="disabled || isLoading"
+            *ngIf="type === 'markdown'"
+    ></app-md-editor>
+
+    <textarea
+            #textEditor
+            class="form-control"
+            autosize
+            *ngIf="type === 'textarea'"
+            [(ngModel)]="newValue"
+            [disabled]="disabled || isLoading"
+    ></textarea>
+</ng-container>
+
+<div class="d-flex align-items-center" [class.mt-2]="isEditing">
+    <div class="text-start" *ngIf="isEditing">
+        <button type="button"
+                class="btn btn-sm btn-outline-primary me-2"
+                (click)="notifySave($event)"
+                [disabled]="disabled || isLoading"
+        >
+            <i class="pi pi-check text-success" *ngIf="!isLoading"></i>
+            <i class="pi pi-spinner pi-spin" *ngIf="isLoading"></i>
+            Save
+        </button>
+
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="discardChanges($event)"
+                [disabled]="disabled || isLoading"
+        >
+            Discard
+        </button>
+    </div>
+    <ng-container *ngIf="additionalControls" [ngTemplateOutlet]="additionalControls"></ng-container>
+</div>
+
+</div>

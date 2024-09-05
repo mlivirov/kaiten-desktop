@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostListener, Injectable, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, HostListener, Injectable, Input, Output, ViewChild } from '@angular/core';
 import { CheckListItem } from '../../../../models/check-list-item';
 import {
   NgbDropdown,
@@ -19,10 +19,10 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MdEditorComponent } from '../../../md-editor/md-editor.component';
 import { MdViewerComponent } from '../../../md-viewer/md-viewer.component';
 import { TimeagoModule } from 'ngx-timeago';
-import { CardChecklistService } from '../card-checklist/card-checklist.component';
+import { TextEditorComponent, TextEditorSaveEvent } from '../../../text-editor/text-editor.component';
 
 @Injectable({providedIn: 'root'})
-export class CardChecklistItemService {
+class CardChecklistItemService {
   public openedPopover?: NgbPopover;
   public editing?: CardChecklistItemComponent;
 }
@@ -55,7 +55,8 @@ enum ExpirationStatus {
     TimeagoModule,
     FormsModule,
     NgbPopover,
-    NgTemplateOutlet
+    NgTemplateOutlet,
+    TextEditorComponent
   ],
   templateUrl: './card-checklist-item.component.html',
   styleUrl: './card-checklist-item.component.scss'
@@ -76,8 +77,6 @@ export class CardChecklistItemComponent {
 
   editing?: CheckListItem;
 
-  isEditingText: boolean = false;
-
   @ViewChild('editDatePopover', { read: NgbPopover })
   editDatePopover: NgbPopover;
 
@@ -96,8 +95,8 @@ export class CardChecklistItemComponent {
   @Input()
   disabled: boolean = false;
 
-  @ViewChild('editor', { read: ElementRef })
-  editor: ElementRef;
+  @ViewChild(TextEditorComponent)
+  textEditorComponent: TextEditorComponent;
 
   allUsersTypeaheadSearch: OperatorFunction<string, readonly User[]>
     = (text$: Observable<string>) =>
@@ -113,8 +112,7 @@ export class CardChecklistItemComponent {
 
   constructor(
     private apiService: ApiService,
-    public service: CardChecklistItemService,
-    public listService: CardChecklistService
+    public service: CardChecklistItemService
   ) {
   }
 
@@ -154,45 +152,13 @@ export class CardChecklistItemComponent {
       );
   }
 
-  openItemTextEditor(event: Event|null, focus: boolean = false) {
-    if (this.isSaving) {
-      return;
-    }
-
-    this.service.editing?.discardChanges(event);
-    this.listService.editing?.discardChanges(event);
-
-    this.editing = Object.assign({}, this.item);
-    this.isEditingText = true;
-    this.service.editing = this;
-
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    if (focus) {
-      setTimeout(() => {
-        const editorElement = (this.editor?.nativeElement as HTMLElement).querySelector('[contenteditable]') as HTMLElement;
-        editorElement.scrollIntoView({
-          block: 'center'
-        });
-        editorElement.focus({ preventScroll: true });
-      }, 1);
-    }
-  }
-
-  saveText(event: Event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (this.editing.text?.length < 1) {
+  saveText(event: TextEditorSaveEvent) {
+    if (event.value?.length < 1) {
       this.delete.emit(this.item);
-      this.discardChanges(event);
     } else {
       this
-        .updateCheckListItem(this.editing.id, { text: this.editing.text })
-        .subscribe(() => {
-          this.discardChanges(event);
-        });
+        .updateCheckListItem(this.item.id, { text: event.value })
+        .subscribe(event.commit.bind(event));
     }
   }
 
@@ -249,20 +215,20 @@ export class CardChecklistItemComponent {
     this.service.openedPopover?.close();
     this.service.openedPopover = null;
     this.editing = null;
-    this.isEditingText = false;
     this.service.editing = null;
+  }
+
+  openTextEditor() {
+    this.textEditorComponent.openEditor(null, true);
   }
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     if (event.code === 'Escape' && this.service.openedPopover) {
       this.service.openedPopover?.close();
+
       event.preventDefault();
       event.stopPropagation();
-    } else if (event.code === 'Escape' && this.isEditingText) {
-      this.discardChanges(event);
-    } else if (event.code === 'Enter' && event.ctrlKey && this.isEditingText) {
-      this.saveText(event);
     }
   }
 
@@ -279,14 +245,4 @@ export class CardChecklistItemComponent {
       event.stopPropagation();
     }
   }
-
-  @HostListener('window:resize', ['$event'])
-  handleWindowResize(event: Event) {
-    if (this.service.openedPopover) {
-      this.service.openedPopover?.close();
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  }
-
 }
