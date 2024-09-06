@@ -22,11 +22,17 @@ export interface EditorProperty<TValue = any, TExtra = any> {
   value: TValue;
   type: string;
   extra?: TExtra;
+  clickable?: boolean;
 }
 
 export interface GroupOfEditorProperties {
   title: string;
   properties: EditorProperty[];
+}
+
+export interface EditorPropertyClickedEvent {
+  property: EditorProperty;
+  event: Event;
 }
 
 @Directive({
@@ -79,6 +85,9 @@ export class PropertiesEditorComponent {
   @Output()
   editingStarted: EventEmitter<EditorProperty> = new EventEmitter();
 
+  @Output()
+  propertyClick: EventEmitter<EditorPropertyClickedEvent> = new EventEmitter();
+
   isSaveInProgress: boolean = false;
 
   getPropertyReaderTemplate(property: EditorProperty): TemplateRef<any> {
@@ -90,6 +99,10 @@ export class PropertiesEditorComponent {
   }
 
   startEditing(event: Event, group: GroupOfEditorProperties, property: EditorProperty) {
+    if (property.clickable) {
+      this.propertyClick.emit({ property, event });
+    }
+
     if (!this.getPropertyWriterTemplate(property)) {
       return;
     }
@@ -140,7 +153,7 @@ export class PropertiesEditorComponent {
       event.preventDefault();
       event.stopPropagation();
       this.stopEditing();
-    } if (this.editingProperty && event.code === 'Enter') {
+    } if (this.editingProperty && event.code === 'Enter' && event.ctrlKey) {
       this.saveProperty(event);
     }
   }

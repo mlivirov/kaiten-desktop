@@ -5,6 +5,7 @@ import { Space } from '../models/space';
 import { CustomProperty, CustomPropertySelectValue } from '../models/custom-property';
 import { User } from '../models/user';
 import { from, Observable, of, switchMap, tap } from 'rxjs';
+import { Lane } from '../models/lane';
 
 export interface EntityBase {
   created_at: Date;
@@ -33,6 +34,8 @@ export interface CustomPropertySelectValueEntity extends CustomPropertySelectVal
 export interface UserEntity extends User, EntityBase {
 }
 
+export interface LaneEntity extends Lane, EntityBase {}
+
 export class Db extends Dexie {
   avatars!: Table<AvatarEntity, number>;
   columns!: Table<ColumnEntity, number>;
@@ -41,6 +44,7 @@ export class Db extends Dexie {
   customProperties!: Table<CustomPropertyEntity, number>;
   customPropertySelectValues!: Table<CustomPropertySelectValueEntity, number>;
   users!: Table<UserEntity, number>;
+  lanes!: Table<LaneEntity, number>;
 
   constructor() {
     super('torpedo');
@@ -52,7 +56,8 @@ export class Db extends Dexie {
       spaces: 'id',
       customProperties: 'id',
       customPropertySelectValues: 'id, custom_property_id',
-      users: 'id, uid'
+      users: 'id, uid',
+      lanes: 'id, board_id',
     });
   }
 }

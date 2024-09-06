@@ -1,20 +1,30 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, HostListener, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import {
   NgbDateAdapter,
   NgbDatepicker,
-  NgbInputDatepicker,
+  NgbInputDatepicker, NgbPopover,
   NgbTooltip,
   NgbTypeahead
 } from '@ng-bootstrap/ng-bootstrap';
 import {
-  EditorProperty,
+  EditorProperty, EditorPropertyClickedEvent,
   EditorPropertyTemplate,
   GroupOfEditorProperties,
   PropertiesEditorComponent
 } from '../../properties-editor/properties-editor.component';
 import { CardEx } from '../../../models/card-ex';
 import { Column } from '../../../models/column';
-import { catchError, debounceTime, EMPTY, finalize, forkJoin, Observable, of, OperatorFunction, switchMap } from 'rxjs';
+import {
+  catchError,
+  debounceTime,
+  EMPTY,
+  finalize,
+  forkJoin,
+  Observable,
+  of,
+  OperatorFunction,
+  switchMap
+} from 'rxjs';
 import { User } from '../../../models/user';
 import { Tag } from '../../../models/tag';
 import { CustomProperty, CustomPropertyAndValues, CustomPropertySelectValue } from '../../../models/custom-property';
@@ -32,6 +42,9 @@ import { FindColumnRecursiveFunction } from '../../../functions/find-column-recu
 import { ColumnEx } from '../../../models/column-ex';
 import { FlattenColumnsFunction } from '../../../functions/flatten-columns.function';
 import { NgbDateStringAdapter } from '../ngb-date-string-adapter.service';
+import { Board } from '../../../models/board';
+import { SpaceBoardPermissions } from '../../../models/space-board-permissions';
+import { Lane } from '../../../models/lane';
 
 @Component({
   selector: 'app-card-properties',
@@ -52,6 +65,7 @@ import { NgbDateStringAdapter } from '../ngb-date-string-adapter.service';
     AsyncPipe,
     NgbTooltip,
     NgIf,
+    NgbPopover,
   ],
   templateUrl: './card-properties.component.html',
   styleUrl: './card-properties.component.scss',
@@ -71,7 +85,13 @@ export class CardPropertiesComponent implements OnChanges {
   @Input({ required: true })
   card: CardEx;
 
+  @ViewChild('locationPopover')
+  locationPopover: NgbPopover;
+
   newMember: Owner = null;
+  newBoardId?: number;
+  newLaneId?: number;
+  newColumnId?: number;
 
   cardUsersTypeaheadSearch: OperatorFunction<string, readonly User[]>
     = (text$: Observable<string>) =>
@@ -109,11 +129,23 @@ export class CardPropertiesComponent implements OnChanges {
   tagTypeaheadFormatter = (item: Tag) => item.name;
 
   properties: GroupOfEditorProperties[] = [];
+  spaceBoardPermissions: SpaceBoardPermissions[] = [];
+  lanes: Lane[] = [];
   columns: Column[] = [];
+  newBoardColumns: Column[] = [];
   isSaveInProgress: boolean = false;
   isLoading: boolean = false;
+  isLoadingBoardAndLanes: boolean = false;
+  private customProperties: CustomPropertyAndValues[] = [];
 
   constructor(private apiService: ApiService) {
+    this.isLoadingBoardAndLanes = true;
+    this.apiService
+      .getSpaces()
+      .pipe(
+        finalize(() => this.isLoadingBoardAndLanes = false)
+      )
+      .subscribe(spaces => this.spaceBoardPermissions = spaces.flatMap(s => s.boards));
   }
 
   findSelectValue(values: CustomPropertySelectValue[], id: number) {
@@ -136,7 +168,7 @@ export class CardPropertiesComponent implements OnChanges {
     }
   }
 
-  extractProperties(customProperties: CustomPropertyAndValues[]) {
+  extractProperties() {
     this.properties = [];
 
     const globalPropertiesGroup = {
@@ -145,8 +177,8 @@ export class CardPropertiesComponent implements OnChanges {
         <EditorProperty>{ label: 'Sprint', value: this.card.sprint_id, multi: false, name: 'sprint', type: 'plain' },
         <EditorProperty>{ label: 'State', value: this.card.state, multi: false, name: 'state', type: 'state' },
         <EditorProperty>{ label: 'Size', value: this.card.size, multi: false, name: 'size', type: 'size' },
-        <EditorProperty>{ label: 'Lane', value: this.card.lane, multi: false, name: 'lane', type: 'title' },
-        <EditorProperty>{ label: 'Board', value: this.card.board, multi: false, name: 'board', type: 'title' },
+        <EditorProperty>{ label: 'Lane', value: this.card.lane, multi: false, name: 'lane', type: 'title', clickable: true },
+        <EditorProperty>{ label: 'Board', value: this.card.board, multi: false, name: 'board', type: 'title', clickable: true },
         <EditorProperty>{ label: 'Column', value: this.card.column, multi: false, name: 'column', type: 'column' },
       ]
     };
@@ -154,7 +186,7 @@ export class CardPropertiesComponent implements OnChanges {
 
     const customPropertiesGroup = <GroupOfEditorProperties>{
       title: 'Properties',
-      properties: customProperties.map<EditorProperty>(property => ({
+      properties: this.customProperties.map<EditorProperty>(property => ({
         extra: property,
         label: property.property.name,
         name: property.property.name,
@@ -232,6 +264,42 @@ export class CardPropertiesComponent implements OnChanges {
     }
   }
 
+  updateBoardAndLane() {
+    this.isLoadingBoardAndLanes = true;
+    this.isSaveInProgress = true;
+
+    this.apiService
+      .updateCard(this.card.id, {
+        board_id: this.newBoardId,
+        lane_id: this.newLaneId,
+        column_id: this.newColumnId
+      })
+      .pipe(
+        finalize(() => this.isSaveInProgress = this.isLoadingBoardAndLanes = false),
+        switchMap(card => {
+          return forkJoin({
+            card: of(card),
+            board: this.apiService.getBoard(card.board_id),
+          })
+        })
+      )
+      .subscribe(({card, board}) => {
+        const flatProperties = this.properties.flatMap(t => t.properties);
+
+        Object.assign(this.card, card);
+        this.card.board = board;
+        this.card.lane = this.lanes.find(t => t.id === card.lane_id);
+        this.card.column = this.newBoardColumns.find(t => t.id === card.column_id);
+        this.columns = this.newBoardColumns;
+
+        flatProperties.find(t => t.name == 'column').value = this.card.column;
+        flatProperties.find(t => t.name == 'board').value = this.card.board;
+        flatProperties.find(t => t.name == 'lane').value = this.card.lane;
+
+        this.locationPopover.close();
+      });
+  }
+
   updateDateProperty(property: EditorProperty<string>) {
     this.apiService.updateCard(this.card.id, {
       [property.name]: property.value
@@ -257,7 +325,9 @@ export class CardPropertiesComponent implements OnChanges {
           return EMPTY;
         })
       )
-      .subscribe(() => {
+      .subscribe(card => {
+        Object.assign(this.card, card);
+        this.card.column = this.columns.find(c => c.id === property.value.id);
         this.propertiesEditor.commitChanges(property.value);
       });
   }
@@ -451,8 +521,65 @@ export class CardPropertiesComponent implements OnChanges {
         finalize(() => this.isLoading = false)
       )
       .subscribe((data: { card: CardEx, customProperties: CustomPropertyAndValues[], columns: ColumnEx[] }) => {
-      this.extractProperties(data.customProperties);
-      this.columns = FlattenColumnsFunction(data.columns);
-    });
+        this.customProperties = data.customProperties;
+        this.columns = FlattenColumnsFunction(data.columns);
+        this.extractProperties();
+      });
+  }
+
+  handlePropertyClick(event: EditorPropertyClickedEvent) {
+    if (event.property.name === 'board' || event.property.name === 'lane') {
+      this.locationPopover.positionTarget = event.event.target as HTMLElement;
+      this.newBoardId = this.card.board_id;
+      this.newLaneId = this.card.lane_id;
+      this.newColumnId = this.card.column_id;
+
+      this.handleNewBoardSelected(this.newBoardId);
+      this.locationPopover.open();
+    }
+  }
+
+  handleNewBoardSelected(boardId: number) {
+    this.isLoadingBoardAndLanes = true;
+
+    forkJoin({
+      lanes: this.apiService.getLanes(boardId),
+      columns: this.apiService.getColumns(boardId)
+    })
+      .pipe(
+        finalize(() => this.isLoadingBoardAndLanes = false)
+      )
+      .subscribe(({lanes, columns}) => {
+        this.newBoardId = boardId;
+        this.lanes = lanes;
+
+        if (lanes.length === 1) {
+          this.newLaneId = lanes[0].id
+        } else {
+          this.newLaneId = null;
+        }
+
+        this.newBoardColumns = FlattenColumnsFunction(columns);
+        this.newBoardColumns.sort((a, b) => a.sort_order - b.sort_order);
+
+        if (this.newBoardColumns.length === 1) {
+          this.newColumnId = this.newBoardColumns[0].id;
+        } else {
+          this.newColumnId = null;
+        }
+      });
+  }
+
+  checkNewLocationCanBeSaved() {
+    return !this.isLoadingBoardAndLanes && this.newLaneId && this.newBoardId && this.newColumnId;
+  }
+
+  @HostListener('keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent) {
+    if (this.locationPopover.isOpen() && event.code === 'Enter' && event.ctrlKey && this.checkNewLocationCanBeSaved()) {
+      this.updateBoardAndLane();
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
 }

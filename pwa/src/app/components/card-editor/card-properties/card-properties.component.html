@@ -2,13 +2,54 @@
     <i class="pi pi-spin pi-spinner"></i> <span class="ms-2 small">Loading properties</span>
 </div>
 
-<app-properties-editor *ngIf="!isLoading" #propertiesEditor [properties]="properties" (saveRequested)="confirmSave($event)">
+<ng-template #locationPopoverTemplate>
+    <div class="mb-2">
+        <select class="form-select form-select-sm" [ngModel]="newBoardId" (ngModelChange)="handleNewBoardSelected($event)">
+            <option *ngFor="let board of spaceBoardPermissions" [ngValue]="board.id">{{board.title}}</option>
+        </select>
+    </div>
+    <div class="mb-2" *ngIf="lanes.length > 1">
+        <select class="form-select form-select-sm" [(ngModel)]="newLaneId" [disabled]="isLoadingBoardAndLanes">
+            <option *ngFor="let lane of lanes" [ngValue]="lane.id">{{lane.title?.length > 0 ? lane.title : 'Default'}}</option>
+        </select>
+    </div>
+
+    <div class="mb-2" *ngIf="newBoardColumns.length > 1">
+        <select class="form-select form-select-sm" [(ngModel)]="newColumnId" [disabled]="isLoadingBoardAndLanes">
+            <option *ngFor="let column of newBoardColumns" [ngValue]="column.id">{{column.title?.length > 0 ? column.title : 'Default'}}</option>
+        </select>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between">
+        <i class="pi pi-spinner pi-spin" *ngIf="isLoadingBoardAndLanes"></i>
+        <button type="button" class="btn btn-sm btn-outline-primary ms-auto" [disabled]="!checkNewLocationCanBeSaved()" (click)="updateBoardAndLane()">
+            <i class="pi pi-check text-success"></i>
+            Save
+        </button>
+    </div>
+
+</ng-template>
+
+<div
+    #locationPopover="ngbPopover"
+    [ngbPopover]="locationPopoverTemplate"
+    autoClose="outside"
+    [triggers]="'manual'"
+></div>
+
+<app-properties-editor
+        #propertiesEditor
+        *ngIf="!isLoading"
+        [properties]="properties"
+        (saveRequested)="confirmSave($event)"
+        (propertyClick)="handlePropertyClick($event)"
+>
     <ng-template [app-editor-property-template] mode="read" type="state" let-data="data">
         <app-card-state-label [state]="data" [colored]="false"></app-card-state-label>
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="read" type="title" let-data="data">
-        <span>{{data.title}}</span>
+        <span>{{data.title?.length > 0 ? data.title : 'Default'}}</span>
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="write" type="size" let-property="property" let-isSaveInProgress="isSaveInProgress">

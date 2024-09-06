@@ -37,7 +37,7 @@
                <ng-container *ngFor="let property of group.properties; index as propertyIndex">
                    <li *ngIf="!property.multi"
                        class="ps-4"
-                       [class.inline-property]="getPropertyWriterTemplate(property)"
+                       [class.inline-property]="getPropertyWriterTemplate(property) || property.clickable"
                        [class.active]="property === editingProperty"
                        [class.blur]="editingProperty && property !== editingProperty"
                        (click)="startEditing($event, group, property);"

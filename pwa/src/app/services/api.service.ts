@@ -139,7 +139,8 @@ export class ApiService {
   }
 
   getLanes(boardId: number): Observable<Lane[]> {
-    return this.httpClient.get<Lane[]>(`http://server/api/latest/boards/${boardId}/lanes`);
+    const lanes$ = this.httpClient.get<Lane[]>(`http://server/api/latest/boards/${boardId}/lanes`);
+    return getManyWithCache(lanes$, Database.lanes, t => t.where({ board_id: boardId }));
   }
 
   getCard(id: number): Observable<CardEx> {
