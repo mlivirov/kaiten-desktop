@@ -2,11 +2,12 @@ import { Component, HostListener } from '@angular/core';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { Router } from '@angular/router';
 import { CurrentUserComponent } from '../../components/current-user/current-user.component';
-import { DialogService } from '../../services/dialogService';
+import { DialogService } from '../../services/dialog.service';
 import { filter } from 'rxjs';
 import { NgIf, NgOptimizedImage } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 import { Setting } from '../../models/setting';
+import { SettingService } from '../../services/setting.service';
 
 @Component({
   selector: 'app-home-page',
@@ -21,8 +22,12 @@ import { Setting } from '../../models/setting';
   styleUrl: './home-page.component.scss'
 })
 export class HomePageComponent {
-  constructor(private router: Router, private dialogService: DialogService, private apiService: ApiService) {
-    apiService.getSetting(Setting.LastURL)
+  constructor(
+    private router: Router,
+    private dialogService: DialogService,
+    private settingService: SettingService
+  ) {
+    settingService.getSetting(Setting.LastURL)
       .pipe(
         filter(v => !!v)
       )

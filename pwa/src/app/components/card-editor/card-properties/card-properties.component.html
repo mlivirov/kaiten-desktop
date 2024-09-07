@@ -10,12 +10,14 @@
     </div>
     <div class="mb-2" *ngIf="lanes.length > 1">
         <select class="form-select form-select-sm" [(ngModel)]="newLaneId" [disabled]="isLoadingBoardAndLanes">
-            <option *ngFor="let lane of lanes" [ngValue]="lane.id">{{lane.title?.length > 0 ? lane.title : 'Default'}}</option>
+            <option [ngValue]="null" selected class="opacity-50">Select a lane</option>
+            <option *ngFor="let lane of lanes" [ngValue]="lane.id" style="background-color:{{getLaneColor(lane)}}">{{lane.title?.length > 0 ? lane.title : 'Default'}}</option>
         </select>
     </div>
 
     <div class="mb-2" *ngIf="newBoardColumns.length > 1">
         <select class="form-select form-select-sm" [(ngModel)]="newColumnId" [disabled]="isLoadingBoardAndLanes">
+            <option [ngValue]="null" selected class="opacity-50">Select a column</option>
             <option *ngFor="let column of newBoardColumns" [ngValue]="column.id">{{column.title?.length > 0 ? column.title : 'Default'}}</option>
         </select>
     </div>
@@ -50,6 +52,10 @@
 
     <ng-template [app-editor-property-template] mode="read" type="title" let-data="data">
         <span>{{data.title?.length > 0 ? data.title : 'Default'}}</span>
+    </ng-template>
+
+    <ng-template [app-editor-property-template] mode="read" type="lane" let-data="data">
+        <span class="border border-1 me-1" style="height: 1rem; width: 1rem; background-color:{{getLaneColor(data)}}"></span> <span>{{data.title?.length > 0 ? data.title : 'Default'}}</span>
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="write" type="size" let-property="property" let-isSaveInProgress="isSaveInProgress">

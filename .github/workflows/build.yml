@@ -135,10 +135,10 @@ jobs:
           cd mobile
           cordova platforms add android@12
           cordova plugin add cordova-plugin-advanced-http
-          cordova build android
+          cordova build android --release
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.3.6
         with:
-          path: mobile/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          path: mobile/platforms/android/app/build/outputs/apk
           if-no-files-found: error

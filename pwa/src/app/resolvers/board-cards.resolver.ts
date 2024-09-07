@@ -2,9 +2,13 @@ import { ResolveFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { ApiService } from '../services/api.service';
 import { CardEx } from '../models/card-ex';
+import { BoardService } from '../services/board.service';
+import { CardSearchService } from '../services/card-search.service';
 
 export const boardCardsResolver: ResolveFn<CardEx[]> = (route, state) => {
-  const apiService = inject(ApiService);
+  const service = inject(CardSearchService);
 
-  return apiService.getCards(Number.parseInt(route.params['boardId']));
+  return service.searchCards({
+    boardId: Number.parseInt(route.params['boardId'])
+  });
 };

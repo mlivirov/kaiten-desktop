@@ -1,11 +1,13 @@
-import { Component, ContentChild, EventEmitter, HostListener, Input, Output, TemplateRef } from '@angular/core';
+import { Component, ContentChild, EventEmitter, HostListener, inject, Input, Output, TemplateRef } from '@angular/core';
 import { CurrentUserComponent } from '../current-user/current-user.component';
 import { NgIf, NgOptimizedImage, NgStyle, NgTemplateOutlet } from '@angular/common';
-import { DialogService } from '../../services/dialogService';
-import { filter } from 'rxjs';
+import { DialogService } from '../../services/dialog.service';
+import { filter, switchMap } from 'rxjs';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
-import { NgbDropdownToggle } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDropdownToggle, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
+import { CurrentBoardService } from '../../services/current-board.service';
+import { DraftCardEditorService } from '../../services/implementations/draft-card-editor.service';
 
 @Component({
   selector: 'app-page-header',
@@ -17,14 +19,14 @@ import { Router } from '@angular/router';
     NgTemplateOutlet,
     InlineMemberComponent,
     NgbDropdownToggle,
-    NgStyle
+    NgStyle,
+    NgbTooltip
   ],
   templateUrl: './page-header.component.html',
-  styleUrl: './page-header.component.scss'
+  styleUrl: './page-header.component.scss',
 })
 export class PageHeaderComponent {
   readonly window = window
-  readonly pullDownBorderOffset = 20;
 
   @Input()
   title?: string
@@ -35,13 +37,17 @@ export class PageHeaderComponent {
   @ContentChild('content')
   contentTemplate: TemplateRef<any>;
 
+  @ContentChild('controls')
+  controlsTemplate: TemplateRef<any>;
+
   constructor(
     private dialogService: DialogService,
-    private router: Router,
+    private currentBoardService: CurrentBoardService,
+    private router: Router
   ) {
   }
 
-  search() {
+  searchBoard() {
     this.dialogService.searchBoard()
       .pipe(filter(r => !!r))
       .subscribe(r => this.switchBoard.emit(r));
@@ -53,11 +59,17 @@ export class PageHeaderComponent {
       event.preventDefault();
       event.stopPropagation();
 
-      this.search();
+      this.searchBoard();
     }
   }
 
   searchCard() {
     this.dialogService.searchCard().subscribe();
+  }
+
+  createCard() {
+    this.dialogService
+      .createCard(this.currentBoardService.boardId, this.currentBoardService.laneId)
+      .subscribe(id => this.router.navigate(['card', id]));
   }
 }

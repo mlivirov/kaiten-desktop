@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, OnInit, Output, ViewChild } from '@angular/core';
 import {
   AsyncPipe,
   DatePipe,
@@ -14,7 +14,6 @@ import { MdEditorComponent } from '../md-editor/md-editor.component';
 import { FormsModule } from '@angular/forms';
 import { CardEx } from '../../models/card-ex';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
-import { ApiService } from '../../services/api.service';
 import { finalize, map, Observable, tap } from 'rxjs';
 import {
   ListOfRelatedCardsComponent
@@ -26,11 +25,13 @@ import { TimeagoModule } from 'ngx-timeago';
 import { CardCommentsComponent } from './card-comments/card-comments.component';
 import { EditorPropertyTemplate, PropertiesEditorComponent, } from '../properties-editor/properties-editor.component';
 import {
+  NgbCollapse,
   NgbDatepicker,
   NgbDropdown,
   NgbDropdownAnchor,
   NgbDropdownItem,
   NgbDropdownMenu,
+  NgbDropdownToggle,
   NgbInputDatepicker,
   NgbTooltip,
   NgbTypeahead
@@ -39,8 +40,16 @@ import { CardPropertiesComponent } from './card-properties/card-properties.compo
 import { CardChecklistComponent } from './card-list-of-checklists/card-checklist/card-checklist.component';
 import { CardListOfChecklistsComponent } from './card-list-of-checklists/card-list-of-checklists.component';
 import { UnionIfNotExistsFunction } from '../../functions/union-if-not-exists.function';
-import { CheckTextEqualsFunction } from '../../functions/check-text-equals.function';
 import { TextEditorComponent, TextEditorSaveEvent } from '../text-editor/text-editor.component';
+import { CARD_EDITOR_SERVICE, CardEditorService } from '../../services/card-editor.service';
+import { CardState } from '../../models/card-state';
+import { BoardService } from '../../services/board.service';
+import { CardType } from '../../models/card-type';
+import { SettingService } from '../../services/setting.service';
+import { Card } from '../../models/card';
+import { formatCardLinkForClipboard } from '../../functions/format-card-link-for-clipboard.function';
+import { Setting } from '../../models/setting';
+import { CopyToClipboardButtonComponent } from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
 
 
 @Component({
@@ -79,35 +88,69 @@ import { TextEditorComponent, TextEditorSaveEvent } from '../text-editor/text-ed
     NgbDropdownItem,
     NgbDropdownMenu,
     TextEditorComponent,
+    NgbCollapse,
+    NgbDropdownToggle,
+    CopyToClipboardButtonComponent,
   ],
   templateUrl: './card-editor.component.html',
   styleUrl: './card-editor.component.scss',
 })
-export class CardEditorComponent implements OnChanges {
+export class CardEditorComponent implements OnInit {
+  CardState = CardState;
+
   @Input()
-  showTitle: boolean = true;
+  showHeader: boolean = true;
 
   @Input()
   card: CardEx;
 
-  originalDescription?: string;
-  originalTitle?: string;
+  @Input()
+  showComments: boolean = true
+
+  @Input()
+  showReferences: boolean = true;
+
+  @Input()
+  alwaysEditable: boolean = false;
 
   isSaving: boolean = false;
 
   @ViewChild(CardListOfChecklistsComponent)
   cardListOfChecklists: CardListOfChecklistsComponent;
 
-  constructor(private apiService: ApiService) {
+  @Output()
+  delete: EventEmitter<number> = new EventEmitter();
+
+  @Input()
+  collapsableProperties: boolean = false;
+
+  isCollapsedProperties: boolean = false;
+
+  cardTypes: CardType[] = [];
+
+  clipboardLink$: Observable<string>;
+
+  constructor(
+    @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
+    private boardService: BoardService,
+    private settingService: SettingService
+  ) {
+    boardService.getCardTypes().subscribe(types => this.cardTypes = types);
+
+    this.clipboardLink$ = this.settingService
+      .getSetting(Setting.ApiUrl)
+      .pipe(
+        map(baseUrl => formatCardLinkForClipboard(baseUrl, this.card))
+      );
   }
 
   updateAsap(value: boolean) {
-    this.updateCard({ asap: value });
+    this.updateCard({ asap: value }).subscribe();
   }
 
   addChecklist() {
     this.isSaving = true;
-    this.apiService
+    this.cardEditorService
       .addCardCheckList(this.card.id, {
         name: `This is your ${this.card.checklists?.length ?? 1} checklist`,
       })
@@ -120,13 +163,16 @@ export class CardEditorComponent implements OnChanges {
         setTimeout(() => {
           const found = this.cardListOfChecklists.checklists.find(t => t.checklist.id == checklist.id);
           found.openTextEditor();
-        }, 0);
+        }, 1);
       });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    this.originalDescription = this.card.description;
-    this.originalTitle = this.card.title;
+  saveType(type: CardType): void {
+    this
+      .updateCard({ type_id: type.id })
+      .subscribe(() => {
+        this.card.type = type;
+      });
   }
 
   saveTitle(saveEvent: TextEditorSaveEvent): void {
@@ -143,16 +189,42 @@ export class CardEditorComponent implements OnChanges {
 
   updateCard(data: Partial<CardEx>): Observable<void> {
     this.isSaving = true;
-    return this.apiService
+    return this.cardEditorService
       .updateCard(this.card.id, data)
       .pipe(
         finalize(() => this.isSaving = false),
         tap((card) => {
           Object.assign(this.card, card);
-          this.originalTitle = this.card.title;
-          this.originalDescription = this.card.description;
         }),
         map(() => {})
       );
+  }
+
+  deleteCard() {
+    this.delete.emit(this.card.id);
+  }
+
+  instantUpdateTitle(value: string) {
+    this.card.title = value;
+    return this.cardEditorService
+      .updateCard(this.card.id, {
+        title: this.card.title,
+      })
+      .subscribe();
+  }
+
+  instantUpdateDescription(value: string) {
+    this.card.description = value;
+    return this.cardEditorService
+      .updateCard(this.card.id, {
+        description: this.card.description,
+      })
+      .subscribe();
+  }
+
+  ngOnInit(): void {
+    if (this.collapsableProperties) {
+      this.isCollapsedProperties = window.innerWidth < 768;
+    }
   }
 }

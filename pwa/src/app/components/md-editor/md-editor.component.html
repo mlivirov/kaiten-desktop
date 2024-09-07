@@ -1,1 +1,60 @@
 <div [ngClass]="{'border border-1': !hideBorder, 'no-toolbar': hideToolbar}" #editor></div>
+
+
+<ng-template #userPopoverContent>
+    <ng-template #userTypeahead let-profile="result">
+        <app-inline-member [profile]="profile"></app-inline-member>
+    </ng-template>
+
+    <input type="text"
+           id="user-popover-input"
+           class="form-control form-control-sm editor"
+           [placeholder]="'Type user name'"
+           [ngbTypeahead]="allUsersTypeaheadSearch"
+           [resultTemplate]="userTypeahead"
+           [inputFormatter]="userTypeaheadFormatter"
+           [editable]="false"
+           ngModel
+           (ngModelChange)="addUserMention($event)"
+           (keydown.escape)="cancelMention()"
+           (blur)="cancelMention()"
+    >
+</ng-template>
+
+
+<div
+        [ngbPopover]="userPopoverContent"
+        triggers="manual"
+        [autoClose]="false"
+        #usersPopover="ngbPopover"
+>
+</div>
+
+<ng-template #cardPopoverContent>
+    <ng-template #taskTypeahead let-card="result">
+        {{card.id}} - {{card.title}}
+    </ng-template>
+
+    <input type="text"
+           id="card-popover-input"
+           class="form-control form-control-sm editor"
+           [placeholder]="'Type title or id'"
+           [ngbTypeahead]="cardsTypeaheadSearch"
+           [resultTemplate]="taskTypeahead"
+           [inputFormatter]="cardTypeaheadFormatter"
+           [editable]="false"
+           ngModel
+           (ngModelChange)="addCardLink($event)"
+           (keydown.escape)="cancelMention()"
+           (blur)="cancelMention()"
+    >
+</ng-template>
+
+
+<div
+        [ngbPopover]="cardPopoverContent"
+        triggers="manual"
+        [autoClose]="false"
+        #cardsPopover="ngbPopover"
+>
+</div>

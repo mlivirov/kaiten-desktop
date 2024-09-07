@@ -1,3 +1,4 @@
+
 <div class="modal-header">
     <h1 class="modal-title fs-5" id="exampleModalLabel">{{title}}</h1>
     <button type="button" class="btn-close" aria-label="Close" tabindex="-1" (click)="modal.close()"></button>
@@ -6,7 +7,7 @@
     <p>{{text}}</p>
 </div>
 <div class="modal-footer">
-    <button type="button" class="btn btn-primary me-2" (click)="modal.close()" *ngIf="cancelable">
+    <button type="button" class="btn btn-secondary me-2" (click)="modal.close()" *ngIf="cancelable">
         Cancel
     </button>
     <button type="button" class="btn btn-primary" (click)="modal.close(true)">

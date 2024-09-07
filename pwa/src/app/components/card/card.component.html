@@ -1,14 +1,16 @@
 <div class="p-2 shadow mb-2"
+     [ngStyle]="{ 'background-color': getBackgroundColor() }"
      (mouseover)="active = true"
      (mouseout)="active = false"
      (focusin)="active = true"
      (focusout)="active = false"
      *ngIf="card"
+     [class.shake]="highlight"
 >
     <div class="d-flex align-items-center mb-2" style="min-height: 1.5rem;">
         <div class="smaller me-1 strong badge text-bg-danger" *ngIf="card.asap"><span>asap</span></div>
-        <div class="smaller d-sm-block d-md-none d-lg-block" style="cursor: pointer" (click)="openCard(card.id)">{{card.type.name}}</div>
-        <div class="mx-2 d-inline-block d-md-none d-xl-inline-block">
+        <div class="smaller" style="cursor: pointer" (click)="openCard(card.id)">{{card.type.name}}</div>
+        <div class="mx-2 d-md-none d-xl-block">
             <app-time-dots [since]="card.column_changed_at"></app-time-dots>
         </div>
         <div class="ms-auto"></div>
@@ -16,7 +18,7 @@
             <button
                     ngbTooltip="Add blocker"
                     type="button"
-                    class="btn btn-sm btn-icon-sm me-1 border border-1 d-inline-block d-sm-none d-lg-inline-block"
+                    class="btn btn-sm btn-icon-sm me-1 border border-1 d-inline-block d-md-none d-lg-inline-block"
                     style="padding: 0px;width: 1rem;height: 1rem;position: relative;"
                     (click)="addBlock()"
             >
@@ -25,44 +27,45 @@
             <button
                     ngbTooltip="Move to next column"
                     type="button"
-                    class="btn btn-sm btn-icon-sm text-primary border border-1"
+                    class="btn btn-sm btn-icon-sm text-primary border border-1 me-1"
                     (click)="transitionToNextColumn()"
             >
                 <i class="pi pi-angle-double-right"></i>
             </button>
+            <app-copy-to-clipboard-button btnClass="btn-sm border border-1 me-1 text-secondary" [data]="clipboardLink$"></app-copy-to-clipboard-button>
         </div>
-        <div class="small ms-1 ms-md-0 text-nowrap opacity-75 d-inline d-sm-none"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
+        <div class="small ms-1 ms-md-0 text-nowrap d-inline d-sm-none"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
         <div class="small ms-1 ms-md-0 text-nowrap opacity-75 d-none d-sm-inline cursor-pointer" (click)="openCard(card.id)"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
     </div>
-    <div class="p-1 small my-2 rounded-1"
+    <div class="p-1 med my-2 rounded-1"
        style="background-color: #EDD1CE"
        *ngFor="let blocker of card?.blockers"
     >
         <div *ngIf="!blocker.blocker_card_id">
             <i class="pi pi-exclamation-circle" style="color: red; font-weight: bold;"></i>
-            <span class="ms-1 small">{{blocker.reason}}</span>
+            <span class="ms-1">{{blocker.reason}}</span>
         </div>
         <div *ngIf="blocker.blocker_card_id" (click)="openCard(blocker.blocker_card_id)" class="cursor-pointer">
             <i class="pi pi-lock" style="color: red; font-weight: bold;"></i>
-            <span class="ms-1 small">
+            <span class="ms-1">
               <strong class="text-muted small">{{blocker.card?.id}}:</strong>
               <span class="ms-1">{{blocker.card?.title}}</span>
             </span>
         </div>
     </div>
-    <p class="p-1 small my-2 cursor-pointer"
+    <p class="p-1 med my-2 cursor-pointer"
        style="background-color: #FDF8E4"
        *ngFor="let blocker of card?.blocking_blockers"
        (click)="openCard(blocker.blocked_card?.id)"
     >
         <i class="pi pi-lock" style="color: red; font-weight: bold;"></i>
-        <span class="ms-1 small">
-          <strong class="text-muted small">{{blocker.blocked_card?.id}}:</strong>
+        <span class="ms-1">
+          <strong class="text-muted">{{blocker.blocked_card?.id}}:</strong>
           <span class="ms-1">{{blocker.blocked_card?.title}}</span>
         </span>
     </p>
     <p class="mb-2 text-break" style="font-size: 14px; cursor: pointer;" (click)="openCard(card.id)">{{card.title}}</p>
     <div *ngFor="let member of assignedMembers" class="mb-2 med">
-        <app-inline-member class="small" [profile]="member"></app-inline-member>
+        <app-inline-member [profile]="member"></app-inline-member>
     </div>
 </div>

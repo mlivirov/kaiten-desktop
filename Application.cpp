@@ -31,6 +31,8 @@ _networkDiskCache(new QNetworkDiskCache(this))
     _webEngineView->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, false);
     _webEngineView->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, false);
     _webEngineView->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
+    _webEngineView->settings()->setAttribute(QWebEngineSettings::JavascriptCanAccessClipboard, true);
+    _webEngineView->settings()->setAttribute(QWebEngineSettings::JavascriptCanPaste, true);
 
     _webEngineView->page()->setWebChannel(_webChannel.get());
 
@@ -79,7 +81,7 @@ size_t Application::httpRequest(const QString &method, const QString &url, const
         return httpSettingsRequest(method, path, data);
     }
 
-    throw std::runtime_error("Non kaiten calls are prohibited");
+    throw std::runtime_error(std::string("Non kaiten calls are prohibited, attempted: ") + url.toStdString());
 }
 
 size_t Application::httpApiRequest(const QString &method, const QString &url, const QString &data) {

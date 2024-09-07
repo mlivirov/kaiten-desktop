@@ -38,6 +38,7 @@
             (insertBefore)="insertBefore($event)"
             (insertAfter)="insertAfter($event)"
             (delete)="deleteItem($event)"
+            (createCard)="createCardFromItem($event)"
     ></app-card-checklist-item>
     <div *ngIf="!checklist.items?.length">
         <span class="med text-muted">Checklist is empty</span>

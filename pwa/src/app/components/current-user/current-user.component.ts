@@ -5,7 +5,8 @@ import { AvatarService } from '../../services/avatar.service';
 import { AsyncPipe, NgIf, NgOptimizedImage } from '@angular/common';
 import { NgbDropdown, NgbDropdownMenu, NgbDropdownToggle } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
-import { DialogService } from '../../services/dialogService';
+import { DialogService } from '../../services/dialog.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-current-user',
@@ -28,14 +29,13 @@ export class CurrentUserComponent {
   @Input()
   showText: boolean = true;
 
-
   constructor(
-    private apiService: ApiService,
+    private authService: AuthService,
     private avatarService: AvatarService,
     private router: Router,
     private dialogService: DialogService,
   ) {
-    apiService
+    authService
       .getCurrentUser()
       .subscribe(user => {
         this.profile = user;
@@ -44,7 +44,7 @@ export class CurrentUserComponent {
   }
 
   logout() {
-    this.apiService.logout().subscribe(
+    this.authService.logout().subscribe(
       () => this.router.navigate(['login'])
     );
   }

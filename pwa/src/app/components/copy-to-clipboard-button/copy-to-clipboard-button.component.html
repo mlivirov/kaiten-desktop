@@ -1,0 +1,11 @@
+<ng-template #tooltipTemplate>
+    {{justCopied ? 'Copied!' : 'Copy to clipboard'}}
+</ng-template>
+<button class="btn btn-icon-sm btn-link {{btnClass}}"
+        [class.blink]="justCopied"
+        [ngbTooltip]="tooltipTemplate"
+        triggers="hover"
+        (click)="copy()"
+>
+    <i class="pi pi-copy"></i>
+</button>

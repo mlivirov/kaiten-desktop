@@ -21,7 +21,7 @@
     <div class="d-flex flex-column w-100" dragula="COLUMN" [attr.data-view-column-index]="viewColumnIndex">
         <div *ngFor="let column of columns; index as i" class="column bg-gray" [attr.data-column-index]="i">
             <div class="d-flex strong small border border-1 p-1 column-title cursor-move sticky-top bg-gray z-1 column-header">
-                <span class="user-select-none">{{column.title}}</span>
+                <span class="user-select-none">{{column.title?.length ? column.title : board.title}}</span>
                 <span class="ms-auto small"
                       ngbTooltip="WIP limit"
                       *ngIf="column.wip_limit"
@@ -34,7 +34,7 @@
                       ngbTooltip="Cards in column"
                       *ngIf="!column.wip_limit"
                 >
-                    [{{cardsCountByRootColumnId[column.id]}}]
+                    [{{cardsCountByRootColumnId[column.id] ?? 0}}]
                 </span>
             </div>
             <ng-container *ngIf="column?.subcolumns?.length">

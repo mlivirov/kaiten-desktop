@@ -1,30 +1,22 @@
-import { Component, HostListener, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, HostListener, Inject, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import {
   NgbDateAdapter,
   NgbDatepicker,
-  NgbInputDatepicker, NgbPopover,
+  NgbInputDatepicker,
+  NgbPopover,
   NgbTooltip,
   NgbTypeahead
 } from '@ng-bootstrap/ng-bootstrap';
 import {
-  EditorProperty, EditorPropertyClickedEvent,
+  EditorProperty,
+  EditorPropertyClickedEvent,
   EditorPropertyTemplate,
   GroupOfEditorProperties,
   PropertiesEditorComponent
 } from '../../properties-editor/properties-editor.component';
 import { CardEx } from '../../../models/card-ex';
 import { Column } from '../../../models/column';
-import {
-  catchError,
-  debounceTime,
-  EMPTY,
-  finalize,
-  forkJoin,
-  Observable,
-  of,
-  OperatorFunction,
-  switchMap
-} from 'rxjs';
+import { catchError, EMPTY, finalize, forkJoin, of, switchMap } from 'rxjs';
 import { User } from '../../../models/user';
 import { Tag } from '../../../models/tag';
 import { CustomProperty, CustomPropertyAndValues, CustomPropertySelectValue } from '../../../models/custom-property';
@@ -33,7 +25,6 @@ import { StringToDateFunction } from '../../../functions/string-to-date.function
 import { Owner } from '../../../models/owner';
 import { MemberType } from '../../../models/member-type';
 import { UnionIfNotExistsFunction } from '../../../functions/union-if-not-exists.function';
-import { ApiService } from '../../../services/api.service';
 import { CardStateLabelComponent } from '../card-state-label/card-state-label.component';
 import { AsyncPipe, DatePipe, NgForOf, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -45,6 +36,14 @@ import { NgbDateStringAdapter } from '../ngb-date-string-adapter.service';
 import { Board } from '../../../models/board';
 import { SpaceBoardPermissions } from '../../../models/space-board-permissions';
 import { Lane } from '../../../models/lane';
+import { CardUsersTypeaheadOperator } from '../../../functions/typeahead/card-users.typeahead-operator';
+import { UsersTypeaheadOperator } from '../../../functions/typeahead/users.typeahead-operator';
+import { TagsTypeaheadOperator } from '../../../functions/typeahead/tags.typeahead-operator';
+import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../services/card-editor.service';
+import { BoardService } from '../../../services/board.service';
+import { CustomPropertyService } from '../../../services/custom-property.service';
+import { CardState } from '../../../models/card-state';
+import { getLaneColor } from '../../../functions/get-lane-color.function';
 
 @Component({
   selector: 'app-card-properties',
@@ -93,39 +92,11 @@ export class CardPropertiesComponent implements OnChanges {
   newLaneId?: number;
   newColumnId?: number;
 
-  cardUsersTypeaheadSearch: OperatorFunction<string, readonly User[]>
-    = (text$: Observable<string>) =>
-    text$
-      .pipe(
-        debounceTime(200),
-        switchMap(term => {
-          return this.apiService.getCardAllowedUsers(this.card.id, 0, 10, term);
-        })
-      );
-
-
-  allUsersTypeaheadSearch: OperatorFunction<string, readonly User[]>
-    = (text$: Observable<string>) =>
-    text$
-      .pipe(
-        debounceTime(200),
-        switchMap(term => {
-          return this.apiService.getUsers(0, 10, term);
-        })
-      );
+  cardUsersTypeaheadSearch = CardUsersTypeaheadOperator(() => this.card.state === CardState.Draft ? null : this.card.id);
+  allUsersTypeaheadSearch = UsersTypeaheadOperator();
+  tagTypeaheadSearch = TagsTypeaheadOperator();
 
   userTypeaheadFormatter = (item: User) => item.full_name;
-
-  tagTypeaheadSearch: OperatorFunction<string, readonly Tag[]>
-    = (text$: Observable<string>) =>
-    text$
-      .pipe(
-        debounceTime(200),
-        switchMap(term => {
-          return this.apiService.getTags(0, 10, term);
-        })
-      );
-
   tagTypeaheadFormatter = (item: Tag) => item.name;
 
   properties: GroupOfEditorProperties[] = [];
@@ -138,9 +109,13 @@ export class CardPropertiesComponent implements OnChanges {
   isLoadingBoardAndLanes: boolean = false;
   private customProperties: CustomPropertyAndValues[] = [];
 
-  constructor(private apiService: ApiService) {
+  constructor(
+    private boardService: BoardService,
+    private customPropertyService: CustomPropertyService,
+    @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService
+  ) {
     this.isLoadingBoardAndLanes = true;
-    this.apiService
+    this.boardService
       .getSpaces()
       .pipe(
         finalize(() => this.isLoadingBoardAndLanes = false)
@@ -150,6 +125,10 @@ export class CardPropertiesComponent implements OnChanges {
 
   findSelectValue(values: CustomPropertySelectValue[], id: number) {
     return values.find(value => value.id === id);
+  }
+
+  getLaneColor(lane: Lane) {
+    return getLaneColor(lane);
   }
 
   getCustomPropertyValue(values: CardProperties, property: CustomProperty) {
@@ -177,7 +156,7 @@ export class CardPropertiesComponent implements OnChanges {
         <EditorProperty>{ label: 'Sprint', value: this.card.sprint_id, multi: false, name: 'sprint', type: 'plain' },
         <EditorProperty>{ label: 'State', value: this.card.state, multi: false, name: 'state', type: 'state' },
         <EditorProperty>{ label: 'Size', value: this.card.size, multi: false, name: 'size', type: 'size' },
-        <EditorProperty>{ label: 'Lane', value: this.card.lane, multi: false, name: 'lane', type: 'title', clickable: true },
+        <EditorProperty>{ label: 'Lane', value: this.card.lane, multi: false, name: 'lane', type: 'lane', clickable: true },
         <EditorProperty>{ label: 'Board', value: this.card.board, multi: false, name: 'board', type: 'title', clickable: true },
         <EditorProperty>{ label: 'Column', value: this.card.column, multi: false, name: 'column', type: 'column' },
       ]
@@ -268,7 +247,7 @@ export class CardPropertiesComponent implements OnChanges {
     this.isLoadingBoardAndLanes = true;
     this.isSaveInProgress = true;
 
-    this.apiService
+    this.cardEditorService
       .updateCard(this.card.id, {
         board_id: this.newBoardId,
         lane_id: this.newLaneId,
@@ -279,7 +258,7 @@ export class CardPropertiesComponent implements OnChanges {
         switchMap(card => {
           return forkJoin({
             card: of(card),
-            board: this.apiService.getBoard(card.board_id),
+            board: this.boardService.getBoard(card.board_id),
           })
         })
       )
@@ -301,9 +280,10 @@ export class CardPropertiesComponent implements OnChanges {
   }
 
   updateDateProperty(property: EditorProperty<string>) {
-    this.apiService.updateCard(this.card.id, {
-      [property.name]: property.value
-    } as unknown as CardEx)
+    this.cardEditorService
+      .updateCard(this.card.id, {
+        [property.name]: property.value
+      } as unknown as CardEx)
       .pipe(
         catchError(() => {
           this.propertiesEditor.abortSave();
@@ -316,9 +296,10 @@ export class CardPropertiesComponent implements OnChanges {
   }
 
   updateColumn(property: EditorProperty<Column>) {
-    this.apiService.updateCard(this.card.id, {
-      column_id: property.value.id
-    })
+    this.cardEditorService
+      .updateCard(this.card.id, {
+        column_id: property.value.id
+      })
       .pipe(
         catchError(() => {
           this.propertiesEditor.abortSave();
@@ -333,9 +314,10 @@ export class CardPropertiesComponent implements OnChanges {
   }
 
   updateSize(property: EditorProperty<number>) {
-    this.apiService.updateCard(this.card.id, {
-      size: property.value
-    })
+    this.cardEditorService
+      .updateCard(this.card.id, {
+        size: property.value
+      })
       .pipe(
         catchError(() => {
           this.propertiesEditor.abortSave();
@@ -348,11 +330,12 @@ export class CardPropertiesComponent implements OnChanges {
   }
 
   updateCustomUser(property: EditorProperty<string, CustomPropertyAndValues>) {
-    this.apiService.updateCard(this.card.id, {
-      properties: {
-        [`id_${property.extra.property.id}`]: property.value ? [property.value] : null
-      }
-    })
+    this.cardEditorService
+      .updateCard(this.card.id, {
+        properties: {
+          [`id_${property.extra.property.id}`]: property.value ? [property.value] : null
+        }
+      })
       .pipe(
         catchError(() => {
           this.propertiesEditor.abortSave();
@@ -365,11 +348,12 @@ export class CardPropertiesComponent implements OnChanges {
   }
 
   updateCustomCheckbox(property: EditorProperty<boolean, CustomPropertyAndValues>) {
-    this.apiService.updateCard(this.card.id, {
-      properties: {
-        [`id_${property.extra.property.id}`]: property.value
-      }
-    })
+    this.cardEditorService
+      .updateCard(this.card.id, {
+        properties: {
+          [`id_${property.extra.property.id}`]: property.value
+        }
+      })
       .pipe(
         catchError(() => {
           this.propertiesEditor.abortSave();
@@ -382,11 +366,12 @@ export class CardPropertiesComponent implements OnChanges {
   }
 
   updateCustomSelect(property: EditorProperty<number, CustomPropertyAndValues>) {
-    this.apiService.updateCard(this.card.id, {
-      properties: {
-        [`id_${property.extra.property.id}`]: [property.value]
-      }
-    })
+    this.cardEditorService
+      .updateCard(this.card.id, {
+        properties: {
+          [`id_${property.extra.property.id}`]: [property.value]
+        }
+      })
       .pipe(
         catchError(() => {
           this.propertiesEditor.abortSave();
@@ -399,11 +384,12 @@ export class CardPropertiesComponent implements OnChanges {
   }
 
   updateCustomString(property: EditorProperty<string, CustomPropertyAndValues>) {
-    this.apiService.updateCard(this.card.id, {
-      properties: {
-        [`id_${property.extra.property.id}`]: property.value
-      }
-    })
+    this.cardEditorService
+      .updateCard(this.card.id, {
+        properties: {
+          [`id_${property.extra.property.id}`]: property.value
+        }
+      })
       .pipe(
         catchError(() => {
           this.propertiesEditor.abortSave();
@@ -426,11 +412,12 @@ export class CardPropertiesComponent implements OnChanges {
       }
     }
 
-    this.apiService.updateCard(this.card.id, {
-      properties: {
-        [`id_${property.extra.property.id}`]: newValue
-      }
-    })
+    this.cardEditorService
+      .updateCard(this.card.id, {
+        properties: {
+          [`id_${property.extra.property.id}`]: newValue
+        }
+      })
       .pipe(
         catchError(() => {
           this.propertiesEditor.abortSave();
@@ -444,18 +431,23 @@ export class CardPropertiesComponent implements OnChanges {
 
   makeMemberResponsible(member: Owner) {
     this.isSaveInProgress = true;
-    this.apiService
+    const previousResponsible = this.card.members.find(t => t.type === MemberType.Responsible);
+    this.cardEditorService
       .makeMemberResponsible(this.card.id, member.id)
       .pipe(
         finalize(() => this.isSaveInProgress = false),
       )
       .subscribe(() => {
+        if (previousResponsible) {
+          previousResponsible.type = MemberType.Member;
+        }
+
         member.type = MemberType.Responsible;
       });
   }
 
   addMember(property: EditorProperty<User>) {
-    this.apiService
+    this.cardEditorService
       .addMemberToCard(this.card.id, this.newMember.id)
       .pipe(
         catchError(() => {
@@ -471,7 +463,7 @@ export class CardPropertiesComponent implements OnChanges {
 
   removeMember(member: User, property: EditorProperty<User[]>) {
     this.isSaveInProgress = true;
-    this.apiService
+    this.cardEditorService
       .removeMemberFromCard(this.card.id, member.id)
       .pipe(
         finalize(() => this.isSaveInProgress = false)
@@ -484,7 +476,7 @@ export class CardPropertiesComponent implements OnChanges {
 
   addTag(property: EditorProperty) {
     const name = typeof property.value === 'string' ? property.value : property.value.name;
-    this.apiService
+    this.cardEditorService
       .createTag(this.card.id, name)
       .pipe(
         catchError(() => {
@@ -500,7 +492,7 @@ export class CardPropertiesComponent implements OnChanges {
 
   removeTag(tag: Tag, property: EditorProperty<Tag[]>) {
     this.isSaveInProgress = true;
-    this.apiService
+    this.cardEditorService
       .removeTag(this.card.id, tag.id)
       .pipe(
         finalize(() => this.isSaveInProgress = false)
@@ -515,8 +507,8 @@ export class CardPropertiesComponent implements OnChanges {
     this.isLoading = true;
     forkJoin({
       card: of(this.card),
-      customProperties: this.apiService.getCustomPropertiesWithValues(),
-      columns: this.apiService.getColumns(this.card.board_id)
+      customProperties: this.customPropertyService.getCustomPropertiesWithValues(),
+      columns: this.boardService.getColumns(this.card.board_id)
     }).pipe(
         finalize(() => this.isLoading = false)
       )
@@ -543,8 +535,8 @@ export class CardPropertiesComponent implements OnChanges {
     this.isLoadingBoardAndLanes = true;
 
     forkJoin({
-      lanes: this.apiService.getLanes(boardId),
-      columns: this.apiService.getColumns(boardId)
+      lanes: this.boardService.getLanes(boardId),
+      columns: this.boardService.getColumns(boardId)
     })
       .pipe(
         finalize(() => this.isLoadingBoardAndLanes = false)

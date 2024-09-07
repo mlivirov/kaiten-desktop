@@ -1,5 +1,5 @@
 <div *ngIf="isLoading" class="d-flex align-items-center">
-    <span class="placeholder rounded-circle" *ngIf="showAvatar" style="width: 24px; height: 24px;"></span>
+    <span class="placeholder rounded-circle" *ngIf="showAvatar" [ngStyle]="{ width: size + 'px', height: size + 'px'}"></span>
     <span class="placeholder ms-2" *ngIf="showName" style="width: 20px; height: 12px;"></span>
     <span class="placeholder ms-1" *ngIf="showName" style="width: 45px; height: 12px;"></span>
 </div>
@@ -10,6 +10,6 @@
     <span class="ms-2" *ngIf="showName">Unassigned</span>
 </div>
 <div *ngIf="profile && !isLoading" class="d-flex align-items-center">
-    <img *ngIf="showAvatar" class="rounded-circle" alt="logo" [src]="avatarUrl" width="24" height="24" [ngbTooltip]="profile?.full_name" [disableTooltip]="showName"/>
+    <img *ngIf="showAvatar" class="rounded-circle" alt="logo" [src]="avatarUrl" [width]="size" [height]="size" [ngbTooltip]="profile?.full_name" [disableTooltip]="showName"/>
     <span class="ms-2" *ngIf="showName">{{profile.full_name}}</span>
 </div>

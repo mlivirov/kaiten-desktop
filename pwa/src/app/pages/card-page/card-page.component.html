@@ -2,12 +2,12 @@
         [title]="card.board.title"
         (switchBoard)="switchBoard($event.spaceId, $event.boardId)"
 >
-    <ng-template #content>
-        <div class="mt-2 w-100 mt-lg-0 me-2 mx-lg-4 flex-grow-1 text-center text-md-start">
-            <button class="btn btn-sm btn-outline-primary" (click)="switchBoard(0, this.card.board_id, this.card.id)" >Open board</button>
-        </div>
+    <ng-template #controls>
+        <button class="btn btn-link text-light mx-2" (click)="switchBoard(0, this.card.board_id, this.card.id)" >
+            <i class="pi pi-external-link"></i>
+        </button>
     </ng-template>
 </app-page-header>
 <div class="mx-4 mt-2">
-    <app-card-editor [card]="card"></app-card-editor>
+    <app-card-editor [card]="card" (delete)="deleteCard($event)"></app-card-editor>
 </div>

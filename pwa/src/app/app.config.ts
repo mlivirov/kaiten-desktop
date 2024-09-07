@@ -13,6 +13,8 @@ import { retryInterceptor } from './interceptors/retry.interceptor';
 import { apiInterceptor } from './interceptors/api.interceptor';
 import { CordovaApplication } from './core/cordova-application';
 import { AutosizeModule } from 'ngx-autosize';
+import { ServerCardEditorService } from './services/implementations/server-card-editor.service';
+import { CARD_EDITOR_SERVICE } from './services/card-editor.service';
 
 const interceptors = [errorInterceptor, throttleInterceptor, retryInterceptor];
 if (!QtApplication.isAvailable()) {
@@ -39,6 +41,10 @@ export const appConfig: ApplicationConfig = {
       provide: APP_INITIALIZER,
       multi: true,
       useFactory: () => CordovaApplication.create,
+    },
+    {
+      provide: CARD_EDITOR_SERVICE,
+      useClass: ServerCardEditorService
     },
     {
       provide: HttpBackend,

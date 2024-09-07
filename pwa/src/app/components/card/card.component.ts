@@ -1,15 +1,22 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, Self } from '@angular/core';
 import { TimeDotsComponent } from '../time-dots/time-dots.component';
-import { NgClass, NgForOf, NgIf } from '@angular/common';
+import { NgClass, NgForOf, NgIf, NgStyle } from '@angular/common';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
 import { CardEx } from '../../models/card-ex';
-import { CardService } from '../../services/card.service';
-import { DialogService } from '../../services/dialogService';
+import { CardTransitionService } from '../../services/card-transition.service';
+import { DialogService } from '../../services/dialog.service';
 import { Owner } from '../../models/owner';
 import { MemberType } from '../../models/member-type';
-import { filter, map, switchMap } from 'rxjs';
+import { filter, map, Observable, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { getPastelColor } from '../../functions/pastel-color.function';
+import { CopyToClipboardButtonComponent } from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
+import { Setting } from '../../models/setting';
+import { formatCardLinkForClipboard } from '../../functions/format-card-link-for-clipboard.function';
+import { SettingService } from '../../services/setting.service';
+import { getLaneColor } from '../../functions/get-lane-color.function';
 
 @Component({
   selector: 'app-card',
@@ -21,9 +28,11 @@ import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
     NgForOf,
     InlineMemberComponent,
     NgbTooltip,
+    NgStyle,
+    CopyToClipboardButtonComponent,
   ],
   templateUrl: './card.component.html',
-  styleUrl: './card.component.scss'
+  styleUrl: './card.component.scss',
 })
 export class CardComponent {
   @Input()
@@ -36,6 +45,10 @@ export class CardComponent {
   updated: EventEmitter<CardEx> = new EventEmitter<CardEx>();
 
   active: boolean = false;
+
+  highlight: boolean = false;
+
+  clipboardLink$: Observable<string>;
 
   get assignedMembers(): Owner[] {
     if (!this.card?.members) {
@@ -56,10 +69,21 @@ export class CardComponent {
   }
 
   constructor(
+    @Self() public elementRef: ElementRef,
     private dialogService: DialogService,
-    private cardService: CardService,
-    private router: Router
+    private cardService: CardTransitionService,
+    private router: Router,
+    private settingService: SettingService,
   ) {
+    this.clipboardLink$ = this.settingService
+      .getSetting(Setting.ApiUrl)
+      .pipe(
+        map(baseUrl => formatCardLinkForClipboard(baseUrl, this.card))
+      );
+  }
+
+  getBackgroundColor(): string {
+    return getLaneColor(this.card.lane);
   }
 
   openCard(id: number) {
@@ -88,5 +112,15 @@ export class CardComponent {
   }
 
   addBlock() {
+  }
+
+  focus() {
+    this.elementRef.nativeElement.scrollIntoView({
+      block: 'center',
+      behavior: 'instant',
+    });
+
+    this.highlight = true;
+    setTimeout(() => this.highlight = false, 300);
   }
 }

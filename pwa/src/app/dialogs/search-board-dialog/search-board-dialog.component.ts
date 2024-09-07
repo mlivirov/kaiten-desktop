@@ -6,6 +6,7 @@ import { NgForOf, NgIf } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
 import { finalize } from 'rxjs';
+import { BoardService } from '../../services/board.service';
 
 @Component({
   selector: 'app-search-board-dialog',
@@ -26,11 +27,11 @@ export class SearchBoardDialogComponent {
   isLoading: boolean = false;
 
   constructor(
-    private apiService: ApiService,
+    private boardService: BoardService,
     public modal: NgbActiveModal,
   ) {
     this.isLoading = true;
-    apiService
+    boardService
       .getSpaces()
       .pipe(
         finalize(() => this.isLoading = false)

@@ -4,21 +4,23 @@
 <app-md-viewer
         [hideBorder]="true"
         class="inline-editor"
-        *ngIf="!isEditing && type === 'markdown'"
+        *ngIf="!isEditing && !alwaysEditable && type === 'markdown'"
         [ngModel]="originalValue"
         (dblclick)="openEditor($event)"
+        [placeholder]="placeholder"
 ></app-md-viewer>
 
 <span
         class="text-break"
         (dblclick)="openEditor($event)"
-        *ngIf="!isEditing && type === 'textarea'"
->{{originalValue}}</span>
+        *ngIf="!isEditing && !alwaysEditable && type === 'textarea'"
+>{{originalValue || placeholder}}</span>
 
-<ng-container *ngIf="isEditing">
+<ng-container *ngIf="isEditing || alwaysEditable">
     <app-md-editor
             #mdEditor
-            [(ngModel)]="newValue"
+            [ngModel]="newValue"
+            (ngModelChange)="updateNewValue($event)"
             [minHeight]="minHeight"
             [placeholder]="placeholder"
             [disabled]="disabled || isLoading"
@@ -28,15 +30,18 @@
     <textarea
             #textEditor
             class="form-control"
+            [class.border-0]="alwaysEditable"
             autosize
+            [placeholder]="placeholder"
             *ngIf="type === 'textarea'"
-            [(ngModel)]="newValue"
+            [ngModel]="newValue"
+            (ngModelChange)="updateNewValue($event)"
             [disabled]="disabled || isLoading"
     ></textarea>
 </ng-container>
 
-<div class="d-flex align-items-center" [class.mt-2]="isEditing">
-    <div class="text-start" *ngIf="isEditing">
+<div class="d-flex align-items-center" [class.mt-2]="isEditing || alwaysEditable">
+    <div class="text-start" *ngIf="isEditing && !alwaysEditable">
         <button type="button"
                 class="btn btn-sm btn-outline-primary me-2"
                 (click)="notifySave($event)"

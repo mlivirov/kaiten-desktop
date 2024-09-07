@@ -1,0 +1,14 @@
+# copy to /usr/share/applications/kaiten.desktop
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Kaiten
+GenericName=Kaiten
+Comment=Kaiten Task manager
+Keywords=kaiten;task manager;
+Exec=/opt/kaiten/kaiten
+Icon=/opt/kaiten/favicon.ico
+Terminal=false
+Categories=Tools;Utility;
+StartupNotify=true

@@ -1,10 +1,9 @@
 import { ResolveFn } from '@angular/router';
 import { inject } from '@angular/core';
-import { ApiService } from '../services/api.service';
 import { CardEx } from '../models/card-ex';
+import { CARD_EDITOR_SERVICE, CardEditorService } from '../services/card-editor.service';
 
 export const cardResolver: ResolveFn<CardEx> = (route, state) => {
-  const apiService = inject(ApiService);
-
-  return apiService.getCard(route.params['cardId']);
+  const service = inject(CARD_EDITOR_SERVICE);
+  return service.getCard(route.params['cardId']);
 };

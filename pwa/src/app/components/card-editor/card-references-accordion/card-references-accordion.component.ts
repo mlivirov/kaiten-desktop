@@ -34,7 +34,7 @@ export class CardReferencesAccordionComponent implements OnChanges {
   countOfAllReferences: number = 0;
 
   focus(index: number) {
-    this.groups.get(index).nativeElement.scrollIntoView();
+    (this.groups.get(index).nativeElement as HTMLElement).scrollIntoView({ block: 'center' });
   }
 
   extractReferences() {

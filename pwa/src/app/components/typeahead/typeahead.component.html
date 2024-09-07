@@ -9,7 +9,8 @@
                 {{item.name}}
             </div>
         </div>
-        <div class="list-group" *ngIf="currentBadgeType !== null && !popoverItemsLoading">
+        <div class="list-group" *ngIf="currentBadgeType !== null">
+            <div *ngIf="!popoverItems?.length" class="opacity-50 list-group-item user-select-none">Noting found</div>
             <div *ngFor="let item of popoverItems; index as i"
                  class="list-group-item user-select-none"
                  [class.active]="currentPopoverItemIndex === i"

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { Column } from '../../models/column';
 import { CardEx } from '../../models/card-ex';
 import { NgForOf, NgIf } from '@angular/common';
@@ -7,6 +7,7 @@ import { TimeDotsComponent } from '../../components/time-dots/time-dots.componen
 import { ApiService } from '../../services/api.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { finalize } from 'rxjs';
+import { CARD_EDITOR_SERVICE, CardEditorService } from '../../services/card-editor.service';
 
 @Component({
   selector: 'app-card-transition-confirmation-dialog',
@@ -28,7 +29,7 @@ export class CardTransitionConfirmationDialogComponent {
   isMovingInProgress: boolean = false;
 
   constructor(
-    private apiService: ApiService,
+    @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
     public modal: NgbActiveModal
   ) {
   }
@@ -36,7 +37,7 @@ export class CardTransitionConfirmationDialogComponent {
   move() {
     this.isMovingInProgress = true;
 
-    this.apiService
+    this.cardEditorService
       .updateCard(this.card.id, {
         column_id: this.to.id
       })

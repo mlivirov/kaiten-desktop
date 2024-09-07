@@ -133,7 +133,7 @@ export class TypeaheadComponent implements ControlValueAccessor {
         this.currentBadgeType = badgeType;
         this.currentPopoverItemIndex = 0;
         this.popoverItemsLoading = true;
-        this.popover.close();
+        // this.popover.close();
 
         const indexOfSpace = this.value.indexOf(' ');
         const query = this.value.substring(badgeTypeKeyword.length + 1, indexOfSpace === -1 ? undefined : indexOfSpace);
@@ -157,8 +157,6 @@ export class TypeaheadComponent implements ControlValueAccessor {
       this.currentBadgeType = null;
       this.popoverItems = this.badgeTypes;
       this.popover.open();
-    } else if (this.popover.isOpen()) {
-      this.popover.close();
     }
   }
 
@@ -197,11 +195,11 @@ export class TypeaheadComponent implements ControlValueAccessor {
     }
 
     this.value = this.value.substring(itemStarPos)
-    this.popover.close();
+    this.popover.close(false);
     this.notifyChange();
   }
 
-  @HostListener('window:keydown', ['$event'])
+  @HostListener('keydown', ['$event'])
   handleInput(event: KeyboardEvent): void {
     if (this.popoverItemsLoading) {
       event.preventDefault();
@@ -250,6 +248,10 @@ export class TypeaheadComponent implements ControlValueAccessor {
   }
 
   notifyChange() {
+    if (this.popover.isOpen()) {
+      return;
+    }
+
     this.onChangeCallback?.call(this, {
       text: this.value,
       badges: this.badges

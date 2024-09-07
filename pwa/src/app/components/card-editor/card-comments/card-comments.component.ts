@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CardComment, CardCommentType } from '../../../models/card-comment';
 import { MdEditorComponent } from '../../md-editor/md-editor.component';
 import { NgForOf, NgIf } from '@angular/common';
@@ -10,6 +10,8 @@ import { TimeagoModule } from 'ngx-timeago';
 import { User } from '../../../models/user';
 import { finalize } from 'rxjs';
 import { TextEditorComponent, TextEditorSaveEvent } from '../../text-editor/text-editor.component';
+import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../services/card-editor.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-card-comments',
@@ -29,15 +31,22 @@ import { TextEditorComponent, TextEditorSaveEvent } from '../../text-editor/text
 })
 export class CardCommentsComponent implements OnChanges {
   CardCommentType = CardCommentType;
-  @Input() cardId: number;
+
+  @Input()
+  cardId: number;
+
   comments: CardComment[] = [];
   currentUser: User;
-
   text: string;
   isSavingInProgress: boolean = false;
+  isLoading: boolean = false;
 
-  constructor(private apiService: ApiService) {
-    this.apiService.getCurrentUser().subscribe(currentUser => { this.currentUser = currentUser; });
+  constructor(
+    private authService: AuthService,
+    @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService) {
+    this.authService
+      .getCurrentUser()
+      .subscribe(currentUser => this.currentUser = currentUser );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -52,7 +61,7 @@ export class CardCommentsComponent implements OnChanges {
     }
 
     this.isSavingInProgress = true;
-    this.apiService
+    this.cardEditorService
       .addComment(this.cardId, this.text)
       .pipe(
         finalize(() => this.isSavingInProgress = false),
@@ -65,8 +74,12 @@ export class CardCommentsComponent implements OnChanges {
   }
 
   loadComments() {
-    this.apiService
+    this.isLoading = true;
+    this.cardEditorService
       .getCardComments(this.cardId)
+      .pipe(
+        finalize(() => this.isLoading = false)
+      )
       .subscribe(d => {
         this.comments = d.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
       });
@@ -78,7 +91,7 @@ export class CardCommentsComponent implements OnChanges {
     }
 
     this.isSavingInProgress = true;
-    this.apiService
+    this.cardEditorService
       .updateComment(this.cardId, comment.id, event.value)
       .pipe(
         finalize(() => this.isSavingInProgress = false),

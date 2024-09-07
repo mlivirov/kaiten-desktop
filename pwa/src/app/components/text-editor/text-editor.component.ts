@@ -14,9 +14,12 @@ import { MdViewerComponent } from '../md-viewer/md-viewer.component';
 import { MdEditorComponent } from '../md-editor/md-editor.component';
 import { NgIf, NgTemplateOutlet } from '@angular/common';
 import { AutosizeModule } from 'ngx-autosize';
+import { filter, finalize, map, Observable, of, tap } from 'rxjs';
+import { DialogService } from '../../services/dialog.service';
+import { CheckTextEqualsFunction } from '../../functions/check-text-equals.function';
 
 @Injectable({ providedIn: 'root' })
-class TextEditorService {
+export class TextEditorService {
   activeEditor?: TextEditorComponent;
 }
 
@@ -64,6 +67,9 @@ export class TextEditorComponent implements ControlValueAccessor {
   @Input()
   minHeight?: number;
 
+  @Input()
+  alwaysEditable = false;
+
   @Output()
   save: EventEmitter<TextEditorSaveEvent> = new EventEmitter();
 
@@ -90,7 +96,7 @@ export class TextEditorComponent implements ControlValueAccessor {
 
   private changeCallback: (value: string) => void;
 
-  constructor(public service: TextEditorService) {
+  constructor(public service: TextEditorService, private dialogService: DialogService) {
   }
 
   registerOnChange(fn: any): void {
@@ -105,22 +111,53 @@ export class TextEditorComponent implements ControlValueAccessor {
     this.disabled = isDisabled;
   }
 
-  writeValue(obj: any): void {
+  writeValue(obj: string|null): void {
+    if (this.alwaysEditable) {
+      this.newValue = obj;
+    }
+
     this.originalValue = obj;
   }
 
-  openEditor(event?: Event, scroll = false): void {
+  openEditor(event?: Event, scroll = true): void {
+    event?.stopPropagation();
+    event?.preventDefault();
+
     if (this.disabled) {
       return;
     }
 
-    this.service.activeEditor?.discardChanges(event);
-    this.newValue = this.originalValue;
+    this.ensureNotChanged()
+      .pipe(
+        filter(r => !!r)
+      )
+      .subscribe(() => this.doOpenEditor(scroll));
+  }
+
+  ensureNotChanged(): Observable<boolean> {
+    if (this.service.activeEditor && !CheckTextEqualsFunction(this.service.activeEditor.originalValue, this.service.activeEditor.newValue)) {
+      return this.dialogService.confirmation('There are unsaved changes. What would you like to do?', null, [
+        { title: 'Discard', resultCode: 'discard', style: 'btn-danger' },
+        { title: 'Continue editing', resultCode: undefined, style: 'btn-primary' },
+      ]).pipe(
+        map(res => {
+          if (res === 'discard') {
+            return true;
+          }
+
+          return false;
+        }),
+      )
+    }
+
+    return of(true);
+  }
+
+  doOpenEditor(scroll: boolean) {
+    this.service.activeEditor?.discardChanges();
     this.service.activeEditor = this;
     this.editingChange.emit(true);
-
-    event?.stopPropagation();
-    event?.preventDefault();
+    this.newValue = this.originalValue;
 
     if (scroll) {
       setTimeout(() => {
@@ -137,15 +174,24 @@ export class TextEditorComponent implements ControlValueAccessor {
     }
   }
 
+  discardChangesWithConfirmation(event?: Event): Observable<boolean> {
+    event?.stopPropagation();
+    event?.preventDefault();
+
+    return this.ensureNotChanged()
+      .pipe(
+        filter(r => !!r),
+        tap(() => this.discardChanges(event))
+      )
+  }
+
+
   discardChanges(event?: Event) {
     this.service.activeEditor = null;
     this.editingChange.emit(false);
-
-    event?.stopPropagation();
-    event?.preventDefault();
   }
 
-  notifySave(event: Event|null) {
+  notifySave(event?: Event) {
     const self = this;
     this.save.emit({
       value: this.newValue,
@@ -163,12 +209,20 @@ export class TextEditorComponent implements ControlValueAccessor {
     event?.preventDefault();
   }
 
-  @HostListener('window:keydown', ['$event'])
+  @HostListener('keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     if (event.code === 'Escape' && this.isEditing) {
       this.discardChanges(event);
     } else if (event.code === 'Enter' && event.ctrlKey && this.isEditing) {
       this.notifySave(event);
+    }
+  }
+
+  updateNewValue(value: string) {
+    if (this.alwaysEditable) {
+      this.changeCallback?.call(this, value);
+    } else {
+      this.newValue = value;
     }
   }
 }

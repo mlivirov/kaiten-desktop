@@ -116,7 +116,7 @@ export class PropertiesEditorComponent {
     this.editingPropertyValue = property.value;
     setTimeout(() => {
       this.editorContainer.nativeElement.querySelector('.editor')?.focus();
-    }, 0);
+    }, 1);
 
     this.editingStarted.emit(this.editingProperty);
     event.preventDefault();

@@ -2,7 +2,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  HostListener,
+  HostListener, Inject,
   Injectable,
   Input,
   OnChanges,
@@ -31,7 +31,7 @@ import { TimeagoModule } from 'ngx-timeago';
 import { MdViewerComponent } from '../../../md-viewer/md-viewer.component';
 import { CheckListItem } from '../../../../models/check-list-item';
 import { ApiService } from '../../../../services/api.service';
-import { finalize, tap } from 'rxjs';
+import { filter, finalize, switchMap, tap } from 'rxjs';
 import { NgbDateStringAdapter } from '../../ngb-date-string-adapter.service';
 import { MdEditorComponent } from '../../../md-editor/md-editor.component';
 import {
@@ -39,6 +39,11 @@ import {
 } from '../card-checklist-item/card-checklist-item.component';
 import { UnionIfNotExistsFunction } from '../../../../functions/union-if-not-exists.function';
 import { TextEditorComponent, TextEditorSaveEvent } from '../../../text-editor/text-editor.component';
+import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../../services/card-editor.service';
+import { DraftCardEditorService } from '../../../../services/implementations/draft-card-editor.service';
+import { CurrentBoardService } from '../../../../services/current-board.service';
+import { DialogService } from '../../../../services/dialog.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-card-checklist',
@@ -92,7 +97,10 @@ export class CardChecklistComponent implements OnChanges {
   textEditorComponent: TextEditorComponent;
 
   constructor(
-    private apiService: ApiService,
+    @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
+    private currentBoardService: CurrentBoardService,
+    private dialogService: DialogService,
+    private router: Router,
   ) {
   }
 
@@ -106,7 +114,8 @@ export class CardChecklistComponent implements OnChanges {
 
   deleteItem(item: CheckListItem) {
     this.isSaving = true;
-    this.apiService.deleteCheckListItem(this.cardId, this.checklist.id, item.id)
+    this.cardEditorService
+      .deleteCheckListItem(this.cardId, this.checklist.id, item.id)
       .pipe(
         finalize(() => this.isSaving = false),
         tap(() => {
@@ -115,6 +124,12 @@ export class CardChecklistComponent implements OnChanges {
         }),
       )
       .subscribe();
+  }
+
+  createCardFromItem(item: CheckListItem) {
+    this.dialogService
+      .createCard(this.currentBoardService.boardId, this.currentBoardService.laneId, null, item.text)
+      .subscribe(id => this.router.navigate(['card', id]));
   }
 
   insertAfter(item: CheckListItem) {
@@ -158,7 +173,8 @@ export class CardChecklistComponent implements OnChanges {
 
   insertItem(offset: number) {
     this.isSaving = true;
-    this.apiService.addCheckListItem(this.cardId, this.checklist.id, `This is your ${this.checklist.items?.length ?? 1} item.`, offset)
+    this.cardEditorService
+      .addCheckListItem(this.cardId, this.checklist.id, `This is your ${this.checklist.items?.length ?? 1} item.`, offset)
       .pipe(
         finalize(() => this.isSaving = false)
       )
@@ -169,7 +185,7 @@ export class CardChecklistComponent implements OnChanges {
         setTimeout(() => {
           const found = this.itemsComponents.find(t => t.item.id == item.id);
           found.openTextEditor();
-        }, 0);
+        }, 1);
       });
   }
 
@@ -179,7 +195,7 @@ export class CardChecklistComponent implements OnChanges {
 
   saveText(event: TextEditorSaveEvent) {
     this.isSaving = true;
-    this.apiService
+    this.cardEditorService
       .updateCardCheckList(this.cardId, this.checklist.id, {
         name: event.value
       })

@@ -1,11 +1,11 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { AsyncPipe, JsonPipe, NgIf, NgOptimizedImage } from '@angular/common';
+import { AsyncPipe, JsonPipe, NgIf, NgOptimizedImage, NgStyle } from '@angular/common';
 import { AvatarService } from '../../services/avatar.service';
 import { ApiService } from '../../services/api.service';
 import { User } from '../../models/user';
 import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { finalize } from 'rxjs';
-
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-inline-member',
@@ -16,7 +16,8 @@ import { finalize } from 'rxjs';
     JsonPipe,
     AsyncPipe,
     NgbPopover,
-    NgbTooltip
+    NgbTooltip,
+    NgStyle
   ],
   templateUrl: './inline-member.component.html',
   styleUrl: './inline-member.component.scss'
@@ -37,11 +38,14 @@ export class InlineMemberComponent implements OnChanges {
   @Input()
   showName: boolean = true;
 
+  @Input()
+  size: number = 24;
+
   avatarUrl?: string;
 
   isLoading: boolean = false;
 
-  constructor(private avatarService: AvatarService, private apiService: ApiService) {
+  constructor(private avatarService: AvatarService, private userService: UserService) {
   }
 
   loadAvatarUrl(): void {
@@ -59,7 +63,7 @@ export class InlineMemberComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (this.profileUid) {
       this.isLoading = true;
-      this.apiService
+      this.userService
         .getUserByUid(this.profileUid)
         .pipe(
           finalize(() => this.isLoading = false),
@@ -72,7 +76,7 @@ export class InlineMemberComponent implements OnChanges {
 
     if (this.profileId) {
       this.isLoading = true;
-      this.apiService
+      this.userService
         .getUserById(this.profileId)
         .pipe(
           finalize(() => this.isLoading = false),

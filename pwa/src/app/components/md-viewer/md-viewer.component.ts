@@ -1,13 +1,24 @@
-import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  forwardRef,
+  HostListener,
+  Input,
+  OnDestroy,
+  ViewChild
+} from '@angular/core';
 import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
-import { NgClass } from '@angular/common';
+import { NgClass, NgIf } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { mdPlugin } from '../../functions/md-plugin.function';
 
 @Component({
   selector: 'app-md-viewer',
   standalone: true,
   imports: [
-    NgClass
+    NgClass,
+    NgIf
   ],
   templateUrl: './md-viewer.component.html',
   styleUrl: './md-viewer.component.scss',
@@ -27,6 +38,9 @@ export class MdViewerComponent implements AfterViewInit, OnDestroy, ControlValue
   @Input()
   hideBorder: boolean = false;
 
+  @Input()
+  placeholder?: string;
+
   value: string;
 
   changeCallback: (value: string) => void;
@@ -36,9 +50,11 @@ export class MdViewerComponent implements AfterViewInit, OnDestroy, ControlValue
   }
 
   ngAfterViewInit(): void {
+    const plugins: unknown = [ mdPlugin() ];
     this.viewer = new Viewer({
       el: this.editorRef.nativeElement,
       initialValue: this.value,
+      plugins: plugins as toastui.Plugin[]
     });
   }
 

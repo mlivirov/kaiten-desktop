@@ -6,6 +6,8 @@ import { CustomProperty, CustomPropertySelectValue } from '../models/custom-prop
 import { User } from '../models/user';
 import { from, Observable, of, switchMap, tap } from 'rxjs';
 import { Lane } from '../models/lane';
+import { CardEx } from '../models/card-ex';
+import { CardType } from '../models/card-type';
 
 export interface EntityBase {
   created_at: Date;
@@ -36,6 +38,10 @@ export interface UserEntity extends User, EntityBase {
 
 export interface LaneEntity extends Lane, EntityBase {}
 
+export interface CardEntity extends CardEx, EntityBase { }
+
+export interface CardTypeEntity extends CardType, EntityBase {}
+
 export class Db extends Dexie {
   avatars!: Table<AvatarEntity, number>;
   columns!: Table<ColumnEntity, number>;
@@ -45,6 +51,8 @@ export class Db extends Dexie {
   customPropertySelectValues!: Table<CustomPropertySelectValueEntity, number>;
   users!: Table<UserEntity, number>;
   lanes!: Table<LaneEntity, number>;
+  cardTypes!: Table<CardTypeEntity, number>;
+  cardDrafts!: Table<CardEntity, number>;
 
   constructor() {
     super('torpedo');
@@ -58,6 +66,8 @@ export class Db extends Dexie {
       customPropertySelectValues: 'id, custom_property_id',
       users: 'id, uid',
       lanes: 'id, board_id',
+      cardTypes: 'id',
+      cardDrafts: 'id++'
     });
   }
 }

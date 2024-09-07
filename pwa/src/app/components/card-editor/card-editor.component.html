@@ -1,7 +1,16 @@
 <ng-template #headerAndTitle>
     <div class="d-flex align-items-center small bg-white flex-wrap">
-        <div class="me-2 text-primary">{{card.type.name}}</div>
-        <div class="text-nowrap me-2"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
+        <div class="me-2 text-primary">
+            <div ngbDropdown class="d-inline-block">
+                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" id="dropdownBasic1" ngbDropdownToggle [disabled]="isSaving">
+                    {{card.type.name}}
+                </button>
+                <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
+                    <button ngbDropdownItem *ngFor="let type of cardTypes" (click)="saveType(type)">{{ type.name }}</button>
+                </div>
+            </div>
+        </div>
+        <div class="text-nowrap me-2" *ngIf="card.state !== CardState.Draft"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
 
         <div class="align-items-center d-none d-sm-flex">
             <div class="me-2">created by</div>
@@ -16,27 +25,38 @@
 
     </div>
 
-    <h3 *ngIf="showTitle" class="mt-2 d-flex">
+    <h3 *ngIf="showHeader" class="mt-2 d-flex">
 
         <div class="flex-grow-1">
-            <app-text-editor type="textarea" [isLoading]="isSaving" [ngModel]="card.title" (save)="saveTitle($event)" [disabled]="isSaving"></app-text-editor>
+            <app-text-editor
+                    type="textarea"
+                    placeholder="Add a card title here"
+                    [alwaysEditable]="alwaysEditable"
+                    [isLoading]="isSaving"
+                    [ngModel]="card.title"
+                    (ngModelChange)="instantUpdateTitle($event)"
+                    (save)="saveTitle($event)"
+                    [disabled]="isSaving"
+            ></app-text-editor>
         </div>
 
-        <div class="d-inline-block" ngbDropdown #myDrop="ngbDropdown" container="body">
-            <button
-                    type="button"
-                    class="btn btn-icon-sm btn-link ms-2 text-secondary"
-                    [id]="'actions' + card.id"
-                    ngbTooltip="More actions"
-                    triggers="click hover"
-                    ngbDropdownAnchor
-                    (focus)="myDrop.open()"
-                    [disabled]="isSaving"
-            >
-                <i class="pi pi-ellipsis-v"></i>
-            </button>
-            <div ngbDropdownMenu [attr.aria-labelledby]="'actions' + card.id">
-                <button ngbDropdownItem type="button" (click)="addChecklist()"><i class="pi pi-check-square"></i> Add checklist</button>
+        <div class="text-nowrap">
+            <app-copy-to-clipboard-button btnClass="text-secondary" *ngIf="card.state !== CardState.Draft" [data]="clipboardLink$"></app-copy-to-clipboard-button>
+            <div class="d-inline" ngbDropdown #myDrop="ngbDropdown" container="body" ngbTooltip="More actions" triggers="hover">
+                <button
+                        type="button"
+                        class="btn btn-icon-sm btn-link ms-1 text-secondary"
+                        [id]="'actions' + card.id"
+                        ngbDropdownAnchor
+                        (focus)="myDrop.open()"
+                        [disabled]="isSaving"
+                >
+                    <i class="pi pi-ellipsis-v"></i>
+                </button>
+                <div ngbDropdownMenu [attr.aria-labelledby]="'actions' + card.id">
+                    <button ngbDropdownItem type="button" (click)="addChecklist()"><i class="pi pi-check-square"></i> Add checklist</button>
+                    <button ngbDropdownItem type="button" (click)="deleteCard()" *ngIf="card.state !== CardState.Draft"><i class="pi pi-trash"></i> Delete card</button>
+                </div>
             </div>
         </div>
     </h3>
@@ -52,28 +72,56 @@
             <ng-container *ngTemplateOutlet="headerAndTitle"></ng-container>
         </div>
 
-        <div class="mt-2 p-2 rounded border-2 border-dark" *ngIf="card.block_reason" style="background-color: #EDD1CE">
-            <i class="pi pi-exclamation-circle" style="color: red; font-weight: bold;"></i>
+        <div class="mt-2 p-2 rounded border-2 border-dark med" *ngIf="card.block_reason" style="background-color: #EDD1CE">
+            <i class="pi pi-exclamation-circle me-1" style="color: red; font-weight: bold;"></i>
             {{card.block_reason}}
         </div>
-        <div class="mt-3 mt-md-4">
-            <app-text-editor type="markdown" [isLoading]="isSaving" [ngModel]="card.description" (save)="saveDescription($event)" placeholder="Type description here" [minHeight]="100"></app-text-editor>
+
+        <div class="mt-3">
+            <app-text-editor
+                    type="markdown"
+                    [alwaysEditable]="alwaysEditable"
+                    [isLoading]="isSaving"
+                    [ngModel]="card.description"
+                    (ngModelChange)="instantUpdateDescription($event)"
+                    (save)="saveDescription($event)"
+                    placeholder="Add description here"
+                    [minHeight]="100"
+                    [disabled]="isSaving"
+            ></app-text-editor>
         </div>
 
         <div class="mt-3">
             <app-card-list-of-checklists [card]="card"></app-card-list-of-checklists>
         </div>
 
-        <div class="mt-3 w-100">
+        <div class="mt-3 w-100" *ngIf="showReferences">
             <app-card-references-accordion [card]="card"></app-card-references-accordion>
         </div>
 
-        <div class="mt-3 w-100">
+        <div class="mt-3 w-100" *ngIf="showComments">
             <app-card-comments [cardId]="card.id"></app-card-comments>
         </div>
     </div>
 
-    <div class="border border-1 mt-2 mt-lg-0 col-12 col-md-5 col-lg-4 col-xl-3 order-0 order-md-1 px-0" style="background-color: #F7F9FA; border-color: #DFE5EB;">
-        <app-card-properties [card]="card"></app-card-properties>
+    <div class="mt-0 col-12 col-md-5 col-lg-4 col-xl-3 order-0 order-md-1 px-0">
+        <a href="javascript:void(0)"
+           class="text-secondary text-decoration-none d-block"
+           [class.d-md-none]="collapsableProperties && !isCollapsedProperties"
+           (click)="isCollapsedProperties = !isCollapsedProperties" *ngIf="collapsableProperties"
+        >
+            <div class="small d-flex">
+                <div class="border-bottom flex-grow-1 mb-2"></div>
+                <span class="mx-2 text-secondary">{{ isCollapsedProperties ? 'expand properties' : 'collapse properties'}}</span>
+                <div class="border-bottom flex-grow-1 mb-2"></div>
+            </div>
+        </a>
+        <div
+                class="sticky-top z-1 border border-1"
+                style="background-color: #F7F9FA; border-color: #DFE5EB; top: .5rem"
+                #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsedProperties"
+        >
+            <app-card-properties [card]="card"></app-card-properties>
+        </div>
     </div>
 </div>

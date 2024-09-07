@@ -36,7 +36,8 @@
                         <span class="ms-2">{{card.updated | timeago}}</span>
                     </div>
                 </div>
-                <div class="mt-2 med cursor-pointer" (click)="openCard(card.id)">
+                <div class="mt-2
+                 cursor-pointer" (click)="openCard(card.id)">
                     {{card.title}}
                 </div>
                 <div class="mt-2 small" *ngIf="getResponsible(card)">
@@ -61,7 +62,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let card of cards; index as i" class="small">
+                <tr *ngFor="let card of cards; index as i">
                     <td class="text-nowrap med">
                         <a href="javascript:void(0)" (click)="openBoard(card.board_id)">
                             {{card.board.title}}
@@ -73,13 +74,13 @@
                         </a>
                     </td>
                     <td class="med">{{card.title}}</td>
-                    <td class="text-nowrap small">
+                    <td class="text-nowrap med">
                         <app-inline-member *ngIf="getResponsible(card)" [profile]="getResponsible(card)"></app-inline-member>
                     </td>
-                    <td class="text-nowrap small text-center">
-                        <app-card-state-label [state]="card.state"></app-card-state-label>
+                    <td class="text-nowrap text-center">
+                        <app-card-state-label class="med" [state]="card.state"></app-card-state-label>
                     </td>
-                    <td class="text-nowrap small text-center">
+                    <td class="text-nowrap small">
                         {{card.updated | timeago}}
                     </td>
                 </tr>

@@ -1,4 +1,14 @@
-import { Component, EventEmitter, HostListener, Injectable, Input, Output, ViewChild } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  HostListener,
+  Inject,
+  inject,
+  Injectable,
+  Input,
+  Output,
+  ViewChild
+} from '@angular/core';
 import { CheckListItem } from '../../../../models/check-list-item';
 import {
   NgbDropdown,
@@ -20,9 +30,12 @@ import { MdEditorComponent } from '../../../md-editor/md-editor.component';
 import { MdViewerComponent } from '../../../md-viewer/md-viewer.component';
 import { TimeagoModule } from 'ngx-timeago';
 import { TextEditorComponent, TextEditorSaveEvent } from '../../../text-editor/text-editor.component';
+import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../../services/card-editor.service';
+import { CardUsersTypeaheadOperator } from '../../../../functions/typeahead/card-users.typeahead-operator';
+import { Router } from '@angular/router';
 
 @Injectable({providedIn: 'root'})
-class CardChecklistItemService {
+class CardChecklistItemEditorSyncService {
   public openedPopover?: NgbPopover;
   public editing?: CardChecklistItemComponent;
 }
@@ -59,7 +72,7 @@ enum ExpirationStatus {
     TextEditorComponent
   ],
   templateUrl: './card-checklist-item.component.html',
-  styleUrl: './card-checklist-item.component.scss'
+  styleUrl: './card-checklist-item.component.scss',
 })
 export class CardChecklistItemComponent {
   ExpirationStatus = ExpirationStatus;
@@ -92,27 +105,22 @@ export class CardChecklistItemComponent {
   @Output()
   delete: EventEmitter<CheckListItem> = new EventEmitter();
 
+  @Output()
+  createCard: EventEmitter<CheckListItem> = new EventEmitter();
+
   @Input()
   disabled: boolean = false;
 
   @ViewChild(TextEditorComponent)
   textEditorComponent: TextEditorComponent;
 
-  allUsersTypeaheadSearch: OperatorFunction<string, readonly User[]>
-    = (text$: Observable<string>) =>
-    text$
-      .pipe(
-        debounceTime(200),
-        switchMap(term => {
-          return this.apiService.getCardAllowedUsers(this.cardId, 0, 10, term);
-        })
-      );
+  allUsersTypeaheadOperator = CardUsersTypeaheadOperator(() => this.cardId);
 
   userTypeaheadFormatter = (item: User) => item.full_name;
 
   constructor(
-    private apiService: ApiService,
-    public service: CardChecklistItemService
+    public editorSyncService: CardChecklistItemEditorSyncService,
+    @Inject(CARD_EDITOR_SERVICE) private editorService: CardEditorService
   ) {
   }
 
@@ -136,13 +144,14 @@ export class CardChecklistItemComponent {
   }
 
   updateChecklistItemState(value: boolean) {
-    this.service.openedPopover?.close()
+    this.editorSyncService.openedPopover?.close()
     this.updateCheckListItem(this.item.id, { checked: value }).subscribe();
   }
 
   updateCheckListItem(id: number, data: Partial<CheckListItem>): Observable<void> {
     this.isSaving = true;
-    return this.apiService.updateCardCheckListItem(this.cardId, this.checklistId, id, data)
+    return this.editorService
+      .updateCardCheckListItem(this.cardId, this.checklistId, id, data)
       .pipe(
         tap(res => {
           Object.assign(this.item, res);
@@ -163,27 +172,27 @@ export class CardChecklistItemComponent {
   }
 
   openDueDateEditor(event: MouseEvent) {
-    if (this.service.openedPopover) {
-      this.service.openedPopover?.close();
+    if (this.editorSyncService.openedPopover) {
+      this.editorSyncService.openedPopover?.close();
       return;
     }
 
     this.editing = Object.assign({}, this.item);
     this.editDatePopover.positionTarget = event.target as HTMLElement;
     this.editDatePopover.open();
-    this.service.openedPopover = this.editDatePopover;
+    this.editorSyncService.openedPopover = this.editDatePopover;
   }
 
   openUserEditor(event: MouseEvent) {
-    if (this.service.openedPopover) {
-      this.service.openedPopover?.close();
+    if (this.editorSyncService.openedPopover) {
+      this.editorSyncService.openedPopover?.close();
       return;
     }
 
     this.editing = Object.assign({}, this.item);
     this.editUserPopover.positionTarget = event.target as HTMLElement;
     this.editUserPopover.open();
-    this.service.openedPopover = this.editUserPopover;
+    this.editorSyncService.openedPopover = this.editUserPopover;
   }
 
   saveUser(event: MouseEvent) {
@@ -192,6 +201,17 @@ export class CardChecklistItemComponent {
 
     this
       .updateCheckListItem(this.editing.id, { responsible_id: this.editing.responsible_id })
+      .subscribe(() => {
+        this.editUserPopover.close();
+      });
+  }
+
+  clearUser(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this
+      .updateCheckListItem(this.editing.id, { responsible_id: null })
       .subscribe(() => {
         this.editUserPopover.close();
       });
@@ -212,10 +232,10 @@ export class CardChecklistItemComponent {
     event?.preventDefault();
     event?.stopPropagation();
 
-    this.service.openedPopover?.close();
-    this.service.openedPopover = null;
+    this.editorSyncService.openedPopover?.close();
+    this.editorSyncService.openedPopover = null;
     this.editing = null;
-    this.service.editing = null;
+    this.editorSyncService.editing = null;
   }
 
   openTextEditor() {
@@ -224,8 +244,8 @@ export class CardChecklistItemComponent {
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
-    if (event.code === 'Escape' && this.service.openedPopover) {
-      this.service.openedPopover?.close();
+    if (event.code === 'Escape' && this.editorSyncService.openedPopover) {
+      this.editorSyncService.openedPopover?.close();
 
       event.preventDefault();
       event.stopPropagation();
@@ -236,10 +256,11 @@ export class CardChecklistItemComponent {
   handleOutsizeClick(event: MouseEvent) {
     const isClickedPopoverControl = !!(<HTMLElement>event.target).closest('.popover-control');
     const isClickedInsidePopover = !!(<HTMLElement>event.target).closest('ngb-popover-window');
+    const isClickedInsideTypeahead = !!(<HTMLElement>event.target).closest('ngb-typeahead-window');
     const clickedItemId = (<HTMLElement>event.target).closest('[data-checklist-item-id]')?.getAttributeAsNumber('data-checklist-item-id');
 
-    if (this.service.openedPopover && !(isClickedPopoverControl || isClickedInsidePopover)) {
-      this.service.openedPopover.close();
+    if (this.editorSyncService.openedPopover && !(isClickedPopoverControl || isClickedInsidePopover || isClickedInsideTypeahead)) {
+      this.editorSyncService.openedPopover.close();
 
       event.preventDefault();
       event.stopPropagation();

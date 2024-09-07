@@ -9,12 +9,14 @@ import {
   TypeaheadComponentValue
 } from '../typeahead/typeahead.component';
 import { Observable } from 'rxjs';
-import { ApiService } from '../../services/api.service';
 import { User } from '../../models/user';
 import { Tag } from '../../models/tag';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
 import { JsonPipe } from '@angular/common';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { CardFilter } from '../../services/card-search.service';
+import { TagService } from '../../services/tag.service';
+import { UserService } from '../../services/user.service';
 
 @Injectable()
 class CardBadgeService implements BadgeService {
@@ -23,15 +25,15 @@ class CardBadgeService implements BadgeService {
   static readonly BadgeTypeTag: BadgeType = { name: 'tag', getTitle(item: Tag) { return item.name; } };
   static readonly BadgeTypeSpace: BadgeType = { name: 'tag', getTitle(item: Tag) { return item.name; } };
 
-  constructor(private apiService: ApiService) {
+  constructor(private tagService: TagService, private userService: UserService) {
   }
 
   getUsers(offset: number, limit: number, query: string): Observable<User[]> {
-    return this.apiService.getUsers(offset, limit, query);
+    return this.userService.getUsers(offset, limit, query);
   }
 
   getTags(offset: number, limit: number, query: string): Observable<Tag[]> {
-    return this.apiService.getTags(offset, limit, query);
+    return this.tagService.getTags(offset, limit, query);
   }
 
   public getOptions(type: BadgeType, offset: number, limit: number, query: string): Observable<any> {
@@ -45,13 +47,6 @@ class CardBadgeService implements BadgeService {
         throw 'not implemented';
     }
   }
-}
-
-export interface CardFilter {
-  text?: string;
-  members: User[];
-  owners: User[];
-  tags: Tag[];
 }
 
 @Component({

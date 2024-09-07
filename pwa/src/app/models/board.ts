@@ -2,12 +2,16 @@ import { Lane } from './lane';
 import { Column } from './column';
 import { Card } from './card';
 
-export interface Board {
-    created:                           Date;
-    updated:                           Date;
+
+export interface BoardBase {
     id:                                number;
     uid:                               string;
     title:                             string;
+}
+
+export interface Board extends BoardBase {
+    created:                           Date;
+    updated:                           Date;
     cell_wip_limits:                   null;
     default_card_type_id:              number;
     description:                       null;

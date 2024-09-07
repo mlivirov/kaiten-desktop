@@ -1,7 +1,7 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { NgbActiveModal, NgbScrollSpy, NgbScrollSpyFragment } from '@ng-bootstrap/ng-bootstrap';
 import { ApiService } from '../../services/api.service';
-import { CardFilter, CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
+import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
 import { FormsModule } from '@angular/forms';
 import { NgForOf, NgIf } from '@angular/common';
 import { CardEx } from '../../models/card-ex';
@@ -11,6 +11,7 @@ import { TimeagoModule } from 'ngx-timeago';
 import { MemberType } from '../../models/member-type';
 import { InlineMemberComponent } from '../../components/inline-member/inline-member.component';
 import { finalize } from 'rxjs';
+import { CardFilter, CardSearchService } from '../../services/card-search.service';
 
 
 @Component({
@@ -42,7 +43,11 @@ export class CardGlobalSearchComponent {
   @ViewChild('cardSearchInput')
   cardSearchInput: ElementRef;
 
-  constructor(public modal: NgbActiveModal, private apiService: ApiService, private router: Router) {
+  constructor(
+    public modal: NgbActiveModal,
+    private cardSearchService: CardSearchService,
+    private router: Router
+  ) {
     this.search(null);
   }
 
@@ -50,8 +55,8 @@ export class CardGlobalSearchComponent {
     this.filter = filter;
     this.offset = 0;
     this.isLoading = true;
-    this.apiService
-      .searchCards(this.offset, this.limit, filter)
+    this.cardSearchService
+      .searchCards(filter, this.offset, this.limit)
       .pipe(
         finalize(() => this.isLoading = false),
       )
@@ -64,8 +69,8 @@ export class CardGlobalSearchComponent {
   loadMore() {
     this.offset += this.limit;
     this.isLoading = true;
-    this.apiService
-      .searchCards(this.offset, this.limit, this.filter)
+    this.cardSearchService
+      .searchCards(this.filter, this.offset, this.limit)
       .pipe(
         finalize(() => this.isLoading = false),
       )

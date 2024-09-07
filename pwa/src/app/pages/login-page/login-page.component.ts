@@ -3,9 +3,11 @@ import { NgOptimizedImage } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { catchError, filter, switchMap } from 'rxjs';
-import { DialogService } from '../../services/dialogService';
+import { DialogService } from '../../services/dialog.service';
 import { Credentials } from '../../models/credentials';
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { BoardService } from '../../services/board.service';
 
 @Component({
   selector: 'app-login-page',
@@ -27,14 +29,15 @@ export class LoginPageComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private apiService: ApiService,
     private dialogService: DialogService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService,
+    private boardService: BoardService
   ) {
   }
 
   ngOnInit(): void {
-    this.apiService
+    this.authService
       .getCredentials()
       .subscribe(creds => this.initializeForm(creds));
   }
@@ -48,13 +51,13 @@ export class LoginPageComponent implements OnInit {
   }
 
   submit() {
-    this.apiService
+    this.authService
       .login(this.form.value)
       .pipe(
         switchMap(v => this.dialogService.loginConfirmation(v)),
         catchError((err) => this.dialogService.alert('Failed to login. Please make sure that credentials are valid.')),
         filter(t => t),
-        switchMap(() => this.apiService.getSpaces()),
+        switchMap(() => this.boardService.getSpaces()),
       )
       .subscribe(spaces => {
         this.router.navigate(['board', spaces[0].boards[0].id]);

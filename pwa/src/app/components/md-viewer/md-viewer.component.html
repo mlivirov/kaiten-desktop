@@ -1,1 +1,3 @@
 <div [ngClass]="{'border border-1': !hideBorder }" class="text-break" #viewer></div>
+
+<span *ngIf="!value" class="med opacity-50">{{placeholder}}</span>

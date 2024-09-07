@@ -2,13 +2,14 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { switchMap } from 'rxjs';
 import { inject } from '@angular/core';
 import { ApiService } from '../services/api.service';
+import { AuthService } from '../services/auth.service';
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
-  const apiService = inject(ApiService);
+  const authService = inject(AuthService);
 
   const apiUrlTemplate = 'http://server';
   if (req.url.startsWith(apiUrlTemplate)) {
-    return apiService
+    return authService
       .getCredentials()
       .pipe(
         switchMap(creds => {

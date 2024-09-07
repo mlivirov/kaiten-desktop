@@ -2,9 +2,10 @@ import { ResolveFn } from '@angular/router';
 import { Board } from '../models/board';
 import { inject } from '@angular/core';
 import { ApiService } from '../services/api.service';
+import { BoardService } from '../services/board.service';
 
 export const boardResolver: ResolveFn<Board> = (route, state) => {
-  const apiService = inject(ApiService);
+  const service = inject(BoardService);
 
-  return apiService.getBoard(Number.parseInt(route.params['boardId']));
+  return service.getBoard(Number.parseInt(route.params['boardId']));
 };

@@ -5,6 +5,15 @@ $enable-negative-margins: true;
 @import '@toast-ui/editor/dist/toastui-editor.css';
 @import "../node_modules/dragula/dist/dragula.css";
 
+.tui-editor-contents {
+  font-size: 14px;
+}
+
+body {
+  margin-bottom: .5rem;
+  min-width: fit-content;
+}
+
 $bg-gray: #F7F9FA;
 
 .bg-grad-0 {
@@ -44,7 +53,7 @@ th, td {
 }
 
 .med {
-  font-size: .9em;
+  font-size: 0.8em;
 }
 
 .card-member+.card-member {
@@ -136,4 +145,39 @@ app-list-of-related-cards .list .item:last-child {
 
 .btn-icon-sm.dropdown-toggle:after {
   display: none;
+}
+
+.shake {
+  /* Start the shake animation and make the animation last for 0.5 seconds */
+  animation: shake 2s;
+
+  /* When the animation is finished, start again */
+  animation-iteration-count: infinite;
+}
+
+@keyframes shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.blink .pi {
+  /* Start the shake animation and make the animation last for 0.5 seconds */
+  animation: blink 2s;
+
+  /* When the animation is finished, start again */
+  animation-iteration-count: infinite;
+}
+
+@keyframes blink {
+  0% { color: $primary; }
+  100% { color: initial; }
 }

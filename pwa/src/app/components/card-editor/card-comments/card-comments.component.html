@@ -1,5 +1,7 @@
 <div class="title mb-2 strong d-flex align-items-center small text-muted text-uppercase">
-    <span class="me-2">Comments ({{comments.length}})</span>
+    <span class="me-1">Comments</span>
+    <span *ngIf="!isLoading">({{comments.length}})</span>
+    <span *ngIf="isLoading"><i class="pi pi-spinner pi-spin"></i></span>
 </div>
 
 <div class="d-flex">
@@ -9,10 +11,14 @@
     <div class="flex-grow-1 ms-2" (keyup.control.enter)="submit()">
         <app-md-editor [(ngModel)]="text" [minHeight]="100"></app-md-editor>
         <div class="mt-2">
-            <button class="btn btn-sm btn-outline-secondary"
+            <button class="btn btn-sm btn-outline-primary"
                     [disabled]="isSavingInProgress || !text"
                     (click)="submit()"
-            >Add comment</button>
+            >
+                <span *ngIf="!isSavingInProgress" class="me-1"><i class="pi pi-send"></i></span>
+                <span *ngIf="isSavingInProgress" class="me-1"><i class="pi pi-spinner pi-spin"></i></span>
+                Add a comment
+            </button>
         </div>
     </div>
 </div>

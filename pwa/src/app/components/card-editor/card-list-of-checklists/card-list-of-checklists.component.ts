@@ -1,11 +1,12 @@
-import { Component, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { Component, Inject, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { CardEx } from '../../../models/card-ex';
 import { CardChecklistComponent } from './card-checklist/card-checklist.component';
 import { NgForOf } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { CheckList } from '../../../models/check-list';
 import { filter, finalize } from 'rxjs';
-import { DialogService } from '../../../services/dialogService';
+import { DialogService } from '../../../services/dialog.service';
+import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../services/card-editor.service';
 
 @Component({
   selector: 'app-card-list-of-checklists',
@@ -26,7 +27,10 @@ export class CardListOfChecklistsComponent implements OnChanges {
   @ViewChildren(CardChecklistComponent)
   checklists: QueryList<CardChecklistComponent> = new QueryList<CardChecklistComponent>();
 
-  constructor(private apiService: ApiService, private dialogService: DialogService) {
+  constructor(
+    @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
+    private dialogService: DialogService
+  ) {
   }
 
   deleteList(checklist: CheckList) {
@@ -40,7 +44,8 @@ export class CardListOfChecklistsComponent implements OnChanges {
 
   doDelete(checklist: CheckList) {
     this.isSaving = true;
-    this.apiService.deleteCheckList(this.card.id, checklist.id)
+    this.cardEditorService
+      .deleteCheckList(this.card.id, checklist.id)
       .pipe(
         finalize(() => this.isSaving = false),
       )

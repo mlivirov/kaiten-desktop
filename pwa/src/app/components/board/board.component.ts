@@ -5,8 +5,8 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  OnInit, Self,
-  SimpleChanges
+  OnInit, QueryList, Self,
+  SimpleChanges, ViewChildren
 } from '@angular/core';
 import { JsonPipe, NgClass, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { CardComponent } from '../card/card.component';
@@ -18,19 +18,15 @@ import { ColumnEx } from '../../models/column-ex';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { DragulaModule, DragulaService } from 'ng2-dragula';
 import { BoardService } from '../../services/board.service';
-import { DialogService } from '../../services/dialogService';
-import { CardFilter } from '../card-search-input/card-search-input.component';
+import { DialogService } from '../../services/dialog.service';
 import { FindColumnRecursiveFunction } from '../../functions/find-column-recursive.function';
 import { ActivatedRoute, Params } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { CardFilter, CardSearchService } from '../../services/card-search.service';
+import { Board, BoardBase } from '../../models/board';
 
 function colSortPredicate(a, b) {
-  if (a.sort_order < b.sort_order) {
-    return -1;
-  } else if (a.sort_order > b.sort_order) {
-    return 1;
-  }
-
-  return 0;
+  return a.sort_order - b.sort_order;
 }
 
 class BoardViewColumn {
@@ -55,16 +51,13 @@ class BoardViewColumn {
 })
 export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   @Input()
-  spaceId: number;
-
-  @Input()
-  boardId: number;
-
-  @Input()
   columns: ColumnEx[];
 
   @Input()
   cards: CardEx[];
+
+  @Input()
+  board: BoardBase;
 
   filterValue?: CardFilter;
   currentUser?: User;
@@ -79,10 +72,14 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
 
   unsubscribe$: Subject<void> = new Subject();
 
+  @ViewChildren(CardComponent)
+  cardComponents: QueryList<CardComponent> = new QueryList();
+
   constructor(
-    private apiService: ApiService,
+    private authService: AuthService,
     private dragulaService: DragulaService,
     private boardService: BoardService,
+    private cardSearchService: CardSearchService,
     private dialogService: DialogService,
     private activatedRoute: ActivatedRoute,
     @Self()
@@ -166,7 +163,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnInit(): void {
-    this.apiService.getCurrentUser().subscribe(t => this.currentUser = t);
+    this.authService.getCurrentUser().subscribe(t => this.currentUser = t);
   }
 
   handleFilter(value?: CardFilter) {
@@ -217,7 +214,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
 
     this.rearrangeColumns();
 
-    return this.boardService.setCustomColumns(this.boardId, this.customColumns);
+    return this.boardService.setCustomColumns(this.board.id, this.customColumns);
   }
 
   rearrangeColumns() {
@@ -301,10 +298,10 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
 
     this.isBoardLoading = true;
     zip(
-      pullData ? this.apiService.getColumns(this.boardId) : of(this.columns),
-      pullData ? this.apiService.getCards(this.boardId) : of(this.cards),
-      this.boardService.getCustomColumns(this.boardId),
-      this.activatedRoute.queryParams.pipe(map((params: Params) => { return params['cardId']})),
+      pullData ? this.boardService.getColumns(this.board.id) : of(this.columns),
+      pullData ? this.cardSearchService.searchCards({ boardId: this.board.id }) : of(this.cards),
+      this.boardService.getCustomColumns(this.board.id),
+      this.activatedRoute.fragment,
     )
       .pipe(
         finalize(() => this.isBoardLoading = false)
@@ -321,10 +318,8 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
 
         if (activeCardId) {
           setTimeout(() => {
-            const cardElement = (this.elementRef.nativeElement as HTMLElement).querySelector(`[data-card-id="${activeCardId}"]`) as HTMLElement;
-            cardElement.scrollIntoView({
-              block: 'center'
-            });
+            const card = this.cardComponents.find(t => t.card.id == Number.parseInt(activeCardId));
+            card.focus();
           }, 1);
         }
       });
