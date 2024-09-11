@@ -32,7 +32,7 @@
             >
                 <i class="pi pi-angle-double-right"></i>
             </button>
-            <app-copy-to-clipboard-button btnClass="btn-sm border border-1 me-1 text-secondary" [data]="clipboardLink$"></app-copy-to-clipboard-button>
+            <app-copy-to-clipboard-button btnClass="btn-sm border border-1 me-1 text-secondary d-block" [data]="clipboardLink$"></app-copy-to-clipboard-button>
         </div>
         <div class="small ms-1 ms-md-0 text-nowrap d-inline d-sm-none"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
         <div class="small ms-1 ms-md-0 text-nowrap opacity-75 d-none d-sm-inline cursor-pointer" (click)="openCard(card.id)"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>

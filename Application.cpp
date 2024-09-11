@@ -47,10 +47,11 @@ _networkDiskCache(new QNetworkDiskCache(this))
 }
 
 void Application::processHttpResponse(QNetworkReply *reply) {
-    auto statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    const auto statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     QString data;
 
-    auto contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
+    qInfo() << "REQUEST FINISHED:" << reply->url();
+    const auto contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
     if (contentType.contains("application/json")) {
         data = QString::fromUtf8(reply->readAll());
     } else if (reply->error() != QNetworkReply::NetworkError::NoError) {
@@ -60,52 +61,58 @@ void Application::processHttpResponse(QNetworkReply *reply) {
     }
 
     QJsonObject headers;
-    for (auto rawHeaderPair : reply->rawHeaderPairs()) {
-        headers[QString::fromUtf8(rawHeaderPair.first)] = QString::fromUtf8(rawHeaderPair.second);
+    for (const auto&[name, value] : reply->rawHeaderPairs()) {
+        headers[QString::fromUtf8(name)] = QString::fromUtf8(value);
     }
 
-    emit httpRequestReady(QString::number((size_t) reply), statusCode, data, headers);
+    emit httpRequestReady(QString::number(reinterpret_cast<size_t>(reply)), statusCode, data, headers);
 }
 
-size_t Application::httpRequest(const QString &method, const QString &url, const QString &data) {
+void Application::processHttpError(QNetworkReply::NetworkError err) {
+    qInfo() << "Network error:" << err;
+}
+
+QString Application::httpRequest(const QString &method, const QString &url, const QString &data) {
     if (url.startsWith(LOCALHOST_API_PATH)) {
-        auto apiBaseUrl = _settings->value("API_URL").toString();
-        auto targetUrl = apiBaseUrl + url.mid(LOCALHOST_API_PATH.length());
-        return httpApiRequest(method, targetUrl, data);
+        const auto apiBaseUrl = _settings->value("API_URL").toString();
+        const auto targetUrl = apiBaseUrl + url.mid(LOCALHOST_API_PATH.length());
+        return QString::number(httpApiRequest(method, targetUrl, data));
     } else if (url.startsWith(LOCALHOST_FILE_PATH)) {
-        auto filesBaseUrl = _settings->value("FILES_URL").toString();
-        auto targetUrl = filesBaseUrl + url.mid(LOCALHOST_FILE_PATH.length());
-        return httpFileRequest(method, targetUrl, data);
+        const auto filesBaseUrl = _settings->value("FILES_URL").toString();
+        const auto targetUrl = filesBaseUrl + url.mid(LOCALHOST_FILE_PATH.length());
+        return QString::number(httpFileRequest(method, targetUrl, data));
     } else if (url.startsWith(SETTINGS_PATH)) {
-        auto path = url.mid(SETTINGS_PATH.length());
-        return httpSettingsRequest(method, path, data);
+        const auto path = url.mid(SETTINGS_PATH.length());
+        return QString::number(httpSettingsRequest(method, path, data));
     }
 
     throw std::runtime_error(std::string("Non kaiten calls are prohibited, attempted: ") + url.toStdString());
 }
 
-size_t Application::httpApiRequest(const QString &method, const QString &url, const QString &data) {
+size_t Application::httpApiRequest(const QString &method, const QString &url, const QString &data) const {
     QNetworkRequest request(url);
 
-    auto token = _settings->value("TOKEN").toString();
+    qInfo() << "REQUEST SENT:" << url;
+
+    const auto token = _settings->value("TOKEN").toString();
     request.setRawHeader("Authorization", ("Bearer " + token).toUtf8());
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     if (method == "GET") {
-        return (size_t)_networkAccessManager->get(request);
+        return reinterpret_cast<size_t>(_networkAccessManager->get(request));
     } else {
-        return (size_t)_networkAccessManager->sendCustomRequest(request, method.toUtf8(), data.toUtf8());
+        return reinterpret_cast<size_t>(_networkAccessManager->sendCustomRequest(request, method.toUtf8(), data.toUtf8()));
     }
 }
 
-size_t Application::httpFileRequest(const QString &method, const QString &url, const QString &data) {
+size_t Application::httpFileRequest(const QString &method, const QString &url, const QString &data) const {
     QNetworkRequest request(url);
     request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
 
     if (method == "GET") {
-        return (size_t)_networkAccessManager->get(request);
+        return reinterpret_cast<size_t>(_networkAccessManager->get(request));
     } else {
-        return (size_t)_networkAccessManager->sendCustomRequest(request, method.toUtf8(), data.toUtf8());
+        return reinterpret_cast<size_t>(_networkAccessManager->sendCustomRequest(request, method.toUtf8(), data.toUtf8()));
     }
 }
 

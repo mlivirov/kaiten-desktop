@@ -50,7 +50,7 @@ export class QtApplication {
   private _proxy: ApplicationObject;
 
   private constructor() {
-    this._channel = new QWebChannel(window['qt'].webChannelTransport, this.initialize.bind(this));
+    this._channel = new QWebChannel(window['qt'].webChannelTransport, (channel) => this.initialize(channel));
   }
 
   static instance(): QtApplication {

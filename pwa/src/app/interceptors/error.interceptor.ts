@@ -12,6 +12,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      console.error(error);
       let message = `Server error: ${error.statusText}`;
       if (error.error && error.error['message']) {
         message = error.error['message'];

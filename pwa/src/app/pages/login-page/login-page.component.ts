@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
+import {NgIf, NgOptimizedImage} from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { catchError, filter, switchMap } from 'rxjs';
@@ -15,7 +15,8 @@ import { BoardService } from '../../services/board.service';
   imports: [
     NgOptimizedImage,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgIf
   ],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.scss'

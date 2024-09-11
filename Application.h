@@ -9,6 +9,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkDiskCache>
 #include <QJsonObject>
+#include <QNetworkReply>
 
 class Application : public QObject {
     Q_OBJECT
@@ -22,15 +23,16 @@ private:
     static const QString SETTINGS_PATH;
 
 public slots:
-    size_t httpRequest(const QString& method, const QString& url, const QString& data);
+    QString httpRequest(const QString& method, const QString& url, const QString& data);
     void processHttpResponse(QNetworkReply *reply);
+    void processHttpError(QNetworkReply::NetworkError err);
 
 public:
     Application();
 
 private:
-    size_t httpApiRequest(const QString& method, const QString& url, const QString& data);
-    size_t httpFileRequest(const QString& method, const QString& url, const QString& data);
+    size_t httpApiRequest(const QString& method, const QString& url, const QString& data) const;
+    size_t httpFileRequest(const QString& method, const QString& url, const QString& data) const;
     size_t httpSettingsRequest(const QString& method, const QString& path, const QString& data);
 
 private:
