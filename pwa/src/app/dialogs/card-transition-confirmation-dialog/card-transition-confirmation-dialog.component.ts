@@ -4,10 +4,11 @@ import { CardEx } from '../../models/card-ex';
 import { NgForOf, NgIf } from '@angular/common';
 import { InlineMemberComponent } from '../../components/inline-member/inline-member.component';
 import { TimeDotsComponent } from '../../components/time-dots/time-dots.component';
-import { ApiService } from '../../services/api.service';
+import { FileService } from '../../services/file.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { finalize } from 'rxjs';
 import { CARD_EDITOR_SERVICE, CardEditorService } from '../../services/card-editor.service';
+import { getLaneColor } from '../../functions/get-lane-color.function';
 
 @Component({
   selector: 'app-card-transition-confirmation-dialog',
@@ -47,5 +48,9 @@ export class CardTransitionConfirmationDialogComponent {
       .subscribe(card => {
         this.modal.close(card);
       });
+  }
+
+  getBackgroundColor(): string {
+    return getLaneColor(this.card.lane);
   }
 }

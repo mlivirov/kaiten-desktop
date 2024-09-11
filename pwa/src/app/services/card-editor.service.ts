@@ -7,6 +7,8 @@ import { CheckListItem } from '../models/check-list-item';
 import { CheckList } from '../models/check-list';
 import { Tag } from '../models/tag';
 import { Injectable, InjectionToken } from '@angular/core';
+import { CardActivity } from '../models/card-activity';
+import { BlockBlocker } from '../models/block-blocker.model';
 
 export const CARD_EDITOR_SERVICE: InjectionToken<CardEditorService> = new InjectionToken('CardEditorService');
 
@@ -16,11 +18,17 @@ export abstract class CardEditorService {
 
   abstract addMemberToCard(cardId: number, userId: number): Observable<Owner>;
 
+  abstract addRelation(parentCardId: number, childCardId: number): Observable<void>;
+
+  abstract removeRelation(parentCardId: number, childCardId: number): Observable<void>;
+
   abstract removeMemberFromCard(cardId: number, userId: number): Observable<void>;
 
   abstract makeMemberResponsible(cardId: number, userId: number): Observable<void>;
 
   abstract getCardComments(cardId: number): Observable<CardComment[]>;
+
+  abstract getCardActivity(cardId: number): Observable<CardActivity[]>;
 
   abstract addComment(cardId: number, text: string): Observable<CardComment>;
 
@@ -45,4 +53,10 @@ export abstract class CardEditorService {
   abstract removeTag(cardId: number, tagId: number): Observable<void>;
 
   abstract deleteCard(cardId: number): Observable<void>;
+
+  abstract addBlocker(cardId: number, blockerCardId?: number, reason?: string): Observable<BlockBlocker>;
+
+  abstract editBlocker(cardId: number, blockerId: number, reason?: string): Observable<BlockBlocker>;
+
+  abstract removeBlocker(cardId: number, blockerId: number): Observable<void>;
 }

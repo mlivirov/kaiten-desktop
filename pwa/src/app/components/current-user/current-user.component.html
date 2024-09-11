@@ -1,21 +1,49 @@
-<div class="text-white align-items-center text-center cursor-pointer d-flex" (click)="dropdownMenu.toggle()">
+<div class="text-white align-items-center text-center cursor-pointer d-flex" [ngbPopover]="popContent">
     <img alt="avatar" width="64" height="64" class="rounded-circle d-none d-md-block" [src]="avatarUrl" *ngIf="avatarUrl"/>
     <span class="placeholder rounded-circle d-none d-md-block" style="min-width: 64px; min-height: 64px;" *ngIf="!avatarUrl"></span>
 
     <img alt="avatar" width="32" height="32" class="rounded-circle d-block d-md-none" [src]="avatarUrl" *ngIf="avatarUrl"/>
     <span class="placeholder rounded-circle d-block d-md-none" style="min-width: 32px; min-height: 32px;" *ngIf="!avatarUrl"></span>
 
-    <div class="d-flex mt-md-2 ms-n1">
-        <div ngbDropdown class="ms-2" container="body" #dropdownMenu="ngbDropdown">
-            <div class="small d-flex flex-column text-center ms-2" *ngIf="showText && profile" ngbDropdownToggle id="optionsDropdown" (click)="dropdownMenu.toggle()">
-                <strong class="user-select-none">{{profile.full_name}}</strong>
-                <span class="smaller d-none d-md-inline user-select-none">&commat;{{profile.username}}</span>
-            </div>
-
-            <div ngbDropdownMenu aria-labelledby="optionsDropdown">
-                <li><button class="dropdown-item" type="button" (click)="logout()"><i class="pi pi-sign-out me-2"></i> Logout</button></li>
-                <li><button class="dropdown-item d-none d-md-block" type="button" (click)="searchCard()"><i class="pi pi-search me-2 "></i> Search cards</button></li>
+    <ng-template #popContent>
+        <div class="d-flex justify-content-between">
+            <button class="btn btn-primary me-2" (click)="searchCard()"><i class="pi pi-search"></i> Search cards</button>
+            <button class="btn btn-danger" (click)="logout()"><i class="pi pi-sign-out"></i></button>
+        </div>
+        <div class="mt-2">
+            <div>Theme</div>
+            <div class="btn-group" role="group">
+                <button type="button"
+                        class="btn"
+                        [ngClass]="{ 'btn-primary': currentTheme === 'light', 'btn-light': currentTheme !== 'light'}"
+                        (click)="setTheme('light')"
+                >
+                    <i class="pi pi-sun"></i>
+                    Light
+                </button>
+                <button type="button"
+                        class="btn"
+                        [ngClass]="{ 'btn-primary': currentTheme === 'dark', 'btn-light': currentTheme !== 'dark'}"
+                        (click)="setTheme('dark')"
+                >
+                    <i class="pi pi-moon"></i>
+                    Dark
+                </button>
+                <button type="button"
+                        class="btn"
+                        [ngbTooltip]="'Enable dark mode during the night time (18 PM - 7 AM)'"
+                        (click)="setTheme('auto')"
+                        [ngClass]="{ 'btn-primary': currentTheme === 'auto', 'btn-light': currentTheme !== 'auto'}"
+                >
+                    <i class="pi pi-clock"></i>
+                    Auto
+                </button>
             </div>
         </div>
+    </ng-template>
+
+    <div class="small d-flex flex-column text-center ms-2" *ngIf="showText && profile">
+        <strong class="user-select-none">{{profile.full_name}}</strong>
+        <span class="smaller d-none d-md-inline user-select-none">&commat;{{profile.username}}</span>
     </div>
 </div>

@@ -1,15 +1,15 @@
 import { Component, ElementRef, EventEmitter, Input, Output, Self } from '@angular/core';
 import { TimeDotsComponent } from '../time-dots/time-dots.component';
-import { NgClass, NgForOf, NgIf, NgStyle } from '@angular/common';
+import { JsonPipe, NgClass, NgForOf, NgIf, NgStyle } from '@angular/common';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
 import { CardEx } from '../../models/card-ex';
 import { CardTransitionService } from '../../services/card-transition.service';
 import { DialogService } from '../../services/dialog.service';
 import { Owner } from '../../models/owner';
 import { MemberType } from '../../models/member-type';
-import { filter, map, Observable, switchMap } from 'rxjs';
+import { filter, finalize, map, Observable, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
-import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { getPastelColor } from '../../functions/pastel-color.function';
 import { CopyToClipboardButtonComponent } from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
@@ -17,6 +17,10 @@ import { Setting } from '../../models/setting';
 import { formatCardLinkForClipboard } from '../../functions/format-card-link-for-clipboard.function';
 import { SettingService } from '../../services/setting.service';
 import { getLaneColor } from '../../functions/get-lane-color.function';
+import { ServerCardEditorService } from '../../services/implementations/server-card-editor.service';
+import { MdViewerComponent } from '../md-viewer/md-viewer.component';
+import { FormsModule } from '@angular/forms';
+import { TimeagoModule } from 'ngx-timeago';
 
 @Component({
   selector: 'app-card',
@@ -30,6 +34,11 @@ import { getLaneColor } from '../../functions/get-lane-color.function';
     NgbTooltip,
     NgStyle,
     CopyToClipboardButtonComponent,
+    MdViewerComponent,
+    FormsModule,
+    JsonPipe,
+    NgbPopover,
+    TimeagoModule,
   ],
   templateUrl: './card.component.html',
   styleUrl: './card.component.scss',
@@ -44,11 +53,17 @@ export class CardComponent {
   @Output()
   updated: EventEmitter<CardEx> = new EventEmitter<CardEx>();
 
+  @Output()
+  open: EventEmitter<number> = new EventEmitter();
+
   active: boolean = false;
 
   highlight: boolean = false;
 
   clipboardLink$: Observable<string>;
+  isSaving: boolean = false;
+  isExtendedDataLoaded: boolean = false;
+  isExtendedDataLoading: boolean = false;
 
   get assignedMembers(): Owner[] {
     if (!this.card?.members) {
@@ -71,6 +86,7 @@ export class CardComponent {
   constructor(
     @Self() public elementRef: ElementRef,
     private dialogService: DialogService,
+    private cardEditorService: ServerCardEditorService,
     private cardService: CardTransitionService,
     private router: Router,
     private settingService: SettingService,
@@ -87,10 +103,11 @@ export class CardComponent {
   }
 
   openCard(id: number) {
-    this.router.navigate(['card', id]);
+    this.open.emit(id);
   }
 
   transitionToNextColumn() {
+    this.isSaving = true;
     this.cardService
       .getTransitionColumns(this.card)
       .pipe(
@@ -103,6 +120,7 @@ export class CardComponent {
 
           return this.dialogService.cardTransition(this.card, cols.from, cols.to);
         }),
+        finalize(() => this.isSaving = false),
         filter(r => !!r)
       )
       .subscribe(card => {
@@ -112,6 +130,16 @@ export class CardComponent {
   }
 
   addBlock() {
+    this.isSaving = true;
+    this.dialogService
+      .editBlocker(this.card.id)
+      .pipe(
+        switchMap(() => this.cardEditorService.getCard(this.card.id)),
+        finalize(() => this.isSaving = false),
+      )
+      .subscribe(card => {
+        Object.assign(this.card, card);
+      });
   }
 
   focus() {
@@ -121,6 +149,22 @@ export class CardComponent {
     });
 
     this.highlight = true;
-    setTimeout(() => this.highlight = false, 300);
+    setTimeout(() => this.highlight = false, 1000);
+  }
+
+  handleGoalsTooltipShown() {
+    if (this.isExtendedDataLoaded || this.isExtendedDataLoading) {
+      return;
+    }
+    this.isExtendedDataLoading = true;
+    this.cardEditorService
+      .getCard(this.card.id)
+      .pipe(
+        finalize(() => this.isExtendedDataLoading = false),
+      )
+      .subscribe(card => {
+        Object.assign(this.card, card);
+        this.isExtendedDataLoaded = true;
+      })
   }
 }

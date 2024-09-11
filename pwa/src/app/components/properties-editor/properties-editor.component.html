@@ -2,7 +2,7 @@
 <ng-template #value let-property="property" let-value="value">
     <ng-template #plainValue>
         <span *ngIf="value">{{value}}</span>
-        <span *ngIf="!value" class="text-muted">Not set</span>
+        <span *ngIf="!value" class="opacity-75">Not set</span>
     </ng-template>
     <ng-container
             *ngIf="getPropertyReaderTemplate(property) && value; else plainValue"
@@ -44,7 +44,7 @@
                        [tabIndex]="1000 * groupIndex + propertyIndex"
                    >
                        <div class="form-group row align-items-center small">
-                           <label [for]="property.name" class="col-4 col-form-label small text-muted">{{property.label}}:</label>
+                           <label [for]="property.name" class="col-4 col-form-label small opacity-75">{{property.label}}:</label>
                            <div class="col-8 d-flex align-items-center" [id]="property.name">
                                <ng-container *ngIf="editingProperty != property" [ngTemplateOutlet]="value" [ngTemplateOutletContext]="{ property, value: property.value }"></ng-container>
                                <ng-container *ngIf="editingProperty == property" [ngTemplateOutlet]="editorTemplate"></ng-container>

@@ -1,12 +1,14 @@
 import { Component, Input } from '@angular/core';
 import { User } from '../../models/user';
-import { ApiService } from '../../services/api.service';
+import { FileService } from '../../services/file.service';
 import { AvatarService } from '../../services/avatar.service';
-import { AsyncPipe, NgIf, NgOptimizedImage } from '@angular/common';
-import { NgbDropdown, NgbDropdownMenu, NgbDropdownToggle } from '@ng-bootstrap/ng-bootstrap';
+import { AsyncPipe, JsonPipe, NgClass, NgIf, NgOptimizedImage } from '@angular/common';
+import { NgbDropdown, NgbDropdownMenu, NgbDropdownToggle, NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { DialogService } from '../../services/dialog.service';
 import { AuthService } from '../../services/auth.service';
+import { Theme, ThemeManagerService } from '../../services/theme-manager.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-current-user',
@@ -17,7 +19,11 @@ import { AuthService } from '../../services/auth.service';
     NgbDropdownMenu,
     NgbDropdownToggle,
     AsyncPipe,
-    NgIf
+    NgIf,
+    NgbPopover,
+    NgClass,
+    JsonPipe,
+    NgbTooltip
   ],
   templateUrl: './current-user.component.html',
   styleUrl: './current-user.component.scss'
@@ -25,6 +31,7 @@ import { AuthService } from '../../services/auth.service';
 export class CurrentUserComponent {
   profile?: User;
   avatarUrl?: string;
+  currentTheme: Theme;
 
   @Input()
   showText: boolean = true;
@@ -34,6 +41,7 @@ export class CurrentUserComponent {
     private avatarService: AvatarService,
     private router: Router,
     private dialogService: DialogService,
+    private themeManagerService: ThemeManagerService,
   ) {
     authService
       .getCurrentUser()
@@ -41,6 +49,13 @@ export class CurrentUserComponent {
         this.profile = user;
         this.loadAvatarUrl();
       });
+
+    this.themeManagerService
+      .currentTheme$
+      // .pipe(
+      //   takeUntilDestroyed()
+      // )
+      .subscribe(theme => this.currentTheme = theme);
   }
 
   logout() {
@@ -59,5 +74,9 @@ export class CurrentUserComponent {
 
   searchCard() {
     this.dialogService.searchCard().subscribe();
+  }
+
+  setTheme(theme: Theme) {
+    this.themeManagerService.setTheme(theme).subscribe();
   }
 }

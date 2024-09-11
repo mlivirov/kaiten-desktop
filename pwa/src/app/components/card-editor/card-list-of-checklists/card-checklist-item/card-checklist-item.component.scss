@@ -1,4 +1,7 @@
+@import "bootstrap/scss/bootstrap-utilities";
+
 .item:hover:not(.editing-text),
 .item.has-popover {
-  background-color: #B2C7D3 !important;
+  background-color: $gray-400;
+  color: $dark !important;
 }

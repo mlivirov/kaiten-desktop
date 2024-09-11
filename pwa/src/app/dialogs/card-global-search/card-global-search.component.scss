@@ -1,8 +1,9 @@
-.result-row {
-  background-color: #F7F9FA;
-  border-bottom-color: #cdcfd4;
-}
+@import "bootstrap/scss/bootstrap-utilities";
 
-.result-row:nth-of-type(2n)  {
-  background-color: #DEE2E6;
+
+.result-row:hover,
+tr:hover td,
+{
+  background-color: $gray-400 !important;
+  color: $dark !important;
 }

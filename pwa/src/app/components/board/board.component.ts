@@ -1,18 +1,22 @@
 import {
-  AfterViewInit,
-  Component, ElementRef,
+  Component,
+  ElementRef,
+  EventEmitter,
   HostListener,
   Input,
   OnChanges,
   OnDestroy,
-  OnInit, QueryList, Self,
-  SimpleChanges, ViewChildren
+  OnInit,
+  Output,
+  QueryList,
+  Self,
+  SimpleChanges,
+  ViewChildren
 } from '@angular/core';
 import { JsonPipe, NgClass, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { CardComponent } from '../card/card.component';
 import { CardEx } from '../../models/card-ex';
-import { ApiService } from '../../services/api.service';
-import { finalize, from, map, Observable, of, Subject, switchMap, takeUntil, tap, zip } from 'rxjs';
+import { finalize, map, Observable, of, Subject, switchMap, takeUntil, tap, zip } from 'rxjs';
 import { User } from '../../models/user';
 import { ColumnEx } from '../../models/column-ex';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
@@ -20,10 +24,11 @@ import { DragulaModule, DragulaService } from 'ng2-dragula';
 import { BoardService } from '../../services/board.service';
 import { DialogService } from '../../services/dialog.service';
 import { FindColumnRecursiveFunction } from '../../functions/find-column-recursive.function';
-import { ActivatedRoute, Params } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CardFilter, CardSearchService } from '../../services/card-search.service';
-import { Board, BoardBase } from '../../models/board';
+import { BoardBase } from '../../models/board';
+import { WipLimitType } from '../../models/wip-limit-type';
 
 function colSortPredicate(a, b) {
   return a.sort_order - b.sort_order;
@@ -59,6 +64,9 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   @Input()
   board: BoardBase;
 
+  @Output()
+  openCard: EventEmitter<number> = new EventEmitter();
+
   filterValue?: CardFilter;
   currentUser?: User;
   viewColumns: BoardViewColumn[];
@@ -67,6 +75,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   hideEmpty: boolean = false;
   cardsByColumnId: { [key: number]: CardEx[] } = {};
   cardsCountByRootColumnId: { [key: number]: number } = {};
+  cardsSizeByRootColumnId: { [key: number]: number } = {};
 
   customColumns: number[][] = [];
 
@@ -127,13 +136,12 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'));
 
         return Math.abs(targetIndex - sourceIndex) === 1;
-      }
+      },
     });
 
     this.unsubscribe$.subscribe(() => {
       dragulaService.destroy('COLUMN');
     });
-
 
     dragulaService
       .drop('COLUMN')
@@ -343,22 +351,34 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
+  getColumnLimitFullfillment(columnId: number, limitType: WipLimitType): number {
+    if (limitType === WipLimitType.Size) {
+      return this.cardsSizeByRootColumnId[columnId];
+    }
+
+    return this.cardsCountByRootColumnId[columnId];
+  }
+
   private countCards() {
     this.cardsCountByRootColumnId = {};
+    this.cardsSizeByRootColumnId = {};
     for (const card of this.cards) {
       for (const column of this.columns) {
         if (this.cardsCountByRootColumnId[column.id] === undefined) {
           this.cardsCountByRootColumnId[column.id] = 0;
+          this.cardsSizeByRootColumnId[column.id] = 0;
         }
 
         if (card.column_id === column.id) {
           this.cardsCountByRootColumnId[column.id]++;
+          this.cardsSizeByRootColumnId[column.id] += card.size;
           break;
         }
 
         for (const subcolumn of column.subcolumns || []) {
           if (card.column_id === subcolumn.id) {
             this.cardsCountByRootColumnId[column.id]++;
+            this.cardsSizeByRootColumnId[column.id] += card.size;
             break;
           }
         }

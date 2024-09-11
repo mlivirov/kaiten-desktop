@@ -2,7 +2,7 @@ import { Component, Inject, Input, OnChanges, QueryList, SimpleChanges, ViewChil
 import { CardEx } from '../../../models/card-ex';
 import { CardChecklistComponent } from './card-checklist/card-checklist.component';
 import { NgForOf } from '@angular/common';
-import { ApiService } from '../../../services/api.service';
+import { FileService } from '../../../services/file.service';
 import { CheckList } from '../../../models/check-list';
 import { filter, finalize } from 'rxjs';
 import { DialogService } from '../../../services/dialog.service';

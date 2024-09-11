@@ -12,6 +12,7 @@ import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 import { NgClass, NgIf } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { mdPlugin } from '../../functions/md-plugin.function';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-md-viewer',
@@ -39,6 +40,9 @@ export class MdViewerComponent implements AfterViewInit, OnDestroy, ControlValue
   hideBorder: boolean = false;
 
   @Input()
+  inlineIcon?: string;
+
+  @Input()
   placeholder?: string;
 
   value: string;
@@ -46,7 +50,7 @@ export class MdViewerComponent implements AfterViewInit, OnDestroy, ControlValue
   changeCallback: (value: string) => void;
   touchedCallback: () => void;
 
-  constructor() {
+  constructor(private router: Router) {
   }
 
   ngAfterViewInit(): void {
@@ -60,6 +64,21 @@ export class MdViewerComponent implements AfterViewInit, OnDestroy, ControlValue
 
   ngOnDestroy(): void {
     this.viewer?.remove();
+  }
+
+  @HostListener('click', ['$event'])
+  handleClick(event: Event) {
+    if (!(event.target instanceof HTMLAnchorElement)) {
+      return;
+    }
+
+    const href = event.target?.attributes.getNamedItem('href')?.value;
+    if (href?.startsWith('/')) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.router.navigateByUrl(href);
+    }
   }
 
   registerOnChange(fn: any): void {

@@ -16,6 +16,9 @@
                 type="button"
                 class="btn btn-icon-sm btn-link ms-2 text-secondary"
                 [id]="'actions' + checklist.id"
+                ngbTooltip="More actions"
+                container="body"
+                triggers="click hover"
                 ngbDropdownAnchor
                 (focus)="myDrop.open()"
                 [disabled]="isSaving || disabled"
@@ -41,6 +44,6 @@
             (createCard)="createCardFromItem($event)"
     ></app-card-checklist-item>
     <div *ngIf="!checklist.items?.length">
-        <span class="med text-muted">Checklist is empty</span>
+        <span class="font-size-medium opacity-50">Checklist is empty</span>
     </div>
 </div>

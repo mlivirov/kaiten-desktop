@@ -1,6 +1,7 @@
 server {
     large_client_header_buffers 4 32k;
     listen       ${NGINX_PORT};
+    error_page 404 = @fallback;
 
     location ~ ^/api/(.*) {
         resolver 8.8.8.8;
@@ -24,6 +25,6 @@ server {
        proxy_set_header X-Real-IP        $remote_addr;
 
        root   /usr/share/nginx/html;
-       index  index.html;
+       try_files $uri $uri/ /index.html;
     }
 }

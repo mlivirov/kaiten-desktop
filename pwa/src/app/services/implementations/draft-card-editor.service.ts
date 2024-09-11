@@ -17,6 +17,8 @@ import { BoardService } from '../board.service';
 import { FlattenColumnsFunction } from '../../functions/flatten-columns.function';
 import { Space } from '../../models/space';
 import { Card } from '../../models/card';
+import { CardActivity } from '../../models/card-activity';
+import { BlockBlocker } from '../../models/block-blocker.model';
 
 @Injectable({ providedIn: 'root' })
 export class DraftCardEditorService implements CardEditorService {
@@ -142,6 +144,18 @@ export class DraftCardEditorService implements CardEditorService {
         }),
         map(() => {})
       )
+  }
+
+  removeRelation(parentCardId: number, childCardId: number): Observable<void> {
+    throw new Error('Not supported');
+  }
+
+  addRelation(parentCardId: number, childCardId: number): Observable<void> {
+    throw new Error('not supported');
+  }
+
+  getCardActivity(cardId: number): Observable<CardActivity[]> {
+    throw new Error('not supported');
   }
 
   getCardComments(cardId: number): Observable<CardComment[]> {
@@ -276,8 +290,19 @@ export class DraftCardEditorService implements CardEditorService {
       );
   }
 
-
   deleteCard(cardId: number): Observable<void> {
     return from(Database.cardDrafts.delete(cardId));
+  }
+
+  addBlocker(cardId: number, blockingCardId?: number, reason?: string): Observable<BlockBlocker> {
+    throw new Error('not supported');
+  }
+
+  editBlocker(cardId: number, blockerId: number, reason?: string): Observable<BlockBlocker> {
+    throw new Error('not supported');
+  }
+
+  removeBlocker(cardId: number, blockerId: number): Observable<void> {
+    throw new Error('not supported');
   }
 }

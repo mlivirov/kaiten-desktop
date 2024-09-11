@@ -8,5 +8,7 @@
             [items]="ref.references"
             [title]="ref.title"
             [completedLabel]="ref.completedLabel"
+            (delete)="deleteReference(ref, $event)"
+            [disabled]="disabled"
     ></app-list-of-related-cards>
 </div>

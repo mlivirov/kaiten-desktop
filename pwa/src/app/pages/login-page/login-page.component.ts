@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {NgIf, NgOptimizedImage} from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ApiService } from '../../services/api.service';
+import { FileService } from '../../services/file.service';
 import { catchError, filter, switchMap } from 'rxjs';
 import { DialogService } from '../../services/dialog.service';
 import { Credentials } from '../../models/credentials';
@@ -35,6 +35,16 @@ export class LoginPageComponent implements OnInit {
     private authService: AuthService,
     private boardService: BoardService
   ) {
+  }
+
+  getApiKeyUrl(): string {
+    const apiEndpoint = this.form.value.apiEndpoint ?? '';
+    const pathStartIndex = apiEndpoint.lastIndexOf('/api');
+    if (pathStartIndex === -1) {
+      return null;
+    }
+
+    return this.form.value.apiEndpoint.substring(0, pathStartIndex) + '/profile/api-key';
   }
 
   ngOnInit(): void {

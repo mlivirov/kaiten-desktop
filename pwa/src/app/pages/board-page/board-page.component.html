@@ -5,7 +5,7 @@
     <ng-template #controls>
         <app-card-search-input
             #cardSearchInput
-            class="mt-2 w-100 mx-2 flex-grow-1"
+            class="mt-2 w-100 flex-grow-1"
             style="min-width: 15rem;"
             [ngModel]="boardComponent.filterValue"
             (ngModelChange)="boardComponent.handleFilter($event)"
@@ -17,4 +17,4 @@
 <!--        </div>-->
     </ng-template>
 </app-page-header>
-<app-board #boardComponent [board]="board" [cards]="boardCards" [columns]="boardColumns"></app-board>
+<app-board #boardComponent [board]="board" [cards]="boardCards" [columns]="boardColumns" (openCard)="openCard($event)"></app-board>

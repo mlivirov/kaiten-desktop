@@ -5,9 +5,9 @@
                 {{title}}
             </strong>
         </div>
-        <div class="m-2 py-2 w-100" dragula="CARD" [attr.data-column-id]="columnId">
+        <div class="mx-2 pt-2 w-100" dragula="CARD" [attr.data-column-id]="columnId">
             <ng-container *ngFor="let card of cardsByColumnId[columnId]">
-                <app-card [card]="card" (updated)="refresh(true)" [attr.data-card-id]="card.id"></app-card>
+                <app-card [card]="card" (updated)="refresh(true)" [attr.data-card-id]="card.id" (open)="openCard.emit($event)"></app-card>
             </ng-container>
 
             <div *ngIf="!cardsByColumnId[columnId]?.length" class="text-center">
@@ -19,16 +19,16 @@
 
 <ng-template #viewColumnsTemplate let-columns="columns" let-viewColumnIndex="viewColumnIndex">
     <div class="d-flex flex-column w-100" dragula="COLUMN" [attr.data-view-column-index]="viewColumnIndex">
-        <div *ngFor="let column of columns; index as i" class="column bg-gray" [attr.data-column-index]="i">
-            <div class="d-flex strong small border border-1 p-1 column-title cursor-move sticky-top bg-gray z-1 column-header">
+        <div *ngFor="let column of columns; index as i" class="column" [attr.data-column-index]="i">
+            <div class="d-flex strong small border border-1 p-1 column-title cursor-move sticky-top z-1 column-header bg-light-subtle">
                 <span class="user-select-none">{{column.title?.length ? column.title : board.title}}</span>
                 <span class="ms-auto small"
                       ngbTooltip="WIP limit"
                       *ngIf="column.wip_limit"
-                      [class.text-danger]="column.wip_limit < cardsCountByRootColumnId[column.id]"
-                      [class.text-warning]="cardsCountByRootColumnId[column.id] / column.wip_limit * 100. > 80."
-                      [class.text-success]="cardsCountByRootColumnId[column.id] / column.wip_limit * 100. < 50.">
-                    [{{cardsCountByRootColumnId[column.id]}} of {{column.wip_limit}}]
+                      [class.text-danger]="column.wip_limit < getColumnLimitFullfillment(column.id, column.wip_limit_type)"
+                      [class.text-warning]="getColumnLimitFullfillment(column.id, column.wip_limit_type) / column.wip_limit * 100. > 80."
+                      [class.text-success]="getColumnLimitFullfillment(column.id, column.wip_limit_type) / column.wip_limit * 100. < 50.">
+                    [{{getColumnLimitFullfillment(column.id, column.wip_limit_type)}} of {{column.wip_limit}}]
                 </span>
                 <span class="ms-auto small"
                       ngbTooltip="Cards in column"

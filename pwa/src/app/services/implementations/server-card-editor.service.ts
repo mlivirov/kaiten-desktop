@@ -1,5 +1,5 @@
 import { CardEx } from '../../models/card-ex';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { Owner } from '../../models/owner';
 import { MemberType } from '../../models/member-type';
 import { CheckListItem } from '../../models/check-list-item';
@@ -9,6 +9,8 @@ import { CardComment } from '../../models/card-comment';
 import { HttpClient } from '@angular/common/http';
 import { CardEditorService } from '../card-editor.service';
 import { Injectable } from '@angular/core';
+import { CardActivity } from '../../models/card-activity';
+import { BlockBlocker } from '../../models/block-blocker.model';
 
 @Injectable({ providedIn: 'root' })
 export class ServerCardEditorService implements CardEditorService {
@@ -17,6 +19,22 @@ export class ServerCardEditorService implements CardEditorService {
 
   createCard(card: Partial<CardEx>) {
     return this.httpClient.post<CardEx>(`http://server/api/latest/cards`, card);
+  }
+
+  addRelation(parentCardId: number, childCardId: number): Observable<void> {
+    return this.httpClient.post(`http://server/api/latest/cards/${parentCardId}/children`, {
+      card_id: childCardId
+    }).pipe(
+      map(() => {})
+    );
+  }
+
+  removeRelation(parentCardId: number, childCardId: number): Observable<void> {
+    return this.httpClient
+      .delete(`http://server/api/latest/cards/${parentCardId}/children/${childCardId}`)
+      .pipe(
+        map(() => {})
+      );
   }
 
   updateCard(id: number, properties: Partial<CardEx>): Observable<CardEx> {
@@ -47,6 +65,10 @@ export class ServerCardEditorService implements CardEditorService {
 
   getCardComments(cardId: number): Observable<CardComment[]> {
     return this.httpClient.get<CardComment[]>(`http://server/api/latest/cards/${cardId}/comments`);
+  }
+
+  getCardActivity(cardId: number): Observable<CardActivity[]> {
+    return this.httpClient.get<CardActivity[]>(`http://server/api/latest/cards/${cardId}/activity?with_timeline_fields=true`);
   }
 
   addComment(cardId: number, text: string): Observable<CardComment> {
@@ -122,6 +144,29 @@ export class ServerCardEditorService implements CardEditorService {
   deleteCard(cardId: number): Observable<void> {
     return this.httpClient
       .delete(`http://server/api/latest/cards/${cardId}`)
+      .pipe(
+        map(() => {})
+      );
+  }
+
+  addBlocker(cardId: number, blockerCardId?: number, reason?: string): Observable<BlockBlocker> {
+    return this.httpClient
+      .post<BlockBlocker>(`http://server/api/latest/cards/${cardId}/blockers`, {
+        blocker_card_id: blockerCardId,
+        reason,
+      });
+  }
+
+  editBlocker(cardId: number, blockerId: number, reason?: string): Observable<BlockBlocker> {
+    return this.httpClient
+      .put<BlockBlocker>(`http://server/api/latest/cards/${cardId}/blockers/${blockerId}`, {
+        reason,
+      });
+  }
+
+  removeBlocker(cardId: number, blockerId: number): Observable<void> {
+    return this.httpClient
+      .delete(`http://server/api/latest/cards/${cardId}/blockers/${blockerId}`)
       .pipe(
         map(() => {})
       );

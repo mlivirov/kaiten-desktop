@@ -8,8 +8,10 @@
         <i class="pi pi-arrow-right mx-4"></i>
         {{to?.title}}
     </h5>
-    <div class="bg-white p-2 shadow mb-2 rounded">
-        <div class="text-muted d-flex align-items-center mb-2" style="min-height: 1.5rem;">
+    <div class="p-2 shadow mb-2 rounded"
+         style="{{getBackgroundColor()}}"
+         [class.bg-light-subtle]="getBackgroundColor() === ''">
+        <div class="d-flex align-items-center mb-2" style="min-height: 1.5rem;">
             <div class="smaller">{{card.type.name}}</div>
             <div class="mx-2">
                 <app-time-dots [since]="card.column_changed_at"></app-time-dots>

@@ -3,6 +3,7 @@
             type="button"
             *ngIf="!item.responsible_id"
             ngbTooltip="Set responsible"
+            container="body"
             (click)="openUserEditor($event)"
             [disabled]="isSaving || disabled"
     >
@@ -12,6 +13,7 @@
                        *ngIf="item.responsible_id"
                        [showName]="false"
                        ngbTooltip="Set responsible"
+                       container="body"
                        [disableTooltip]="!!item.responsible_id"
                        class="ms-2 cursor-pointer popover-control"
                        (click)="openUserEditor($event)"
@@ -43,6 +45,7 @@
                 class="btn btn-icon-sm btn-link ms-2 text-secondary"
                 [id]="'actions' + item.id"
                 ngbTooltip="More actions"
+                container="body"
                 triggers="click hover"
                 ngbDropdownAnchor
                 (focus)="myDrop.open()"
@@ -115,7 +118,7 @@
     container="body"
 ></div>
 
-<div class="mt-2 ps-1 py-1 item"
+<div class="mt-2 ps-1 py-1 item hover"
 
      [class.has-popover]="editDatePopover.isOpen() || editUserPopover.isOpen()"
      [attr.data-checklist-item-id]="item.id">
@@ -146,7 +149,7 @@
                 [additionalControls]="editorControls"
             >
                 <ng-template #editorControls>
-                    <div *ngIf="item.checker_id && item.checked && !textEditor.isEditing" class="flex-grow-1 d-flex align-items-center flex-wrap med opacity-75">
+                    <div *ngIf="item.checker_id && item.checked && !textEditor.isEditing" class="flex-grow-1 d-flex align-items-center flex-wrap font-size-medium opacity-75">
                         <span>Checked by</span>
                         <app-inline-member class="mx-2 d-none d-md-inline" [size]="18" [profileId]="item.checker_id"></app-inline-member>
                         <app-inline-member class="mx-2 d-inline d-md-none" [showName]="false" [profileId]="item.checker_id"></app-inline-member>

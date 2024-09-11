@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { AsyncPipe, JsonPipe, NgIf, NgOptimizedImage, NgStyle } from '@angular/common';
 import { AvatarService } from '../../services/avatar.service';
-import { ApiService } from '../../services/api.service';
+import { FileService } from '../../services/file.service';
 import { User } from '../../models/user';
 import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { finalize } from 'rxjs';
@@ -87,7 +87,7 @@ export class InlineMemberComponent implements OnChanges {
         });
     }
 
-    if (this.profile) {
+    if (this.profile && this.profile.id > 0) {
       this.loadAvatarUrl();
     }
   }

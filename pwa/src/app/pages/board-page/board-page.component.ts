@@ -50,6 +50,13 @@ export class BoardPageComponent {
       });
   }
 
+  openCard(id: number) {
+    this.router.navigate(['board', this.board.id], {
+      fragment: id.toString(),
+      onSameUrlNavigation: 'ignore',
+    }).then(() => this.router.navigate(['card', id]));
+  }
+
   switchBoard(spaceId: number, boardId: number) {
     this.router.navigate(['board', boardId]);
   }

@@ -30,7 +30,7 @@ import { FormsModule } from '@angular/forms';
 import { TimeagoModule } from 'ngx-timeago';
 import { MdViewerComponent } from '../../../md-viewer/md-viewer.component';
 import { CheckListItem } from '../../../../models/check-list-item';
-import { ApiService } from '../../../../services/api.service';
+import { FileService } from '../../../../services/file.service';
 import { filter, finalize, switchMap, tap } from 'rxjs';
 import { NgbDateStringAdapter } from '../../ngb-date-string-adapter.service';
 import { MdEditorComponent } from '../../../md-editor/md-editor.component';

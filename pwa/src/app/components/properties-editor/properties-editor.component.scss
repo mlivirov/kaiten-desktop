@@ -1,7 +1,10 @@
+@import "bootstrap/scss/bootstrap-utilities";
+
 .inline-property:hover,
 .inline-property.active,
 {
-  background-color: #B2C7D3;
+  background-color: $gray-400;
+  color: $dark !important;
   cursor: pointer;
 }
 

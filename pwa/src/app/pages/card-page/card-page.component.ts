@@ -51,15 +51,7 @@ export class CardPageComponent {
     });
   }
 
-  deleteCard(id: number) {
-    this.dialogService
-      .confirmation('Are you sure you want to delete this card?')
-      .pipe(
-        filter(t => !!t),
-        switchMap(() => this.cardEditorService.deleteCard(id)),
-      )
-      .subscribe(() => {
-        this.router.navigate(['board', this.card.board_id]);
-      });
+  openBoard() {
+    this.router.navigate(['board', this.card.board_id]);
   }
 }

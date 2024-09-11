@@ -25,13 +25,21 @@ import {
   LoginConfirmationDialogComponent
 } from '../dialogs/login-confirmation-dialog/login-confirmation-dialog.component';
 import { Card } from '../models/card';
-import { CardGlobalSearchComponent } from '../dialogs/card-global-search/card-global-search.component';
+import {
+  CardGlobalSearchComponent,
+  CardSearchSelectMode
+} from '../dialogs/card-global-search/card-global-search.component';
 import { NewCardDialogComponent } from '../dialogs/card-editor-dialog/new-card-dialog.component';
 import { DraftCardEditorService } from './implementations/draft-card-editor.service';
 import {
   ConfirmationDialogButton,
   ConfirmationDialogComponent
 } from '../dialogs/confirmation-dialog/confirmation-dialog.component';
+import { BlockBlocker } from '../models/block-blocker.model';
+import {
+  CardBlockDialogComponent,
+  CardBlockDialogResult
+} from '../dialogs/card-block-dialog/card-block-dialog.component';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
@@ -139,14 +147,44 @@ export class DialogService {
       );
   }
 
-  searchCard(): Observable<Card> {
+  editBlocker(cardId: number, blockerId?: number): Observable<BlockBlocker> {
+    if (this.activeModals.some(modal => modal.componentInstance instanceof CardBlockDialogComponent)) {
+      return EMPTY;
+    }
+
+    const instance = this.modal.open(CardBlockDialogComponent, {
+      scrollable: true
+    });
+    instance.componentInstance.cardId = cardId;
+    instance.componentInstance.blockerId = blockerId;
+
+    this.activeModals.push(instance);
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        }),
+        filter(r => !!r)
+      );
+  }
+
+  searchCard(selectMode: CardSearchSelectMode = 'none', title = 'Search everywhere'): Observable<CardEx[]> {
     if (this.activeModals.some(modal => modal.componentInstance instanceof CardGlobalSearchComponent)) {
       return EMPTY;
     }
 
     const instance = this.modal.open(CardGlobalSearchComponent, {
-      size: 'lg'
+      size: 'xl',
+      scrollable: true
     });
+    instance.componentInstance.selectMode = selectMode;
+    instance.componentInstance.title = title;
     this.activeModals.push(instance);
 
     const self = this;
@@ -191,6 +229,10 @@ export class DialogService {
   }
 
   createCard(boardId: number, laneId?: number, typeId?: number, title: string|null = null): Observable<number> {
+    if (this.activeModals.some(modal => modal.componentInstance instanceof NewCardDialogComponent)) {
+      return EMPTY;
+    }
+
     const newDraft$ = this.draftCardEditorService.createNewDraft(boardId, laneId, typeId, title);
     return this.draftCardEditorService
       .getLastDraft()
@@ -269,5 +311,9 @@ export class DialogService {
 
   closeMostRecent() {
     this.activeModals[this.activeModals.length - 1].close();
+  }
+
+  showNotImplementedDialog(): Observable<boolean> {
+    return this.alert('We are sorry, this feature is not implemented yet. Stay tuned!');
   }
 }

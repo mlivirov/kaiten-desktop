@@ -1,6 +1,6 @@
 <ng-template #headerAndTitle>
-    <div class="d-flex align-items-center small bg-white flex-wrap">
-        <div class="me-2 text-primary">
+    <div class="d-flex align-items-center small flex-wrap">
+        <div class="me-2">
             <div ngbDropdown class="d-inline-block">
                 <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" id="dropdownBasic1" ngbDropdownToggle [disabled]="isSaving">
                     {{card.type.name}}
@@ -14,7 +14,7 @@
 
         <div class="align-items-center d-none d-sm-flex">
             <div class="me-2">created by</div>
-            <app-inline-member class="text-primary me-2" [profile]="card.owner"></app-inline-member>
+            <app-inline-member class="text-primary-balanced me-2" [profile]="card.owner"></app-inline-member>
             <div>on {{card.created | date }} ({{card.created | timeago }})</div>
         </div>
 
@@ -26,7 +26,6 @@
     </div>
 
     <h3 *ngIf="showHeader" class="mt-2 d-flex">
-
         <div class="flex-grow-1">
             <app-text-editor
                     type="textarea"
@@ -55,26 +54,45 @@
                 </button>
                 <div ngbDropdownMenu [attr.aria-labelledby]="'actions' + card.id">
                     <button ngbDropdownItem type="button" (click)="addChecklist()"><i class="pi pi-check-square"></i> Add checklist</button>
+                    <div class="dropdown-divider" *ngIf="card.state !== CardState.Draft"></div>
+                    <button ngbDropdownItem type="button" (click)="addBlocker()" *ngIf="card.state !== CardState.Draft"><i class="pi pi-lock"></i> Add blocker</button>
+                    <button ngbDropdownItem type="button" (click)="addParent()" *ngIf="card.state !== CardState.Draft"><i class="pi pi-arrow-up-left"></i> Add parent</button>
+                    <button ngbDropdownItem type="button" (click)="addChild()" *ngIf="card.state !== CardState.Draft"><i class="pi pi-arrow-down-right"></i> Add child</button>
+                    <button ngbDropdownItem type="button" (click)="addRelated()" *ngIf="card.state !== CardState.Draft"><i class="pi pi-link"></i> Add related</button>
+                    <div class="dropdown-divider" *ngIf="card.state !== CardState.Draft"></div>
                     <button ngbDropdownItem type="button" (click)="deleteCard()" *ngIf="card.state !== CardState.Draft"><i class="pi pi-trash"></i> Delete card</button>
                 </div>
             </div>
         </div>
     </h3>
+    <div class="mt-2 p-2 rounded border border-1 font-size-medium text-bg-purple mb-2 mb-md-0 d-flex align-items-center"
+         *ngIf="card.block_reason || card.blockers?.length"
+    >
+        <div *ngIf="!card.block_reason">
+            <i class="pi pi-exclamation-circle strong align-self-start me-2"></i>
+            <span>This card is blocked by another card</span>
+            <a class="ms-1" href="javascript:void(0)" (click)="focusBlocker()">see blockers</a>
+        </div>
+        <div *ngIf="card.block_reason" class="d-flex">
+            <i class="pi pi-exclamation-circle strong align-self-start me-2 mt-1"></i>
+            <app-md-viewer class="small" [ngModel]="card.block_reason" [hideBorder]="true"></app-md-viewer>
+        </div>
+
+        <button type="button" class="btn btn-sm btn-link ms-auto text-light ms-auto align-self-start" (click)="deleteBlocker()" [disabled]="isSaving">
+            <i class="pi pi-times" style="font-size: .5em"></i>
+        </button>
+    </div>
 </ng-template>
 
+
 <div class="row">
-    <div class="d-md-none">
+    <div class="d-md-none px-0">
         <ng-container *ngTemplateOutlet="headerAndTitle"></ng-container>
     </div>
 
     <div class="col-12 px-0 px-sm-3 col-md-7 col-lg-8 col-xl-9 order-1 order-md-0">
         <div class="d-none d-md-block">
             <ng-container *ngTemplateOutlet="headerAndTitle"></ng-container>
-        </div>
-
-        <div class="mt-2 p-2 rounded border-2 border-dark med" *ngIf="card.block_reason" style="background-color: #EDD1CE">
-            <i class="pi pi-exclamation-circle me-1" style="color: red; font-weight: bold;"></i>
-            {{card.block_reason}}
         </div>
 
         <div class="mt-3">
@@ -96,7 +114,16 @@
         </div>
 
         <div class="mt-3 w-100" *ngIf="showReferences">
-            <app-card-references-accordion [card]="card"></app-card-references-accordion>
+            <app-card-references-accordion [card]="card"
+                                           (deleteBlocker)="deleteBlockerById($event)"
+                                           (deleteChild)="deleteChild($event)"
+                                           (deleteParent)="deleteParent($event)"
+                                           [disabled]="isSaving"
+            ></app-card-references-accordion>
+        </div>
+
+        <div class="mt-3 w-100" *ngIf="card.files?.length">
+            <app-card-attachments [card]="card"></app-card-attachments>
         </div>
 
         <div class="mt-3 w-100" *ngIf="showComments">
@@ -117,8 +144,8 @@
             </div>
         </a>
         <div
-                class="sticky-top z-1 border border-1"
-                style="background-color: #F7F9FA; border-color: #DFE5EB; top: .5rem"
+                class="sticky-top z-1 border border-1 border-dark-subtle bg-secondary-balanced"
+                style="top: .5rem"
                 #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsedProperties"
         >
             <app-card-properties [card]="card"></app-card-properties>

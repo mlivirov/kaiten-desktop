@@ -9,7 +9,7 @@ import Convertor = toastui.Convertor;
 import WysiwygEditor = toastui.WysiwygEditor;
 
 class MdConvertor implements Convertor {
-  constructor(private defaultConvertor: Convertor) {
+  constructor(private defaultConvertor: Convertor, private inlineIcon?: string) {
   }
 
   initHtmlSanitizer(sanitizer: toastui.Sanitizer): void {
@@ -86,7 +86,7 @@ export function mdPlugin(): PluginInfo {
           const matchedLen = match[0].length;
           result.push({
             type: 'html',
-            content: `<a href="javascript:void(0)" data-type="user" class="text-primary">${text.substring(0, matchedLen)}</a>&nbsp;`
+            content: `<a href="javascript:void(0)" data-type="user" class="text-primary-balanced">${text.substring(0, matchedLen)}</a>&nbsp;`
           });
 
           text = text.substring(matchedLen);
@@ -113,9 +113,14 @@ export function mdPlugin(): PluginInfo {
         let destination = node['destination'] as string;
         node['processed'] = true;
 
-        const cardLinkRegExp = new RegExp('\/\\d+')
+        const cardLinkRegExp = new RegExp('^\\/\\d+$');
         if (cardLinkRegExp.test(destination)) {
           destination = `/card` + destination;
+        }
+
+        const cardLongLinkMatch = new RegExp('space\\/\\d+\\/card\\/(?<cardId>\\d+)').exec(destination);
+        if (cardLongLinkMatch) {
+          destination = `/card/` + cardLongLinkMatch.groups['cardId'];
         }
 
         return <OpenTagToken>{

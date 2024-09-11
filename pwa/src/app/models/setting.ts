@@ -4,4 +4,5 @@ export enum Setting {
   FilesUrl = 'FILES_URL',
   Token = 'TOKEN',
   CustomColumns = 'CUSTOM_COLUMNS',
+  Theme = 'THEME',
 }

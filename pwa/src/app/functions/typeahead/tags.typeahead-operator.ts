@@ -1,6 +1,6 @@
 import { debounceTime, Observable, OperatorFunction, switchMap } from 'rxjs';
 import { inject } from '@angular/core';
-import { ApiService } from '../../services/api.service';
+import { FileService } from '../../services/file.service';
 import { User } from '../../models/user';
 import { Tag } from '../../models/tag';
 import { TagService } from '../../services/tag.service';

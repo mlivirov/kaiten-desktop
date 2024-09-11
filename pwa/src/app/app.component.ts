@@ -17,7 +17,7 @@ import { MdEditorComponent } from './components/md-editor/md-editor.component';
 import { FormsModule } from '@angular/forms';
 import { NewCardDialogComponent } from './dialogs/card-editor-dialog/new-card-dialog.component';
 import { CardEditorComponent } from './components/card-editor/card-editor.component';
-import { ApiService } from './services/api.service';
+import { FileService } from './services/file.service';
 import { Setting } from './models/setting';
 import { TypeaheadComponent } from './components/typeahead/typeahead.component';
 import { CardSearchInputComponent } from './components/card-search-input/card-search-input.component';
@@ -76,7 +76,7 @@ export class AppComponent implements AfterViewInit {
         .pipe(
           filter(card => !!card)
         )
-        .subscribe(t => this.router.navigate(['card', t.id]));
+        .subscribe();
     }
   }
 

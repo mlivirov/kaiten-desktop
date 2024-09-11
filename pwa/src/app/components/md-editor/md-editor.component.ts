@@ -204,7 +204,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     const element = document.createElement('a');
     element.setAttribute('href', 'javascript:void(0)');
     element.setAttribute('data-type', 'user');
-    element.classList.add('text-primary');
+    element.classList.add('text-primary-balanced');
     element.innerHTML = `@${user.username}`;
     const separatorElement = document.createTextNode(',\u00A0');
     const range = this.editor.getRange() as Range;

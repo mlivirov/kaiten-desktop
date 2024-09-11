@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { DatePipe, NgClass, NgForOf, NgIf, NgSwitch } from '@angular/common';
 import { Owner } from '../../../../models/owner';
 import { MemberType } from '../../../../models/member-type';
@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 export interface CardReference {
   isCompleted: boolean;
   card: Card;
+  id: number;
 }
 
 @Component({
@@ -41,6 +42,9 @@ export class ListOfRelatedCardsComponent {
 
   @Input()
   items: CardReference[];
+  
+  @Output()
+  delete: EventEmitter<CardReference> = new EventEmitter();
 
   constructor(private router: Router) {
   }
@@ -54,4 +58,6 @@ export class ListOfRelatedCardsComponent {
   }
 
   protected readonly open = open;
+
+  @Input() disabled: boolean = false;
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { User } from '../models/user';
 import { from, map, Observable, of, switchMap } from 'rxjs';
-import { ApiService } from './api.service';
+import { FileService } from './file.service';
 import { AvatarEntity, Database, getSingleWithCacheWithMap } from './db';
 import { pixelArt } from '@dicebear/collection';
 import { createAvatar, StyleOptions } from '@dicebear/core';
@@ -15,7 +15,7 @@ interface CacheItem {
   providedIn: 'root'
 })
 export class AvatarService {
-  constructor(private apiService: ApiService) {
+  constructor(private apiService: FileService) {
   }
 
   getUrl(profile: User): Observable<string> {

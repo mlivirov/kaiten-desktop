@@ -14,7 +14,7 @@ import { MdEditorComponent } from '../md-editor/md-editor.component';
 import { FormsModule } from '@angular/forms';
 import { CardEx } from '../../models/card-ex';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
-import { finalize, map, Observable, tap } from 'rxjs';
+import { filter, finalize, map, Observable, switchMap, tap } from 'rxjs';
 import {
   ListOfRelatedCardsComponent
 } from './card-references-accordion/list-of-related-cards/list-of-related-cards.component';
@@ -46,10 +46,12 @@ import { CardState } from '../../models/card-state';
 import { BoardService } from '../../services/board.service';
 import { CardType } from '../../models/card-type';
 import { SettingService } from '../../services/setting.service';
-import { Card } from '../../models/card';
 import { formatCardLinkForClipboard } from '../../functions/format-card-link-for-clipboard.function';
 import { Setting } from '../../models/setting';
 import { CopyToClipboardButtonComponent } from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
+import { CardAttachmentsComponent } from './card-attachments/card-attachments.component';
+import { DialogService } from '../../services/dialog.service';
+import { MdViewerComponent } from '../md-viewer/md-viewer.component';
 
 
 @Component({
@@ -91,6 +93,8 @@ import { CopyToClipboardButtonComponent } from '../copy-to-clipboard-button/copy
     NgbCollapse,
     NgbDropdownToggle,
     CopyToClipboardButtonComponent,
+    CardAttachmentsComponent,
+    MdViewerComponent,
   ],
   templateUrl: './card-editor.component.html',
   styleUrl: './card-editor.component.scss',
@@ -118,8 +122,14 @@ export class CardEditorComponent implements OnInit {
   @ViewChild(CardListOfChecklistsComponent)
   cardListOfChecklists: CardListOfChecklistsComponent;
 
+  @ViewChild(CardReferencesAccordionComponent)
+  cardReferencesAccordionComponent: CardReferencesAccordionComponent;
+
   @Output()
   delete: EventEmitter<number> = new EventEmitter();
+
+  @Output()
+  update: EventEmitter<number> = new EventEmitter();
 
   @Input()
   collapsableProperties: boolean = false;
@@ -133,7 +143,8 @@ export class CardEditorComponent implements OnInit {
   constructor(
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
     private boardService: BoardService,
-    private settingService: SettingService
+    private settingService: SettingService,
+    private dialogService: DialogService
   ) {
     boardService.getCardTypes().subscribe(types => this.cardTypes = types);
 
@@ -200,10 +211,6 @@ export class CardEditorComponent implements OnInit {
       );
   }
 
-  deleteCard() {
-    this.delete.emit(this.card.id);
-  }
-
   instantUpdateTitle(value: string) {
     this.card.title = value;
     return this.cardEditorService
@@ -226,5 +233,128 @@ export class CardEditorComponent implements OnInit {
     if (this.collapsableProperties) {
       this.isCollapsedProperties = window.innerWidth < 768;
     }
+  }
+
+  focusBlocker() {
+    this.cardReferencesAccordionComponent?.focusByType('BLOCKER');
+  }
+
+  deleteParent(id: number) {
+    this.isSaving = true;
+    this.cardEditorService
+      .removeRelation(id, this.card.id)
+      .pipe(
+        switchMap(() => this.cardEditorService.getCard(this.card.id)),
+        finalize(() => this.isSaving = false)
+      )
+      .subscribe(card => {
+        this.card = card;
+        this.update.emit(this.card.id);
+      });
+  }
+
+  deleteChild(id: number) {
+    this.isSaving = true;
+    this.cardEditorService
+      .removeRelation(this.card.id, id)
+      .pipe(
+        switchMap(() => this.cardEditorService.getCard(this.card.id)),
+        finalize(() => this.isSaving = false)
+      )
+      .subscribe(card => {
+        this.card = card;
+        this.update.emit(this.card.id);
+      });
+  }
+
+  addParent() {
+    this.isSaving = true;
+    this.dialogService
+      .searchCard('single')
+      .pipe(
+        filter(r => !!r),
+        switchMap(r => this.cardEditorService.addRelation(r[0].id, this.card.id)),
+        switchMap(() => this.cardEditorService.getCard(this.card.id)),
+        finalize(() => this.isSaving = false)
+      )
+      .subscribe(card => {
+        this.card = card;
+        this.update.emit(this.card.id);
+      });
+  }
+
+  addChild() {
+    this.isSaving = true;
+    this.dialogService
+      .searchCard('single')
+      .pipe(
+        filter(r => !!r),
+        switchMap(r => this.cardEditorService.addRelation(this.card.id, r[0].id)),
+        switchMap(() => this.cardEditorService.getCard(this.card.id)),
+        finalize(() => this.isSaving = false)
+      )
+      .subscribe(card => {
+        this.card = card;
+        this.update.emit(this.card.id);
+      });
+  }
+
+  addRelated() {
+    this.isSaving = true;
+    this.dialogService
+      .searchCard('single')
+      .pipe(
+        filter(r => !!r),
+        switchMap(r => this.dialogService.showNotImplementedDialog()),
+        finalize(() => this.isSaving = false)
+      )
+      .subscribe();
+  }
+
+  addBlocker() {
+    this.isSaving = true;
+    this.dialogService
+      .editBlocker(this.card.id)
+      .pipe(
+        switchMap(() => this.cardEditorService.getCard(this.card.id)),
+        finalize(() => this.isSaving = false)
+      )
+      .subscribe(card => {
+        this.card = card;
+        this.update.emit(this.card.id);
+      });
+  }
+
+  deleteCard() {
+    this.isSaving = true;
+    this.dialogService
+      .confirmation('Are you sure you want to delete this card?')
+      .pipe(
+        filter(t => !!t),
+        switchMap(() => this.cardEditorService.deleteCard(this.card.id)),
+        finalize(() => this.isSaving = false)
+      )
+      .subscribe(() => {
+        this.delete.emit(this.card.id);
+      });
+  }
+
+  deleteBlockerById(id: number) {
+    this.isSaving = true;
+    this.cardEditorService
+      .removeBlocker(this.card.id, id)
+      .pipe(
+        switchMap(() => this.cardEditorService.getCard(this.card.id)),
+        finalize(() => this.isSaving = false)
+      )
+      .subscribe(card => {
+        this.card = card;
+        this.update.emit(this.card.id);
+      });
+  }
+
+  deleteBlocker() {
+    const mainBlocker = this.card.blockers.find(b => b.blocker_id === this.card.blocker_id);
+    this.deleteBlockerById(mainBlocker.id);
   }
 }

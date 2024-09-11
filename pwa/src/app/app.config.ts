@@ -30,7 +30,7 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(
       TimeagoModule.forRoot(),
       DragulaModule.forRoot(),
-      AutosizeModule
+      AutosizeModule,
     ),
     {
       provide: APP_INITIALIZER,

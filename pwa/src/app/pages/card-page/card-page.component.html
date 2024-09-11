@@ -3,11 +3,11 @@
         (switchBoard)="switchBoard($event.spaceId, $event.boardId)"
 >
     <ng-template #controls>
-        <button class="btn btn-link text-light mx-2" (click)="switchBoard(0, this.card.board_id, this.card.id)" >
-            <i class="pi pi-external-link"></i>
+        <button class="btn btn-sm btn-outline-light rounded-circle" (click)="switchBoard(0, this.card.board_id, this.card.id)" >
+            <i class="pi pi-arrow-left"></i>
         </button>
     </ng-template>
 </app-page-header>
 <div class="mx-4 mt-2">
-    <app-card-editor [card]="card" (delete)="deleteCard($event)"></app-card-editor>
+    <app-card-editor [card]="card" (delete)="openBoard()"></app-card-editor>
 </div>

@@ -5,43 +5,185 @@ $enable-negative-margins: true;
 @import '@toast-ui/editor/dist/toastui-editor.css';
 @import "../node_modules/dragula/dist/dragula.css";
 
+$gray-1000: #131e28;
+
+.mt-2-next + .mt-2-next {
+  margin-top: 0.25rem;
+}
+
 .tui-editor-contents {
   font-size: 14px;
+}
+
+.small .tui-editor-contents {
+  font-size: 12.9px;
+}
+
+.small .tui-editor-contents p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+
+.tui-editor-contents blockquote {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  * {
+    color: $gray-700 !important;
+  }
+}
+
+.text-bg-purple,
+[data-bs-theme="dark"] {
+  .tui-editor-contents ul,
+  .tui-editor-contents menu,
+  .tui-editor-contents ol,
+  .tui-editor-contents dir,
+  .tui-editor-contents td,
+  .tui-editor-contents p,
+  .tui-editor-contents h1,
+  .tui-editor-contents h2,
+  .tui-editor-contents h3,
+  .tui-editor-contents h4,
+  .tui-editor-contents h5,
+  .tui-editor-contents h6 {
+    color: white !important;
+  }
+
+  .tui-editor-contents blockquote * {
+    color: $gray-400 !important;
+  }
+
+  .hover:hover {
+    .tui-editor-contents ul,
+    .tui-editor-contents menu,
+    .tui-editor-contents ol,
+    .tui-editor-contents dir,
+    .tui-editor-contents td,
+    .tui-editor-contents p,
+    .tui-editor-contents h1,
+    .tui-editor-contents h2,
+    .tui-editor-contents h3,
+    .tui-editor-contents h4,
+    .tui-editor-contents h5,
+    .tui-editor-contents h6 {
+      color: $dark !important;
+    }
+  }
+
+  .tui-editor-contents pre {
+    color: $dark;
+    background-color: $dark-bg-subtle;
+  }
+
+  .tui-editor-contents td,
+  .tui-editor-contents th {
+    border-color: $gray-200 !important;
+  }
+
+  .te-ww-container {
+    background-color: $gray-800 !important;
+    color: $white
+  }
+}
+
+[data-bs-theme="dark"] {
+  body {
+    background-color: $dark !important;
+  }
+
+  .result-row {
+    background-color: $dark;
+    border-bottom-color: #cdcfd4;
+  }
+  .result-row:nth-of-type(2n)  {
+    background-color: $gray-800;
+  }
+
+  .text-primary-balanced {
+    color: $blue-300 !important;
+  }
+
+  .bg-secondary-balanced {
+    background-color: #161719 !important;
+  }
+
+  ngb-popover-window {
+    background-color: $gray-1000;
+  }
+
+  [data-popper-placement^="left"] [data-popper-arrow]:after {
+    border-left-color: $gray-1000;
+  }
+
+  [data-popper-placement^="right"] [data-popper-arrow]:after {
+    border-right-color: $gray-1000;
+  }
+
+  [data-popper-placement^="top"] [data-popper-arrow]:after {
+    border-top-color: $gray-1000;
+  }
+
+  [data-popper-placement^="bottom"] [data-popper-arrow]:after {
+    border-bottom-color: $gray-1000;
+  }
+}
+
+.bg-secondary-balanced
+{
+  background-color: #F7F9FA !important;
+}
+
+.result-row {
+  background-color: $light-bg-subtle;
+  border-bottom-color: #cdcfd4;
+}
+
+.result-row:nth-of-type(2n)  {
+  background-color: $gray-200;
+}
+
+.text-bg-purple {
+  background-color: #a75954;
+  color: $light
+}
+
+.text-primary-balanced {
+  color: $blue-500 !important;
 }
 
 body {
   margin-bottom: .5rem;
   min-width: fit-content;
+  //background-color: $gray-100 !important;
 }
 
 $bg-gray: #F7F9FA;
 
 .bg-grad-0 {
   background-color: #E8DBB0;
+  color: black;
 }
 
 .bg-grad-1 {
   background-color: #C8CFC7;
+  color: black;
 }
 
 .bg-grad-2 {
   background-color: #B2C7D3;
+  color: black;
 }
 
 .bg-grad-3 {
   background-color: #A4C9D1;
+  color: black;
 }
 
 .bg-grad-4 {
   background-color: #86B0B1;
-}
-
-.bg-gray {
-  background-color: $bg-gray !important;
-}
-
-th, td {
-  background-color: $bg-gray !important;
+  color: black;
 }
 
 .grid-section:last-of-type {
@@ -52,8 +194,12 @@ th, td {
   font-size: .575em;
 }
 
-.med {
+.font-size-medium {
   font-size: 0.8em;
+}
+
+.font-size-normal {
+  font-size: 14px;
 }
 
 .card-member+.card-member {
@@ -63,6 +209,10 @@ th, td {
 .bg-kaiten {
   @extend .text-white;
   background-color: #8146D3;
+}
+
+.text-kaiten {
+  color: #8146D3;
 }
 
 body {
@@ -180,4 +330,13 @@ app-list-of-related-cards .list .item:last-child {
 @keyframes blink {
   0% { color: $primary; }
   100% { color: initial; }
+}
+
+.border-dash {
+  border-style: dashed !important;
+}
+
+.border-after:after {
+  content: ' ';
+  border-right: $border-width $border-style $border-color;
 }

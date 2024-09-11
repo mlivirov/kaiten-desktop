@@ -1,10 +1,12 @@
+import { CardState } from './card-state';
+
 export interface ColumnBase {
   id: number;
   uid: string;
   title: string;
   sort_order: number;
   col_count: number;
-  type: number;
+  type: CardState;
   board_id: number;
   column_id: number | null;
   external_id: null;

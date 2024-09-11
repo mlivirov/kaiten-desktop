@@ -27,7 +27,6 @@ export const routes: Routes = [
           columns: boardColumnsResolver,
           cards: boardCardsResolver
         },
-        runGuardsAndResolvers: 'always'
       },
       {
         path: 'card/:cardId',

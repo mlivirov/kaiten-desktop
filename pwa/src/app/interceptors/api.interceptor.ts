@@ -1,7 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { switchMap } from 'rxjs';
 import { inject } from '@angular/core';
-import { ApiService } from '../services/api.service';
+import { FileService } from '../services/file.service';
 import { AuthService } from '../services/auth.service';
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {

@@ -22,8 +22,13 @@
             <div *ngIf="item.isCompleted && item.card.state !== CardState.Done" class="text-success strong me-2 text-uppercase">{{completedLabel}}</div>
             <div class="text-muted" style="min-width: 4rem;">Updated {{item.card.updated | timeago}}</div>
         </div>
-        <div class="small"
-             [class.text-decoration-line-through]="item.card.state === CardState.Done"
-        >{{item.card.title}}</div>
+        <div class="d-flex">
+            <div class="small"
+                 [class.text-decoration-line-through]="item.card.state === CardState.Done"
+            >{{item.card.title}}</div>
+            <button type="button" class="btn btn-sm btn-link ms-auto text-light ms-auto align-self-end" (click)="delete.emit(item)" [disabled]="disabled">
+                <i class="pi pi-times" style="font-size: .5em"></i>
+            </button>
+        </div>
     </div>
 </div>

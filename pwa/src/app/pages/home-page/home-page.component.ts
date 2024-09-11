@@ -5,7 +5,7 @@ import { CurrentUserComponent } from '../../components/current-user/current-user
 import { DialogService } from '../../services/dialog.service';
 import { filter } from 'rxjs';
 import { NgIf, NgOptimizedImage } from '@angular/common';
-import { ApiService } from '../../services/api.service';
+import { FileService } from '../../services/file.service';
 import { Setting } from '../../models/setting';
 import { SettingService } from '../../services/setting.service';
 

@@ -1,0 +1,9 @@
+<div class="title mb-2 strong d-flex align-items-center small text-muted text-uppercase">
+    <span class="me-1">Attachments</span>
+    <span *ngIf="isLoading"><i class="pi pi-spinner pi-spin"></i></span>
+</div>
+<div class="border small text-danger-emphasis border-3 border-light-subtle w-100 d-flex align-items-center justify-content-center" style="height: 5rem; border-style: dashed !important;">
+    <div class="text-center">
+        This card has attachments but this feature is not implemented yet. Please visit original website: <a [href]="baseUrl + '/' + this.card?.id">{{baseUrl}}/{{this.card?.id}}</a>
+    </div>
+</div>

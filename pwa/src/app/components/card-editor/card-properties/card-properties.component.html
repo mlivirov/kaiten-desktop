@@ -11,7 +11,7 @@
     <div class="mb-2" *ngIf="lanes.length > 1">
         <select class="form-select form-select-sm" [(ngModel)]="newLaneId" [disabled]="isLoadingBoardAndLanes">
             <option [ngValue]="null" selected class="opacity-50">Select a lane</option>
-            <option *ngFor="let lane of lanes" [ngValue]="lane.id" style="background-color:{{getLaneColor(lane)}}">{{lane.title?.length > 0 ? lane.title : 'Default'}}</option>
+            <option *ngFor="let lane of lanes" [ngValue]="lane.id" style="{{getLaneColor(lane)}}">{{lane.title?.length > 0 ? lane.title : 'Default'}}</option>
         </select>
     </div>
 
@@ -55,7 +55,7 @@
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="read" type="lane" let-data="data">
-        <span class="border border-1 me-1" style="height: 1rem; width: 1rem; background-color:{{getLaneColor(data)}}"></span> <span>{{data.title?.length > 0 ? data.title : 'Default'}}</span>
+        <span class="border border-1 border-light-subtle me-2" style="min-height: 1rem; min-width: 1rem; {{getLaneColor(data)}}"></span> <span>{{data.title?.length > 0 ? data.title : 'Default'}}</span>
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="write" type="size" let-property="property" let-isSaveInProgress="isSaveInProgress">
@@ -93,7 +93,7 @@
         <div class="d-flex align-items-center flex-grow-1">
             <app-inline-member [profile]="data"
                                class="small"
-                               [class.text-primary]="data.type === MemberType.Responsible"
+                               [class.text-primary-balanced]="data.type === MemberType.Responsible"
                                (dblclick)="makeMemberResponsible(data)"
                                [ngbTooltip]="property.value.type === MemberType.Responsible ? 'This member is responsible' : 'Double click on the member to make it responsible'"
             ></app-inline-member>
@@ -122,7 +122,7 @@
     </ng-template>
 
     <ng-template [app-editor-property-template] mode="read" type="tag" let-data="data" let-property="property">
-        <div class="bg-white small border border-1 px-2 d-flex align-items-center">
+        <div class="small border border-1 px-2 d-flex align-items-center bg-light-subtle">
             <span>{{data.name}}</span>
             <button type="button" class="btn btn-sm btn-link ms-auto text-secondary" (click)="removeTag(data, property)" [disabled]="isSaveInProgress">
                 <i class="pi pi-times" style="font-size: .5em" *ngIf="!isSaveInProgress"></i>

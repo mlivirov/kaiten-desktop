@@ -1,9 +1,9 @@
 #include "CustomWebEnginePage.h"
 
 bool CustomWebEnginePage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) {
-    if (type == QWebEnginePage::NavigationTypeLinkClicked)
-    {
-        QDesktopServices::openUrl(QUrl(url));
+    if (type == QWebEnginePage::NavigationTypeLinkClicked) {
+        qInfo() << "opening link:" << url;
+        QDesktopServices::openUrl(url);
         return false;
     }
 

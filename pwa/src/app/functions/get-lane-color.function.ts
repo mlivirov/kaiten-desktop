@@ -6,8 +6,8 @@ export function getLaneColor(lane: Lane): string {
     || lane.title.toLowerCase() === 'default'
     || lane.title.toLowerCase() === 'normal'
   ) {
-    return 'none';
+    return '';
   } else {
-    return getPastelColor(lane.title);
+    return `background-color: ${getPastelColor(lane.title)} !important; color: black !important;`;
   }
 }

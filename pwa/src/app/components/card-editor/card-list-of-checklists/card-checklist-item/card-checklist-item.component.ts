@@ -22,7 +22,7 @@ import {
 } from '@ng-bootstrap/ng-bootstrap';
 import { debounceTime, finalize, map, Observable, OperatorFunction, switchMap, tap } from 'rxjs';
 import { User } from '../../../../models/user';
-import { ApiService } from '../../../../services/api.service';
+import { FileService } from '../../../../services/file.service';
 import { DatePipe, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { InlineMemberComponent } from '../../../inline-member/inline-member.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
