@@ -29,6 +29,7 @@ import { AuthService } from '../../services/auth.service';
 import { CardFilter, CardSearchService } from '../../services/card-search.service';
 import { BoardBase } from '../../models/board';
 import { WipLimitType } from '../../models/wip-limit-type';
+import { getTextOrDefault } from '../../functions/get-text-or-default.function';
 
 function colSortPredicate(a, b) {
   return a.sort_order - b.sort_order;
@@ -55,6 +56,8 @@ class BoardViewColumn {
   styleUrl: './board.component.scss'
 })
 export class BoardComponent implements OnInit, OnDestroy, OnChanges {
+  protected readonly getTextOrDefault = getTextOrDefault;
+
   @Input()
   columns: ColumnEx[];
 
@@ -127,8 +130,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     dragulaService.createGroup('COLUMN', {
       removeOnSpill: true,
       moves: (el, container, handle) => {
-        return (handle.parentElement.classList.contains('column-title')
-                  || handle.classList.contains('column-title'))
+        return (handle.parentElement.classList.contains('column-title') || handle.classList.contains('column-title'))
                 && Math.min(window.outerWidth, window.outerHeight) > 540;
       },
       accepts: (el, target, source) => {
@@ -316,7 +318,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       )
       .subscribe(([columns, cards, customColumns, activeCardId]) => {
         this.columns = columns;
-        this.cards = cards;
+        this.cards = cards?.filter(c => !c.archived);
         this.customColumns = customColumns;
 
         this.mapCardsByColumnId(this.cards);

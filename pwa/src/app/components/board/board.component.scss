@@ -15,3 +15,20 @@
     top: 47px;
   }
 }
+
+.grid-column > .column:last-child {
+  flex-grow: 1;
+
+  .column-content {
+    flex-grow: 1;
+  }
+}
+
+.column-content:last-of-type {
+  border-bottom: 0 !important;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
