@@ -20,6 +20,7 @@ import { debounceTime, finalize, Observable, Subject } from 'rxjs';
 
 export interface BadgeType {
   name: string;
+  multi: boolean;
   getTitle(item: any): string;
 }
 
@@ -139,13 +140,20 @@ export class TypeaheadComponent implements ControlValueAccessor {
         const query = this.value.substring(badgeTypeKeyword.length + 1, indexOfSpace === -1 ? undefined : indexOfSpace);
         this.popoverItems = [];
 
+        console.log(this.currentBadgeType);
         this.badgeService.getOptions(badgeType, 0, 5, query)
           .pipe(
             finalize(() => this.popoverItemsLoading = false)
           )
           .subscribe(options => {
-            this.popoverItems = options;
-            this.popover.open();
+            if (badgeType.multi) {
+              console.log('multi', options);
+              this.popoverItems = options;
+              this.popover.open();
+            } else {
+              console.log('single', options);
+              this.selectPopoverItem(options[0])
+            }
           });
 
         return;

@@ -1,4 +1,4 @@
-import { Component, forwardRef, Injectable, Input, ViewChild } from '@angular/core';
+import { Component, forwardRef, Injectable, Input, OnInit, ViewChild } from '@angular/core';
 import {
   Badge,
   BADGE_SERVICE,
@@ -8,7 +8,7 @@ import {
   TypeaheadComponent,
   TypeaheadComponentValue
 } from '../typeahead/typeahead.component';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { User } from '../../models/user';
 import { Tag } from '../../models/tag';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
@@ -20,10 +20,11 @@ import { UserService } from '../../services/user.service';
 
 @Injectable()
 class CardBadgeService implements BadgeService {
-  static readonly BadgeTypeMember: BadgeType = { name: 'member', getTitle(item: User) { return item.full_name; } };
-  static readonly BadgeTypeOwner: BadgeType = { name: 'owner', getTitle(item: User) { return item.full_name; } };
-  static readonly BadgeTypeTag: BadgeType = { name: 'tag', getTitle(item: Tag) { return item.name; } };
-  static readonly BadgeTypeSpace: BadgeType = { name: 'tag', getTitle(item: Tag) { return item.name; } };
+  static readonly BadgeTypeMember: BadgeType = { name: 'member', multi: true, getTitle(item: User) { return item.full_name; } };
+  static readonly BadgeTypeOwner: BadgeType = { name: 'owner', multi: true, getTitle(item: User) { return item.full_name; } };
+  static readonly BadgeTypeTag: BadgeType = { name: 'tag', multi: true, getTitle(item: Tag) { return item.name; } };
+  static readonly BadgeTypeSpace: BadgeType = { name: 'tag', multi: true, getTitle(item: Tag) { return item.name; } };
+  static readonly BadgeTypeArchived: BadgeType = { name: 'archived', multi: false, getTitle(val: boolean): string { return val ? 'Yes' : 'No';  } };
 
   constructor(private tagService: TagService, private userService: UserService) {
   }
@@ -43,11 +44,15 @@ class CardBadgeService implements BadgeService {
         return this.getUsers(offset, limit, query);
       case CardBadgeService.BadgeTypeTag:
         return this.getTags(offset, limit, query);
+      case CardBadgeService.BadgeTypeArchived:
+        return of([true]);
       default:
         throw 'not implemented';
     }
   }
 }
+
+export type CardSearchInputBadgeTypes = 'member'|'owner'|'tag'|'archived';
 
 @Component({
   selector: 'app-card-search-input',
@@ -73,18 +78,18 @@ class CardBadgeService implements BadgeService {
     }
   ]
 })
-export class CardSearchInputComponent implements ControlValueAccessor {
+export class CardSearchInputComponent implements ControlValueAccessor, OnInit {
   BadgeTypeMember = CardBadgeService.BadgeTypeMember;
   BadgeTypeOwner = CardBadgeService.BadgeTypeOwner;
   BadgeTypeTag = CardBadgeService.BadgeTypeTag;
+  BadgeTypeArchived = CardBadgeService.BadgeTypeArchived;
 
-  badgeTypes = [
-    this.BadgeTypeOwner,
-    this.BadgeTypeTag,
-    this.BadgeTypeMember,
-  ]
+  badgeTypes = []
 
   value: TypeaheadComponentValue = null;
+
+  @Input()
+  badges: CardSearchInputBadgeTypes[] = ['member', 'owner', 'tag'];
 
   @Input()
   inputClass: string = '';
@@ -116,13 +121,22 @@ export class CardSearchInputComponent implements ControlValueAccessor {
   }
 
   writeValue(value: CardFilter): void {
+    const badges = [
+      ...value?.members?.map((user: User) => (<Badge>{ type: this.BadgeTypeMember, value: user })) ?? [],
+      ...value?.owners?.map((user: User) => (<Badge>{ type: this.BadgeTypeOwner, value: user })) ?? [],
+      ...value?.tags?.map((tag: Tag) => (<Badge>{ type: this.BadgeTypeTag, value: tag })) ?? [],
+    ];
+
+    if (value?.includeArchived) {
+      badges.push(<Badge>{
+        type: this.BadgeTypeArchived,
+        value: true
+      });
+    }
+
     this.value = {
       text: value?.text,
-      badges: [
-        ...value?.members?.map((user: User) => (<Badge>{ type: this.BadgeTypeMember, value: user })) ?? [],
-        ...value?.owners?.map((user: User) => (<Badge>{ type: this.BadgeTypeOwner, value: user })) ?? [],
-        ...value?.tags?.map((tag: Tag) => (<Badge>{ type: this.BadgeTypeTag, value: tag })) ?? [],
-      ]
+      badges: badges
     };
   }
 
@@ -133,6 +147,25 @@ export class CardSearchInputComponent implements ControlValueAccessor {
       members: this.value.badges?.filter(t => t.type == this.BadgeTypeMember).map(t => t.value),
       owners: this.value.badges?.filter(t => t.type == this.BadgeTypeOwner).map(t => t.value),
       tags: this.value.badges?.filter(t => t.type == this.BadgeTypeTag).map(t => t.value),
+      includeArchived: this.value.badges?.find(t => t.type == this.BadgeTypeArchived)?.value,
     });
+  }
+
+  ngOnInit(): void {
+    if (this.badges.includes('member')) {
+      this.badgeTypes.push(this.BadgeTypeMember);
+    }
+
+    if (this.badges.includes('tag')) {
+      this.badgeTypes.push(this.BadgeTypeTag);
+    }
+
+    if (this.badges.includes('owner')) {
+      this.badgeTypes.push(this.BadgeTypeOwner);
+    }
+
+    if (this.badges.includes('archived')) {
+      this.badgeTypes.push(this.BadgeTypeArchived);
+    }
   }
 }

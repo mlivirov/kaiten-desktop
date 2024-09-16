@@ -12,6 +12,7 @@ export interface CardFilter {
   owners?: User[];
   tags?: Tag[];
   boardId?: number;
+  includeArchived?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -52,6 +53,12 @@ export class CardSearchService {
 
     if (filter?.boardId) {
       params = params.append('board_id', filter.boardId);
+    }
+
+    if (filter?.includeArchived) {
+      params = params.append('archived', true);
+    } else {
+      params = params.append('archived', false);
     }
 
     return this.httpClient.get<CardEx[]>(`http://server/api/latest/cards?${params.toString()}`);

@@ -11,7 +11,9 @@
                 title="Search everywhere"
                 class="flex-grow-1 me-4"
                 [ngModel]="filter"
-                (ngModelChange)="search($event)">
+                (ngModelChange)="search($event)"
+                [badges]="['tag', 'member', 'owner', 'archived']"
+            >
             </app-card-search-input>
         </div>
     </div>
@@ -21,18 +23,19 @@
     <div class="result-table mx-n3 mb-3 mt-n3 d-md-none">
         <div *ngFor="let card of cards; index as i" class="border-bottom px-2 py-1 py-2 result-row cursor-pointer" (click)="handleCardClick(card)">
             <div class="px-3">
+                <div class="smaller mb-2">
+                    <a href="javascript:void(0)" (click)="openBoard(card.board_id); $event.stopPropagation()">{{card.board.title}} / {{ getTextOrDefault(card.column.title) }} </a>
+                </div>
                 <div class="font-size-medium d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
+                    <div class="flex-grow-1 d-flex align-items-center">
                         <input type="radio" *ngIf="selectMode === 'single'" class="form-check-inline me-2" [value]="card" [ngModel]="selected[card.id]" (ngModelChange)="toggleSelected(card); $event.stopPropagation()">
                         <input type="checkbox" *ngIf="selectMode === 'multiple'" class="form-check-inline me-2" [checked]="!!selected[card.id]" (click)="toggleSelected(card); $event.stopPropagation()">
 
                         <a href="javascript:void(0)" (click)="openCard(card.id); $event.stopPropagation()"><i class="pi pi-hashtag"></i>{{card.id}}</a>
-                        <span class="mx-1">in</span>
-                        <a href="javascript:void(0)" (click)="openBoard(card.board_id); $event.stopPropagation()">{{card.board.title}}</a>
                     </div>
                     <div class="small text-nowrap d-flex flex-wrap justify-content-center align-items-center">
-                        <app-card-state-label [state]="card.state">
-                        </app-card-state-label>
+                        <app-card-state-label [state]="card.state"></app-card-state-label>
+                        <span *ngIf="card.archived" class="text-kaiten ms-2" ngbTooltip="Archived" container="body">[A]</span>
                         <span class="ms-2">({{card.updated | timeago}})</span>
                     </div>
                 </div>
@@ -47,7 +50,6 @@
         </div>
     </div>
 
-
     <div class="d-none d-md-block" >
         <table class="table table-sm table-striped mb-0">
             <thead>
@@ -57,17 +59,33 @@
                     <th>Id</th>
                     <th>Title</th>
                     <th>Responsible</th>
-                    <th>Status</th>
+                    <th class="text-center">Status</th>
+                    <th></th>
                     <th class="me-2">Updated</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngFor="let card of cards; index as i" class="cursor-pointer font-size-normal" (click)="handleCardClick(card)">
                     <td *ngIf="selectMode === 'single'" class="ps-2">
-                        <input type="radio" name="card" class="form-check-inline" [value]="card" [ngModel]="selected[card.id]" (ngModelChange)="toggleSelected(card); $event.stopPropagation()">
+                        <input
+                                type="radio"
+                                name="card"
+                                class="form-check-inline"
+                                [value]="card"
+                                [ngModel]="selected[card.id]"
+                                (ngModelChange)="toggleSelected(card); $event.stopPropagation()"
+                                [disabled]="isLoading"
+                        >
                     </td>
                     <td *ngIf="selectMode === 'multiple'" class="ps-2">
-                        <input type="checkbox" *ngIf="selectMode === 'multiple'" class="form-check-inline me-2" [checked]="!!selected[card.id]" (click)="toggleSelected(card); $event.stopPropagation()">
+                        <input
+                                type="checkbox"
+                                *ngIf="selectMode === 'multiple'"
+                                class="form-check-inline me-2"
+                                [checked]="!!selected[card.id]"
+                                (click)="toggleSelected(card); $event.stopPropagation()"
+                                [disabled]="isLoading"
+                        >
                     </td>
                     <td [class.ps-2]="selectMode === 'none'">
                         <a href="javascript:void(0)" (click)="openBoard(card.board_id); $event.stopPropagation()">
@@ -84,7 +102,10 @@
                         <app-inline-member *ngIf="getResponsible(card)" [profile]="getResponsible(card)"></app-inline-member>
                     </td>
                     <td class="text-nowrap text-center">
-                        <app-card-state-label [state]="card.state"></app-card-state-label>
+                        <app-card-state-label class="d-block" [state]="card.state"></app-card-state-label>
+                    </td>
+                    <td class="text-center">
+                        <span *ngIf="card.archived" class="text-kaiten">Archived</span>
                     </td>
                     <td class="text-nowrap pe-2">
                         {{card.updated | timeago}}

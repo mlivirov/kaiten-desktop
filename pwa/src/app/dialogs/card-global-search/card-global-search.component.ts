@@ -1,5 +1,11 @@
 import { Component, ElementRef, HostListener, Input, ViewChild } from '@angular/core';
-import { NgbActiveModal, NgbScrollSpy, NgbScrollSpyFragment, NgbScrollSpyItem } from '@ng-bootstrap/ng-bootstrap';
+import {
+  NgbActiveModal,
+  NgbScrollSpy,
+  NgbScrollSpyFragment,
+  NgbScrollSpyItem,
+  NgbTooltip
+} from '@ng-bootstrap/ng-bootstrap';
 import { FileService } from '../../services/file.service';
 import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
 import { FormsModule } from '@angular/forms';
@@ -12,6 +18,7 @@ import { MemberType } from '../../models/member-type';
 import { InlineMemberComponent } from '../../components/inline-member/inline-member.component';
 import { finalize } from 'rxjs';
 import { CardFilter, CardSearchService } from '../../services/card-search.service';
+import { getTextOrDefault } from '../../functions/get-text-or-default.function';
 
 export type CardSearchSelectMode = 'single'|'multiple'|'none';
 
@@ -31,6 +38,7 @@ export type CardSearchSelectMode = 'single'|'multiple'|'none';
     NgbScrollSpyFragment,
     JsonPipe,
     NgbScrollSpyItem,
+    NgbTooltip,
   ],
   templateUrl: './card-global-search.component.html',
   styleUrl: './card-global-search.component.scss'
@@ -164,4 +172,6 @@ export class CardGlobalSearchComponent {
   getSelectedCount(): number {
     return Object.keys(this.selected).length;
   }
+
+  protected readonly getTextOrDefault = getTextOrDefault;
 }

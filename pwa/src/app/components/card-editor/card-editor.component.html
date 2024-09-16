@@ -27,6 +27,7 @@
 
     <h3 *ngIf="showHeader" class="mt-2 d-flex">
         <div class="flex-grow-1">
+            <div class="badge smaller bg-kaiten text-white" *ngIf="card.archived">Archived</div>
             <app-text-editor
                     type="textarea"
                     placeholder="Add a card title here"
