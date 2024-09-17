@@ -4,6 +4,7 @@ $enable-negative-margins: true;
 @import 'primeicons/primeicons.css';
 @import '@toast-ui/editor/dist/toastui-editor.css';
 @import "../node_modules/dragula/dist/dragula.css";
+@import "../node_modules/simplemde/dist/simplemde.min.css";
 
 $gray-1000: #131e28;
 
@@ -11,10 +12,46 @@ $gray-1000: #131e28;
   margin-top: 0.25rem;
 }
 
+.tui-editor-defaultUI-toolbar .custom-button {
+  font-weight: bold;
+  width: unset;
+  color: $dark;
+  padding-top: 2px;
+}
+
+.simplemde-toolbar {
+  min-height: 32px;
+  padding: 0 10px;
+  border: $border-width $border-style $border-color;
+  border-bottom: none;
+  display: flex;
+  align-items: center;
+  background-color: white;
+  color: $dark !important;
+
+  button {
+    border: 1px solid #aaa;
+    background-color: #fff;
+    color: $dark !important;
+    min-width: 22px;
+    height: 22px;
+    padding: 2px 3px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+}
+
+.simplemde .CodeMirror-scroll,
+.simplemde .CodeMirror {
+  min-height: 100px !important;
+}
+
+.simplemde,
 .tui-editor-contents {
   font-size: 14px;
 }
 
+.small .simplemde,
 .small .tui-editor-contents {
   font-size: 12.9px;
 }
@@ -23,7 +60,6 @@ $gray-1000: #131e28;
   margin-top: 0;
   margin-bottom: 0;
 }
-
 
 .tui-editor-contents blockquote {
   margin-top: 0.5rem;
@@ -34,8 +70,22 @@ $gray-1000: #131e28;
   }
 }
 
+.te-ww-block-overlay.code-block-header {
+  display: none !important;
+}
+
+.tui-editor-contents,
+.tui-editor-contents blockquote,
+.tui-editor-contents [data-te-codeblock],
+.simplemde .CodeMirror-wrap pre {
+  word-break: break-word;
+  word-wrap: break-word;
+  text-wrap: wrap;
+}
+
 .text-bg-purple,
 [data-bs-theme="dark"] {
+  .simplemde .CodeMirror,
   .tui-editor-contents ul,
   .tui-editor-contents menu,
   .tui-editor-contents ol,
@@ -77,11 +127,14 @@ $gray-1000: #131e28;
     background-color: $dark-bg-subtle;
   }
 
+  .simplemde .CodeMirror td,
+  .simplemde .CodeMirror th,
   .tui-editor-contents td,
   .tui-editor-contents th {
     border-color: $gray-200 !important;
   }
 
+  .simplemde .CodeMirror,
   .te-ww-container {
     background-color: $gray-800 !important;
     color: $white
@@ -155,8 +208,10 @@ $gray-1000: #131e28;
 
 body {
   margin-bottom: .5rem;
-  min-width: fit-content;
-  //background-color: $gray-100 !important;
+}
+
+body:has(app-board-page) {
+  min-width: fit-content !important;
 }
 
 $bg-gray: #F7F9FA;
@@ -335,4 +390,10 @@ app-list-of-related-cards .list .item:last-child {
 .border-after:after {
   content: ' ';
   border-right: $border-width $border-style $border-color;
+}
+
+@media only screen and (min-width: 768px) {
+  .modal-90-prc {
+    min-width: 90% !important;
+  }
 }

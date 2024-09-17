@@ -285,6 +285,7 @@ export class DialogService {
         return closable;
       },
       size: 'xl',
+      modalDialogClass: 'modal-90-prc'
     });
 
     instance.componentInstance.card = card;

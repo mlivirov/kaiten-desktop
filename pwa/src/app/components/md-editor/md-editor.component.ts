@@ -10,6 +10,10 @@ import { User } from '../../models/user';
 import WysiwygEditor = toastui.WysiwygEditor;
 import { CardsTypeaheadOperator } from '../../functions/typeahead/cards.typeahead-operator';
 import { Card } from '../../models/card';
+import SimpleMDE from 'simplemde';
+import { AutosizeModule } from 'ngx-autosize';
+import ToolbarItem = toastui.ToolbarItem;
+import ToolbarButton = toastui.ToolbarButton;
 
 @Component({
   selector: 'app-md-editor',
@@ -20,7 +24,8 @@ import { Card } from '../../models/card';
     NgbTypeahead,
     ReactiveFormsModule,
     NgbPopover,
-    FormsModule
+    FormsModule,
+    AutosizeModule
   ],
   templateUrl: './md-editor.component.html',
   styleUrl: './md-editor.component.scss',
@@ -33,9 +38,13 @@ import { Card } from '../../models/card';
   ]
 })
 export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValueAccessor {
-  @ViewChild('editor')
-  editorRef: ElementRef;
-  editor: Editor;
+  @ViewChild('wysiwygEditorContainer')
+  wysiwygEditorContainer: ElementRef;
+  wysiwygEditor: Editor;
+
+  @ViewChild('markdownEditorTextarea')
+  markdownEditorTextarea: ElementRef<HTMLTextAreaElement>;
+  markdownEditor: SimpleMDE;
 
   @Input()
   hideToolbar: boolean = false;
@@ -55,6 +64,9 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
   @ViewChild('cardsPopover', { read: NgbPopover })
   cardsPopover: NgbPopover;
 
+  @Input()
+  mode: 'markdown' | 'wysiwyg' = 'wysiwyg';
+
   value: string;
 
   allUsersTypeaheadSearch = UsersTypeaheadOperator();
@@ -70,9 +82,58 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
   }
 
   ngAfterViewInit(): void {
+    if (this.mode === 'markdown') {
+      this.initMarkdownEditor();
+    } else {
+      this.initWysiwygEditor();
+    }
+  }
+
+  destroyMarkdownEditor() {
+    if (!this.markdownEditor) {
+      return;
+    }
+
+    this.markdownEditor.toTextArea();
+    delete this.markdownEditor;
+  }
+
+  initMarkdownEditor() {
+    this.mode = 'markdown';
+    this.destroyWysiwygEditor();
     const self = this;
-    this.editor = new Editor({
-      el: this.editorRef.nativeElement,
+    this.markdownEditor = new SimpleMDE({
+      element: this.markdownEditorTextarea.nativeElement,
+      spellChecker: false,
+      toolbar: false,
+      placeholder: this.placeholder,
+      initialValue: this.value,
+      autofocus: true,
+      forceSync: true,
+      status: false
+    });
+
+    this.markdownEditor.codemirror.on('change', () => {
+      self.value = this.markdownEditor.value();
+      self.changeCallback?.call(self, self.value);
+    });
+  }
+
+  destroyWysiwygEditor() {
+    if (!this.wysiwygEditor) {
+      return;
+    }
+
+    this.wysiwygEditor.remove();
+    delete this.wysiwygEditor;
+  }
+
+  initWysiwygEditor() {
+    this.mode = 'wysiwyg';
+    this.destroyMarkdownEditor();
+    const self = this;
+    this.wysiwygEditor = new Editor({
+      el: this.wysiwygEditorContainer.nativeElement,
       minHeight: `${this.minHeight}px`,
       height: 'auto',
       initialEditType: 'wysiwyg',
@@ -82,7 +143,8 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
       placeholder: this.placeholder,
       events: {
         change() {
-          self.changeCallback?.call(self, self.editor.getMarkdown());
+          self.value = self.wysiwygEditor.getMarkdown();
+          self.changeCallback?.call(self, self.value);
         },
         focus() {
           self.touchedCallback?.call(self);
@@ -93,9 +155,31 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
       ]
     });
 
-    this.editor.on('keyup', ({data}) => {
+    const toolbarButton = document.createElement('button');
+    toolbarButton.innerText = 'MARKDOWN';
+    toolbarButton.classList.add('custom-button');
+    toolbarButton.onclick = () => {
+      this.initMarkdownEditor();
+    }
+
+    this.wysiwygEditor.getUI().getToolbar().insertItem(0, {
+      el: toolbarButton,
+      on() {
+        toolbarButton.disabled = false;
+      },
+      off() {
+        toolbarButton.disabled = true;
+      },
+      remove: null,
+      trigger: null,
+      destroy() {
+        toolbarButton.remove();
+      }
+    } as unknown as ToolbarItem);
+
+    this.wysiwygEditor.on('keyup', ({data}) => {
       const event = data as KeyboardEvent;
-      const range = this.editor.getRange() as Range;
+      const range = this.wysiwygEditor.getRange() as Range;
       if (event.code === 'Space' && range.endContainer.parentElement.innerHTML.startsWith('&gt;&nbsp;')) {
         range.startContainer.textContent = range.startContainer.textContent.substring(2);
         const block = document.createElement('div');
@@ -131,7 +215,8 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
   }
 
   ngOnDestroy(): void {
-    this.editor?.remove();
+    this.destroyMarkdownEditor();
+    this.destroyWysiwygEditor();
   }
 
   registerOnChange(fn: any): void {
@@ -145,24 +230,25 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
   setDisabledState(isDisabled: boolean) {
     setTimeout(() => {
       if (isDisabled) {
-        this.editor?.getUI().getToolbar().disableAllButton();
+        this.wysiwygEditor?.getUI().getToolbar().disableAllButton();
       } else {
-        this.editor?.getUI().getToolbar().enableAllButton();
+        this.wysiwygEditor?.getUI().getToolbar().enableAllButton();
       }
     }, 1);
   }
 
   writeValue(obj: any): void {
     this.value = obj;
-    this.editor?.setMarkdown(this.value);
+    this.wysiwygEditor?.setMarkdown(this.value);
+    this.markdownEditor?.value(this.value || '');
   }
 
   cancelMention() {
     this.usersPopover.close();
     this.cardsPopover.close();
-    this.editor.focus();
+    this.wysiwygEditor.focus();
 
-    const wysiwygEditor = this.editor.getCurrentModeEditor() as WysiwygEditor;
+    const wysiwygEditor = this.wysiwygEditor.getCurrentModeEditor() as WysiwygEditor;
     wysiwygEditor.getBody().querySelectorAll('[data-type="container"]').forEach(e => e.remove());
   }
 
@@ -171,7 +257,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
       return;
     }
 
-    const wysiwygEditor = this.editor.getCurrentModeEditor() as WysiwygEditor;
+    const wysiwygEditor = this.wysiwygEditor.getCurrentModeEditor() as WysiwygEditor;
 
     const element = document.createElement('a');
     element.setAttribute('href', `/${card.id}`);
@@ -179,7 +265,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     element.innerText = `${card.id} - ${card.title}`;
     const separatorElement = document.createTextNode('\u00A0');
 
-    const range = this.editor.getRange() as Range;
+    const range = this.wysiwygEditor.getRange() as Range;
     range.endContainer.textContent = range.endContainer.textContent.substring(0, range.endContainer.textContent.length - 1);
 
     const anchor = wysiwygEditor.getBody().querySelector('[data-type="container"]');
@@ -190,7 +276,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
 
     this.cardsPopover.close();
     setTimeout(() => {
-      this.editor.focus();
+      this.wysiwygEditor.focus();
     }, 1);
   }
 
@@ -199,7 +285,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
       return;
     }
 
-    const wysiwygEditor = this.editor.getCurrentModeEditor() as WysiwygEditor;
+    const wysiwygEditor = this.wysiwygEditor.getCurrentModeEditor() as WysiwygEditor;
 
     const element = document.createElement('a');
     element.setAttribute('href', 'javascript:void(0)');
@@ -207,7 +293,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     element.classList.add('text-primary-balanced');
     element.innerHTML = `@${user.username}`;
     const separatorElement = document.createTextNode(',\u00A0');
-    const range = this.editor.getRange() as Range;
+    const range = this.wysiwygEditor.getRange() as Range;
     range.endContainer.textContent = range.endContainer.textContent.substring(0, range.endContainer.textContent.length - 1);
 
     const anchor = wysiwygEditor.getBody().querySelector('[data-type="container"]');
@@ -218,7 +304,12 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
 
     this.usersPopover.close();
     setTimeout(() => {
-      this.editor.focus();
+      this.wysiwygEditor.focus();
     }, 1);
+  }
+
+  handleMarkdownChanges(value: string) {
+    this.value = value;
+    this.wysiwygEditor?.setMarkdown(value);
   }
 }

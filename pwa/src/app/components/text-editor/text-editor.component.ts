@@ -163,7 +163,8 @@ export class TextEditorComponent implements ControlValueAccessor {
       setTimeout(() => {
         const editorElement =
           this.type === 'markdown'
-            ? (this.mdEditorElementRef?.nativeElement as HTMLElement).querySelector('[contenteditable]') as HTMLElement
+            ? ((this.mdEditorElementRef?.nativeElement as HTMLElement).querySelector('[contenteditable]')
+                || (this.mdEditorElementRef?.nativeElement as HTMLElement).querySelector('textarea')) as HTMLElement
             : (this.textEditorElementRef.nativeElement as HTMLElement);
 
         editorElement.scrollIntoView({

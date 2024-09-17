@@ -85,13 +85,12 @@
     </div>
 </ng-template>
 
-
-<div class="row">
+<div class="d-flex flex-column flex-md-row">
     <div class="d-md-none px-0">
         <ng-container *ngTemplateOutlet="headerAndTitle"></ng-container>
     </div>
 
-    <div class="col-12 px-0 px-sm-3 col-md-7 col-lg-8 col-xl-9 order-1 order-md-0">
+    <div class="order-1 order-md-0 flex-grow-1">
         <div class="d-none d-md-block">
             <ng-container *ngTemplateOutlet="headerAndTitle"></ng-container>
         </div>
@@ -132,7 +131,7 @@
         </div>
     </div>
 
-    <div class="mt-0 col-12 col-md-5 col-lg-4 col-xl-3 order-0 order-md-1 px-0">
+    <div class="ms-md-3 order-0 order-md-1 properties-min-width-container">
         <a href="javascript:void(0)"
            class="text-secondary text-decoration-none d-block"
            [class.d-md-none]="collapsableProperties && !isCollapsedProperties"
@@ -140,16 +139,21 @@
         >
             <div class="small d-flex">
                 <div class="border-bottom flex-grow-1 mb-2"></div>
-                <span class="mx-2 text-secondary">{{ isCollapsedProperties ? 'expand properties' : 'collapse properties'}}</span>
+                <span class="mx-2 text-secondary">
+                    <i class="pi" [ngClass]="{ 'pi-chevron-up': !isCollapsedProperties, 'pi-chevron-down': isCollapsedProperties }"></i>
+                    {{ isCollapsedProperties ? 'expand properties' : 'collapse properties'}}
+                </span>
                 <div class="border-bottom flex-grow-1 mb-2"></div>
             </div>
         </a>
         <div
                 class="sticky-top z-1 border border-1 border-dark-subtle bg-secondary-balanced"
-                style="top: .5rem"
+                style="top: .5rem;"
                 #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsedProperties"
         >
-            <app-card-properties [card]="card"></app-card-properties>
+            <div class="overflow-y-auto overflow-x-hidden properties-min-height-container" [ngStyle]="{ 'height': propertiesHeight + 'px' }">
+                <app-card-properties [card]="card"></app-card-properties>
+            </div>
         </div>
     </div>
 </div>

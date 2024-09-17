@@ -37,7 +37,7 @@
         <app-inline-member [showName]="false" [profile]="currentUser"></app-inline-member>
     </div>
     <div class="flex-grow-1 ms-2" (keyup.control.enter)="submit()">
-        <app-md-editor [(ngModel)]="text" [minHeight]="100"></app-md-editor>
+        <app-md-editor [(ngModel)]="text" [minHeight]="100" placeholder="Type your comment here"></app-md-editor>
         <div class="mt-2">
             <button class="btn btn-sm btn-outline-primary"
                     [disabled]="isSavingInProgress || !text"

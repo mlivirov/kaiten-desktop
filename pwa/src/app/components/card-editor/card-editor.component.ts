@@ -1,10 +1,10 @@
-import { Component, EventEmitter, Inject, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, HostListener, Inject, Input, OnInit, Output, ViewChild } from '@angular/core';
 import {
   AsyncPipe,
   DatePipe,
-  JsonPipe,
+  JsonPipe, NgClass,
   NgForOf,
-  NgIf,
+  NgIf, NgStyle,
   NgSwitch,
   NgSwitchCase,
   NgSwitchDefault,
@@ -95,6 +95,8 @@ import { MdViewerComponent } from '../md-viewer/md-viewer.component';
     CopyToClipboardButtonComponent,
     CardAttachmentsComponent,
     MdViewerComponent,
+    NgStyle,
+    NgClass,
   ],
   templateUrl: './card-editor.component.html',
   styleUrl: './card-editor.component.scss',
@@ -139,6 +141,10 @@ export class CardEditorComponent implements OnInit {
   cardTypes: CardType[] = [];
 
   clipboardLink$: Observable<string>;
+
+  get propertiesHeight(): number {
+    return window.outerHeight * 0.8;
+  }
 
   constructor(
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,

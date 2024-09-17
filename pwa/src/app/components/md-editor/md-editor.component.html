@@ -1,5 +1,12 @@
-<div [ngClass]="{'border border-1': !hideBorder, 'no-toolbar': hideToolbar}" #editor></div>
+<div [ngClass]="{'border border-1': !hideBorder, 'no-toolbar': hideToolbar, 'd-none': mode === 'markdown'}" #wysiwygEditorContainer></div>
 
+<div class="simplemde" [ngClass]="{ 'd-none': mode === 'wysiwyg' }">
+    <div class="simplemde-toolbar">
+        <span class="small opacity-50 text-uppercase user-select-none">Markdown editor</span>
+        <button type="button" class="ms-auto" (click)="initWysiwygEditor()"><i class="pi pi-eye"></i> WYSIWYG EDITOR</button>
+    </div>
+    <textarea #markdownEditorTextarea></textarea>
+</div>
 
 <ng-template #userPopoverContent>
     <ng-template #userTypeahead let-profile="result">
