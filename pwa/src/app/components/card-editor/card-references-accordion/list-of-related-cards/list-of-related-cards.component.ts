@@ -32,32 +32,21 @@ export interface CardReference {
   styleUrl: './list-of-related-cards.component.scss'
 })
 export class ListOfRelatedCardsComponent {
-  CardState = CardState;
+  protected readonly CardState = CardState;
+  @Input() public title: string;
+  @Input() public completedLabel: string;
+  @Input() public items: CardReference[];
+  @Output() protected delete: EventEmitter<CardReference> = new EventEmitter();
+  @Input() public disabled: boolean = false;
 
-  @Input()
-  title: string;
-
-  @Input()
-  completedLabel: string;
-
-  @Input()
-  items: CardReference[];
-  
-  @Output()
-  delete: EventEmitter<CardReference> = new EventEmitter();
-
-  constructor(private router: Router) {
+  public constructor(private router: Router) {
   }
 
-  getResponsible(users: Owner[]): Owner[] {
+  protected getResponsible(users: Owner[]): Owner[] {
     return users?.filter(t => t.type === MemberType.Responsible) || [];
   }
 
-  openCard(id: number) {
+  protected openCard(id: number): void {
     this.router.navigate(['card', id]);
   }
-
-  protected readonly open = open;
-
-  @Input() disabled: boolean = false;
 }

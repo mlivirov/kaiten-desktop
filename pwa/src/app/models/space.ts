@@ -15,7 +15,7 @@ export interface Space {
   company_id: number;
   id: number;
   title: string;
-  allowed_card_type_ids: any[] | null;
+  allowed_card_type_ids: number[] | null;
   external_id: null;
   settings: null;
   role_permissions: RolePermissions;

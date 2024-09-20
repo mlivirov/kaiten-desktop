@@ -1,16 +1,15 @@
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { Column } from '../models/column';
-import { FileService } from './file.service';
 import { Card } from '../models/card';
 import { BoardService } from './board.service';
 
 @Injectable({ providedIn: 'root' })
 export class CardTransitionService {
-  constructor(private boardsService: BoardService) {
+  public constructor(private boardsService: BoardService) {
   }
 
-  getTransitionColumns(card: Card): Observable<{ from: Column, to: Column }|null> {
+  public getTransitionColumns(card: Card): Observable<{ from: Column, to: Column }|null> {
     return this.boardsService
       .getBoard(card.board_id)
       .pipe(

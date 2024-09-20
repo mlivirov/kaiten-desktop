@@ -15,14 +15,14 @@ export class TimespanPipe implements PipeTransform {
     { label: 'second', seconds: 1 }
   ];
 
-  transform(value: number): string {
+  public transform(value: number): string {
     const { interval, unit } = this.calculateTimeDifference(value / 1000);
     const suffix = interval === 1 ? '' : 's';
     return `${interval} ${unit}${suffix}`;
   }
 
-  calculateTimeDifference (time: number) {
-    for (let { label, seconds } of this.units) {
+  private calculateTimeDifference(time: number): { interval: number; unit: string } {
+    for (const { label, seconds } of this.units) {
       const interval = Math.floor(time / seconds);
       if (interval >= 1) {
         return {
@@ -35,5 +35,5 @@ export class TimespanPipe implements PipeTransform {
       interval: 0,
       unit: ''
     };
-  };
+  }
 }

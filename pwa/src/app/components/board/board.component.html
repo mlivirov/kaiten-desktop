@@ -1,76 +1,113 @@
-<ng-template #boardColumn let-title="title" let-index="index" let-columnId="columnId">
-    <div *ngIf="!(hideEmpty && !cardsByColumnId[columnId]?.length)" class="d-flex border-bottom column-content w-100" style="border-bottom-style: dashed !important;">
-        <div class="text-uppercase {{'bg-grad-' + index}} z-0" style="min-width: 19px;">
-            <strong class="sticky-top my-3 user-select-none subcolumn-header" style="text-orientation: mixed; writing-mode: vertical-rl; font-size: small;">
-                {{getTextOrDefault(title)}}
-            </strong>
-        </div>
-        <div class="mx-2 pt-2 w-100"
-             dragula="CARD"
-             [attr.data-column-id]="columnId"
-             style="min-width: 10rem"
-        >
-            <ng-container *ngFor="let card of cardsByColumnId[columnId]">
-                <app-card [card]="card" (updated)="refresh(true)" [attr.data-card-id]="card.id" (open)="openCard.emit($event)"></app-card>
-            </ng-container>
-
-            <div *ngIf="!cardsByColumnId[columnId]?.length" class="text-center">
-                <span class="text-muted small">No cards in this state</span>
-            </div>
-        </div>
+<ng-template
+  #boardColumn
+  let-title="title"
+  let-index="index"
+  let-columnId="columnId"
+>
+  <div
+    *ngIf="!(hideEmpty && !cardsByColumnId[columnId]?.length)"
+    class="d-flex border-bottom column-content w-100"
+    style="border-bottom-style: dashed !important;"
+  >
+    <div
+      class="text-uppercase {{'bg-grad-' + index}} z-0"
+      style="min-width: 19px;"
+    >
+      <strong
+        class="sticky-top my-3 user-select-none subcolumn-header"
+        style="text-orientation: mixed; writing-mode: vertical-rl; font-size: small;"
+      >
+        {{getTextOrDefault(title)}}
+      </strong>
     </div>
+    <div
+      class="mx-2 pt-2 w-100"
+      dragula="CARD"
+      [attr.data-column-id]="columnId"
+      style="min-width: 10rem"
+    >
+      <ng-container *ngFor="let card of cardsByColumnId[columnId]">
+        <app-card
+          [card]="card"
+          (updated)="refresh(true)"
+          [attr.data-card-id]="card.id"
+          (openRequest)="openCard.emit($event)"
+        ></app-card>
+      </ng-container>
+
+      <div
+        *ngIf="!cardsByColumnId[columnId]?.length"
+        class="text-center"
+      >
+        <span class="text-muted small">No cards in this state</span>
+      </div>
+    </div>
+  </div>
 </ng-template>
 
-<ng-template #viewColumnsTemplate let-columns="columns" let-viewColumnIndex="viewColumnIndex">
-    <div class="w-100 d-flex flex-column grid-column" dragula="COLUMN" [attr.data-view-column-index]="viewColumnIndex">
-        <div *ngFor="let column of columns; index as i"
-             [attr.data-column-index]="i"
-             class="column"
+<ng-template
+  #viewColumnsTemplate
+  let-columns="columns"
+  let-viewColumnIndex="viewColumnIndex"
+>
+  <div
+    class="w-100 d-flex flex-column grid-column"
+    dragula="COLUMN"
+    [attr.data-view-column-index]="viewColumnIndex"
+  >
+    <div
+      *ngFor="let column of columns; index as i"
+      [attr.data-column-index]="i"
+      class="column"
+    >
+      <div class="d-flex align-items-center justify-content-between strong small border border-1 p-1 column-title cursor-move sticky-top z-1 column-header bg-light-subtle">
+        <span
+          class="user-select-none"
+          [ngbTooltip]="getTextOrDefault(column.title, board.title)"
+          container="body"
+        >{{getTextOrDefault(column.title, board.title)}}</span>
+        <span
+          class="ms-2 small text-nowrap"
+          ngbTooltip="WIP limit"
+          container="body"
+          *ngIf="column.wip_limit"
+          [class.text-danger]="column.wip_limit < getColumnLimitFulfillment(column.id, column.wip_limit_type)"
+          [class.text-warning]="getColumnLimitFulfillment(column.id, column.wip_limit_type) / column.wip_limit * 100. > 80."
+          [class.text-success]="getColumnLimitFulfillment(column.id, column.wip_limit_type) / column.wip_limit * 100. < 50."
         >
-            <div class="d-flex align-items-center justify-content-between strong small border border-1 p-1 column-title cursor-move sticky-top z-1 column-header bg-light-subtle">
-                <span class="user-select-none"
-                      [ngbTooltip]="getTextOrDefault(column.title, board.title)"
-                      container="body"
-                >{{getTextOrDefault(column.title, board.title)}}</span>
-                <span class="ms-2 small text-nowrap"
-                      ngbTooltip="WIP limit"
-                      container="body"
-                      *ngIf="column.wip_limit"
-                      [class.text-danger]="column.wip_limit < getColumnLimitFullfillment(column.id, column.wip_limit_type)"
-                      [class.text-warning]="getColumnLimitFullfillment(column.id, column.wip_limit_type) / column.wip_limit * 100. > 80."
-                      [class.text-success]="getColumnLimitFullfillment(column.id, column.wip_limit_type) / column.wip_limit * 100. < 50.">
-                    [{{getColumnLimitFullfillment(column.id, column.wip_limit_type)}} of {{column.wip_limit}}]
-                </span>
-                <span class="ms-2 small text-nowrap"
-                      ngbTooltip="Cards in column"
-                      *ngIf="!column.wip_limit"
-                >
-                    [{{cardsCountByRootColumnId[column.id] ?? 0}}]
-                </span>
-            </div>
-            <ng-container *ngIf="column?.subcolumns?.length">
-                <ng-container
-                        *ngFor="let subcolumn of column.subcolumns; index as i"
-                        [ngTemplateOutlet]="boardColumn"
-                        [ngTemplateOutletContext]="{index: i, title: subcolumn.title, columnId: subcolumn.id}"
-                >
-                </ng-container>
-            </ng-container>
+          [{{getColumnLimitFulfillment(column.id, column.wip_limit_type)}} of {{column.wip_limit}}]
+        </span>
+        <span
+          class="ms-2 small text-nowrap"
+          ngbTooltip="Cards in column"
+          *ngIf="!column.wip_limit"
+        >
+          [{{cardsCountByRootColumnId[column.id] ?? 0}}]
+        </span>
+      </div>
+      <ng-container *ngIf="column?.subcolumns?.length">
+        <ng-container
+          *ngFor="let subcolumn of column.subcolumns; index as i"
+          [ngTemplateOutlet]="boardColumn"
+          [ngTemplateOutletContext]="{index: i, title: subcolumn.title, columnId: subcolumn.id}"
+        >
+        </ng-container>
+      </ng-container>
 
-            <ng-container
-                    *ngIf="!column.subcolumns?.length"
-                    [ngTemplateOutlet]="boardColumn"
-                    [ngTemplateOutletContext]="{index: 0, title: column.title, columnId: column.id}"
-            >
-            </ng-container>
-        </div>
+      <ng-container
+        *ngIf="!column.subcolumns?.length"
+        [ngTemplateOutlet]="boardColumn"
+        [ngTemplateOutletContext]="{index: 0, title: column.title, columnId: column.id}"
+      >
+      </ng-container>
     </div>
+  </div>
 </ng-template>
 
 <div class="d-flex flex-wrap flex-md-nowrap">
-    <ng-container
-            *ngFor="let viewColumn of viewColumns; index as i"
-            [ngTemplateOutlet]="viewColumnsTemplate"
-            [ngTemplateOutletContext]="{columns: viewColumn.columns, viewColumnIndex: i}"
-    ></ng-container>
+  <ng-container
+    *ngFor="let viewColumn of viewColumns; index as i"
+    [ngTemplateOutlet]="viewColumnsTemplate"
+    [ngTemplateOutletContext]="{columns: viewColumn.columns, viewColumnIndex: i}"
+  ></ng-container>
 </div>

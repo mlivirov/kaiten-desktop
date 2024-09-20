@@ -12,18 +12,12 @@ import { Observable, take } from 'rxjs';
   styleUrl: './copy-to-clipboard-button.component.scss'
 })
 export class CopyToClipboardButtonComponent {
-  @ViewChild(NgbTooltip)
-  tooltip: NgbTooltip;
+  @ViewChild(NgbTooltip) protected tooltip: NgbTooltip;
+  @Input() public btnClass = '';
+  @Input() public data: Observable<string>;
+  protected justCopied: boolean = false;
 
-  @Input()
-  btnClass = '';
-
-  @Input()
-  data!: Observable<string>;
-
-  justCopied: boolean = false;
-
-  copy() {
+  protected copy(): void {
     this.data
       .pipe(
         take(1)

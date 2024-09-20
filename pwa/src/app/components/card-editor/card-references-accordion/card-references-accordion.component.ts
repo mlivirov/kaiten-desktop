@@ -13,6 +13,7 @@ import { CardReference, ListOfRelatedCardsComponent } from './list-of-related-ca
 import { NgForOf, NgIf, NgStyle } from '@angular/common';
 import { CardEx } from '../../../models/card-ex';
 import { CardState } from '../../../models/card-state';
+import { nameof } from '../../../functions/name-of';
 
 export type ReferenceType = 'BLOCKER'|'BLOCKING'|'CHILDREN'|'PARENT';
 
@@ -36,37 +37,25 @@ export interface GroupOfReferences {
   styleUrl: './card-references-accordion.component.scss'
 })
 export class CardReferencesAccordionComponent implements OnChanges {
-  @Input({ required: true })
-  card: CardEx;
+  @Input({ required: true }) public card: CardEx;
+  protected references: GroupOfReferences[] = [];
+  @ViewChildren('group', { read: ElementRef }) protected groups: QueryList<ElementRef>;
+  protected countOfAllReferences: number = 0;
+  @Output() protected deleteParent: EventEmitter<number> = new EventEmitter();
+  @Output() protected deleteChild: EventEmitter<number> = new EventEmitter();
+  @Output() protected deleteBlocker: EventEmitter<number> = new EventEmitter();
+  @Input() public disabled: boolean = false;
 
-  references: GroupOfReferences[] = [];
-
-  @ViewChildren('group', { read: ElementRef })
-  groups: QueryList<ElementRef>;
-
-  countOfAllReferences: number = 0;
-
-  @Output()
-  deleteParent: EventEmitter<number> = new EventEmitter();
-
-  @Output()
-  deleteChild: EventEmitter<number> = new EventEmitter();
-
-  @Output()
-  deleteBlocker: EventEmitter<number> = new EventEmitter();
-
-  @Input() disabled: boolean = false;
-
-  focus(index: number) {
+  protected focus(index: number): void {
     (this.groups.get(index).nativeElement as HTMLElement).scrollIntoView({ block: 'start' });
   }
 
-  focusByType(type: ReferenceType) {
+  public focusByType(type: ReferenceType): void {
     const index = this.references.findIndex(t => t.type === type);
     this.focus(index);
   }
 
-  extractReferences(): GroupOfReferences[] {
+  private extractReferences(): GroupOfReferences[] {
     return [
       <GroupOfReferences>{
         type: 'BLOCKER',
@@ -111,12 +100,14 @@ export class CardReferencesAccordionComponent implements OnChanges {
     ].filter(t => t.references.length);
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    this.references = this.extractReferences();
-    this.countOfAllReferences = this.references.reduce((agg, i) => [...agg, ...i.references], []).length;
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<CardReferencesAccordionComponent>('card')]) {
+      this.references = this.extractReferences();
+      this.countOfAllReferences = this.references.reduce((agg, i) => [...agg, ...i.references], []).length;
+    }
   }
 
-  deleteReference(group: GroupOfReferences, item: CardReference) {
+  protected deleteReference(group: GroupOfReferences, item: CardReference): void {
     if (group.type === 'BLOCKER') {
       this.deleteBlocker.emit(item.id);
     } else if (group.type === 'CHILDREN') {

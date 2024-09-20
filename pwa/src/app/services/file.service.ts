@@ -4,10 +4,10 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class FileService {
-  constructor(private httpClient: HttpClient) {
+  public constructor(private httpClient: HttpClient) {
   }
 
-  getFile(url: string): Observable<Blob> {
+  public getFile(url: string): Observable<Blob> {
     return this.httpClient.get(url, {
       responseType: 'blob'
     });

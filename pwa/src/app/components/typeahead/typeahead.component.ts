@@ -17,20 +17,21 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
 import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 import { JsonPipe, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { debounceTime, finalize, Observable, Subject } from 'rxjs';
+import { ChangeCallback, TouchedCallback } from '../../core/types/change-callback.type';
 
 export interface BadgeType {
   name: string;
   multi: boolean;
-  getTitle(item: any): string;
+  getTitle(item: unknown): string;
 }
 
 export interface Badge {
   type: BadgeType;
-  value: any;
+  value: unknown;
 }
 
 export interface BadgeService {
-  getOptions(type: BadgeType, offset: number, limit: number, query: string): Observable<any>;
+  getOptions(type: BadgeType, offset: number, limit: number, query: string): Observable<unknown[]>;
 }
 
 export const BADGE_SERVICE: InjectionToken<BadgeService> = new InjectionToken('BadgeService');
@@ -44,10 +45,10 @@ export interface TypeaheadComponentValue {
   selector: '[appTypeaheadBadgeItemTemplate]',
   standalone: true,
 })
-export class TypeaheadBadgeItemTemplate {
-  @Input() type: BadgeType;
-  
-  constructor(@Self() public templateRef: TemplateRef<any>) {
+export class TypeaheadBadgeItemTemplateDirective {
+  @Input() public type: BadgeType;
+
+  public constructor(@Self() public templateRef: TemplateRef<unknown>) {
   }
 }
 
@@ -73,45 +74,25 @@ export class TypeaheadBadgeItemTemplate {
   ]
 })
 export class TypeaheadComponent implements ControlValueAccessor {
-  value: string = '';
-  popoverItems: any[] = [];
-  popoverItemsLoading: boolean = false;
+  protected value: string = '';
+  protected popoverItems: Array<unknown> = [];
+  protected popoverItemsLoading: boolean = false;
+  protected currentPopoverItemIndex = 0;
+  @ViewChild('input', { read: NgbPopover }) private popover: NgbPopover;
+  @ViewChild('input', { read: ElementRef }) private input: ElementRef;
+  @Input() public title: string;
+  @Input() public titleClass: string;
+  @Input() public badgeTypes: BadgeType[] = [];
+  @Input() public inputClass: string = '';
+  @Input() public placeholder: string;
+  @ContentChildren(TypeaheadBadgeItemTemplateDirective) protected itemTemplates: QueryList<TypeaheadBadgeItemTemplateDirective> = new QueryList();
+  protected badges: Badge[] = [];
+  protected currentBadgeType: BadgeType = null;
+  private onChangeCallback?: ChangeCallback<TypeaheadComponentValue>;
+  private onTouchedCallback?: TouchedCallback;
+  private changeSubject = new Subject<void>();
 
-  currentPopoverItemIndex = 0;
-
-  @ViewChild('input', { read: NgbPopover })
-  popover: NgbPopover;
-
-  @ViewChild('input', { read: ElementRef })
-  input: ElementRef;
-
-  @Input()
-  title: string;
-
-  @Input()
-  titleClass: string;
-
-  @Input()
-  badgeTypes: BadgeType[] = [];
-
-  @Input()
-  inputClass: string = '';
-
-  @Input()
-  placeholder: string;
-
-  @ContentChildren(TypeaheadBadgeItemTemplate)
-  itemTemplates: QueryList<TypeaheadBadgeItemTemplate> = new QueryList();
-
-  badges: Badge[] = [];
-  currentBadgeType: BadgeType = null;
-
-  onChangeCallback?: (value: TypeaheadComponentValue) => void;
-  onTouchedCallback?: () => void;
-
-  changeSubject = new Subject<void>();
-
-  constructor(@Inject(BADGE_SERVICE) private badgeService: BadgeService) {
+  public constructor(@Inject(BADGE_SERVICE) private badgeService: BadgeService) {
     this.changeSubject
       .pipe(
         debounceTime(1000),
@@ -121,13 +102,21 @@ export class TypeaheadComponent implements ControlValueAccessor {
       });
   }
 
-  updateValue(value: string): void {
+  public focus(): void {
+    this.input?.nativeElement.focus();
+  }
+
+  protected getPopoverItemName(item: BadgeType): string {
+    return item.name;
+  }
+
+  protected updateValue(value: string): void {
     this.value = value;
     this.notifyChange();
     this.changeSubject.next();
   }
 
-  openPopoverIfAvailable(): void {
+  private openPopoverIfAvailable(): void {
     for (const badgeType of this.badgeTypes) {
       const badgeTypeKeyword = `@${badgeType.name}`;
       if (this.value.startsWith(badgeTypeKeyword)) {
@@ -147,12 +136,10 @@ export class TypeaheadComponent implements ControlValueAccessor {
           )
           .subscribe(options => {
             if (badgeType.multi) {
-              console.log('multi', options);
               this.popoverItems = options;
               this.popover.open();
             } else {
-              console.log('single', options);
-              this.selectPopoverItem(options[0])
+              this.selectPopoverItem(options[0]);
             }
           });
 
@@ -168,23 +155,23 @@ export class TypeaheadComponent implements ControlValueAccessor {
     }
   }
 
-  removeBadge(badge: Badge): void {
+  protected removeBadge(badge: Badge): void {
     const index = this.badges.indexOf(badge);
     this.badges.splice(index, 1);
     this.notifyChange();
   }
 
-  getCurrentTemplate(): TemplateRef<any> {
+  protected getCurrentTemplate(): TemplateRef<unknown> {
     const template = this.itemTemplates.find(t => t.type === this.currentBadgeType);
     return template.templateRef;
   }
 
-  selectPopoverItem(item: any): void {
+  protected selectPopoverItem(item: BadgeType | unknown): void {
     if (this.currentBadgeType == null) {
-      this.currentBadgeType = item;
+      this.currentBadgeType = <BadgeType>item;
       const indexOfSpace = this.value.indexOf(' ');
       this.value = indexOfSpace === -1 ? '' : this.value.substring(indexOfSpace + 1);
-      this.value = `@${item.name}:` + this.value;
+      this.value = `@${this.currentBadgeType.name}:` + this.value;
       this.openPopoverIfAvailable();
       return;
     }
@@ -202,13 +189,13 @@ export class TypeaheadComponent implements ControlValueAccessor {
       itemStarPos = this.value.length;
     }
 
-    this.value = this.value.substring(itemStarPos)
+    this.value = this.value.substring(itemStarPos);
     this.popover.close(false);
     this.notifyChange();
   }
 
   @HostListener('keydown', ['$event'])
-  handleInput(event: KeyboardEvent): void {
+  private handleInput(event: KeyboardEvent): void {
     if (this.popoverItemsLoading) {
       event.preventDefault();
       event.stopPropagation();
@@ -242,20 +229,20 @@ export class TypeaheadComponent implements ControlValueAccessor {
     }
   }
 
-  registerOnChange(fn: any): void {
+  public registerOnChange(fn: ChangeCallback<TypeaheadComponentValue>): void {
     this.onChangeCallback = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  public registerOnTouched(fn: TouchedCallback): void {
     this.onTouchedCallback = fn;
   }
 
-  writeValue(obj: TypeaheadComponentValue): void {
+  public writeValue(obj: TypeaheadComponentValue): void {
     this.value = obj?.text;
     this.badges = obj?.badges ?? [];
   }
 
-  notifyChange() {
+  protected notifyChange(): void {
     if (this.popover.isOpen()) {
       return;
     }
@@ -266,7 +253,7 @@ export class TypeaheadComponent implements ControlValueAccessor {
     });
   }
 
-  notifyTouched() {
+  protected notifyTouched(): void {
     this.onTouchedCallback?.call(this);
   }
 }

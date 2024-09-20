@@ -1,7 +1,5 @@
 import { debounceTime, Observable, OperatorFunction, switchMap } from 'rxjs';
 import { inject } from '@angular/core';
-import { FileService } from '../../services/file.service';
-import { User } from '../../models/user';
 import { Tag } from '../../models/tag';
 import { TagService } from '../../services/tag.service';
 
@@ -15,5 +13,5 @@ export function TagsTypeaheadOperator(): OperatorFunction<string, readonly Tag[]
         switchMap(term => {
           return tagService.getTags(0, 10, term);
         })
-      )
+      );
 }

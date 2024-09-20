@@ -1,5 +1,5 @@
 import { Lane } from '../models/lane';
-import { getPastelColor } from './pastel-color.function';
+import { getPastelColor } from './pastel-color';
 
 export function getLaneColor(lane: Lane): string {
   if (!lane.title?.length

@@ -3,7 +3,6 @@ import { ServerCardEditorService } from './implementations/server-card-editor.se
 import { Board } from '../models/board';
 import { Lane } from '../models/lane';
 import { Column } from '../models/column';
-import { map, Observable, of } from 'rxjs';
 import { CardActivity } from '../models/card-activity';
 import { CardState } from '../models/card-state';
 
@@ -27,10 +26,10 @@ export interface ThroughputReport {
 
 @Injectable({ providedIn: 'root' })
 export class ThroughputReportService {
-  constructor(private cardEditorService: ServerCardEditorService) {
+  public constructor(private cardEditorService: ServerCardEditorService) {
   }
 
-  getCardReport(activities?: CardActivity[]): ThroughputReport {
+  public getCardReport(activities?: CardActivity[]): ThroughputReport {
     const transitions = activities
       .map(t => {
         t.created = new Date(t.created);
@@ -42,7 +41,7 @@ export class ThroughputReportService {
     if (transitions[transitions.length - 1].action !== 'card_archive') {
       transitions.push({
         created: new Date()
-      } as unknown as CardActivity)
+      } as unknown as CardActivity);
     }
 
     const entries = transitions

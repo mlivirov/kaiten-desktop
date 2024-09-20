@@ -1,34 +1,63 @@
 <div class="title mb-2 strong d-flex align-items-center small text-muted text-uppercase">
-    <span class="me-2">{{title}}</span>
+  <span class="me-2">{{title}}</span>
 </div>
 
 
 <div class="list">
-    <div *ngFor="let item of items"
-         (click)="openCard(item.card.id)"
-         class="border-bottom border-bottom-1 mb-2 pb-1 px-4 item cursor-pointer"
-         [class.text-muted]="item.card.state === CardState.Done"
-    >
-        <div class="d-flex smaller align-items-center">
-            <div class="me-2 strong"><i class="pi pi-hashtag" style="font-size: .775em;"></i>{{item.card.id}}</div>
-            <div class="strong me-2 text-uppercase">
-                <app-card-state-label [state]="item.card.state"></app-card-state-label>
-            </div>
-            <div *ngIf="getResponsible(item.card.members).length" class="me-2 d-none d-sm-block">
-                by
-                <app-inline-member *ngFor="let member of getResponsible(item.card.members)" class="me-1" [profile]="member" [showAvatar]="false"></app-inline-member>
-            </div>
-            <div class="ms-auto"></div>
-            <div *ngIf="item.isCompleted && item.card.state !== CardState.Done" class="text-success strong me-2 text-uppercase">{{completedLabel}}</div>
-            <div class="text-muted" style="min-width: 4rem;">Updated {{item.card.updated | timeago}}</div>
-        </div>
-        <div class="d-flex">
-            <div class="small"
-                 [class.text-decoration-line-through]="item.card.state === CardState.Done"
-            >{{item.card.title}}</div>
-            <button type="button" class="btn btn-sm btn-link ms-auto text-light ms-auto align-self-end" (click)="delete.emit(item)" [disabled]="disabled">
-                <i class="pi pi-times" style="font-size: .5em"></i>
-            </button>
-        </div>
+  <div
+    *ngFor="let item of items"
+    (click)="openCard(item.card.id)"
+    class="border-bottom border-bottom-1 mb-2 pb-1 px-4 item cursor-pointer"
+    [class.text-muted]="item.card.state === CardState.Done"
+  >
+    <div class="d-flex smaller align-items-center">
+      <div class="me-2 strong">
+        <i
+          class="pi pi-hashtag"
+          style="font-size: .775em;"
+        ></i>{{item.card.id}}
+      </div>
+      <div class="strong me-2 text-uppercase">
+        <app-card-state-label [state]="item.card.state"></app-card-state-label>
+      </div>
+      <div
+        *ngIf="getResponsible(item.card.members).length"
+        class="me-2 d-none d-sm-block"
+      >
+        by
+        <app-inline-member
+          *ngFor="let member of getResponsible(item.card.members)"
+          class="me-1"
+          [profile]="member"
+          [showAvatar]="false"
+        ></app-inline-member>
+      </div>
+      <div class="ms-auto"></div>
+      <div
+        *ngIf="item.isCompleted && item.card.state !== CardState.Done"
+        class="text-success strong me-2 text-uppercase"
+      >{{completedLabel}}</div>
+      <div
+        class="text-muted"
+        style="min-width: 4rem;"
+      >Updated {{item.card.updated | timeago}}</div>
     </div>
+    <div class="d-flex">
+      <div
+        class="small"
+        [class.text-decoration-line-through]="item.card.state === CardState.Done"
+      >{{item.card.title}}</div>
+      <button
+        type="button"
+        class="btn btn-sm btn-link ms-auto text-light ms-auto align-self-end"
+        (click)="delete.emit(item)"
+        [disabled]="disabled"
+      >
+        <i
+          class="pi pi-times"
+          style="font-size: .5em"
+        ></i>
+      </button>
+    </div>
+  </div>
 </div>

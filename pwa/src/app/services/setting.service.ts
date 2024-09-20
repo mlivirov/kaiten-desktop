@@ -5,9 +5,9 @@ import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class SettingService {
-  constructor(private httpClient: HttpClient) { }
+  public constructor(private httpClient: HttpClient) { }
 
-  setSetting(setting: Setting, value: string): Observable<void> {
+  public setSetting(setting: Setting, value: string): Observable<void> {
     return this.httpClient.post(`app://settings#${setting}`, value, {
       responseType: 'text'
     }).pipe(
@@ -15,7 +15,7 @@ export class SettingService {
     );
   }
 
-  getSetting(setting: Setting): Observable<string> {
+  public getSetting(setting: Setting): Observable<string> {
     return this.httpClient.get(`app://settings#${setting}`, {
       responseType: 'text'
     });

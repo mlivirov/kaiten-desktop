@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { User } from '../../models/user';
-import { FileService } from '../../services/file.service';
 import { AvatarService } from '../../services/avatar.service';
 import { AsyncPipe, JsonPipe, NgClass, NgIf, NgOptimizedImage } from '@angular/common';
 import { NgbDropdown, NgbDropdownMenu, NgbDropdownToggle, NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
@@ -29,14 +28,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   styleUrl: './current-user.component.scss'
 })
 export class CurrentUserComponent {
-  profile?: User;
-  avatarUrl?: string;
-  currentTheme: Theme;
+  protected profile?: User;
+  protected avatarUrl?: string;
+  protected currentTheme: Theme;
+  @Input() public showText: boolean = true;
 
-  @Input()
-  showText: boolean = true;
-
-  constructor(
+  public constructor(
     private authService: AuthService,
     private avatarService: AvatarService,
     private router: Router,
@@ -51,20 +48,20 @@ export class CurrentUserComponent {
       });
 
     this.themeManagerService
-      .currentTheme$
-      // .pipe(
-      //   takeUntilDestroyed()
-      // )
+      .currentTheme
+      .pipe(
+        takeUntilDestroyed()
+      )
       .subscribe(theme => this.currentTheme = theme);
   }
 
-  logout() {
+  protected logout(): void {
     this.authService.logout().subscribe(
       () => this.router.navigate(['login'])
     );
   }
 
-  loadAvatarUrl(): void {
+  private loadAvatarUrl(): void {
     this.avatarService
       .getUrl(this.profile)
       .subscribe(url => {
@@ -72,11 +69,11 @@ export class CurrentUserComponent {
       });
   }
 
-  searchCard() {
+  protected searchCard(): void {
     this.dialogService.searchCard().subscribe();
   }
 
-  setTheme(theme: Theme) {
+  protected setTheme(theme: Theme): void {
     this.themeManagerService.setTheme(theme).subscribe();
   }
 }

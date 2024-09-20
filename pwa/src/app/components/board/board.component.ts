@@ -23,19 +23,20 @@ import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { DragulaModule, DragulaService } from 'ng2-dragula';
 import { BoardService } from '../../services/board.service';
 import { DialogService } from '../../services/dialog.service';
-import { FindColumnRecursiveFunction } from '../../functions/find-column-recursive.function';
+import { findColumnRecursive } from '../../functions/find-column-recursive';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CardFilter, CardSearchService } from '../../services/card-search.service';
 import { BoardBase } from '../../models/board';
 import { WipLimitType } from '../../models/wip-limit-type';
-import { getTextOrDefault } from '../../functions/get-text-or-default.function';
+import { getTextOrDefault } from '../../functions/get-text-or-default';
 
-function colSortPredicate(a, b) {
+// TODO: extract into separate function
+function colSortPredicate(a, b): number {
   return a.sort_order - b.sort_order;
 }
 
-class BoardViewColumn {
+interface BoardViewColumn {
   columns: ColumnEx[];
 }
 
@@ -56,49 +57,34 @@ class BoardViewColumn {
   styleUrl: './board.component.scss'
 })
 export class BoardComponent implements OnInit, OnDestroy, OnChanges {
+  @ViewChildren(CardComponent) protected cardComponents: QueryList<CardComponent> = new QueryList();
+  @Input() public columns: ColumnEx[];
+  @Input() public cards: CardEx[];
+  @Input() public board: BoardBase;
+  @Output() protected openCard: EventEmitter<number> = new EventEmitter();
   protected readonly getTextOrDefault = getTextOrDefault;
+  protected currentUser?: User;
+  protected cardsByColumnId: { [key: number]: CardEx[] } = {};
+  public filterValue?: CardFilter;
+  protected viewColumns: BoardViewColumn[];
+  private isBoardLoading: boolean = false;
+  protected hideEmpty: boolean = false;
+  protected cardsCountByRootColumnId: Record<number, number> = {};
+  private cardsSizeByRootColumnId: Record<number, number> = {};
+  private customColumns: number[][] = [];
+  private unsubscribe$: Subject<void> = new Subject();
 
-  @Input()
-  columns: ColumnEx[];
-
-  @Input()
-  cards: CardEx[];
-
-  @Input()
-  board: BoardBase;
-
-  @Output()
-  openCard: EventEmitter<number> = new EventEmitter();
-
-  filterValue?: CardFilter;
-  currentUser?: User;
-  viewColumns: BoardViewColumn[];
-
-  isBoardLoading: boolean = false;
-  hideEmpty: boolean = false;
-  cardsByColumnId: { [key: number]: CardEx[] } = {};
-  cardsCountByRootColumnId: { [key: number]: number } = {};
-  cardsSizeByRootColumnId: { [key: number]: number } = {};
-
-  customColumns: number[][] = [];
-
-  unsubscribe$: Subject<void> = new Subject();
-
-  @ViewChildren(CardComponent)
-  cardComponents: QueryList<CardComponent> = new QueryList();
-
-  constructor(
+  public constructor(
     private authService: AuthService,
     private dragulaService: DragulaService,
     private boardService: BoardService,
     private cardSearchService: CardSearchService,
     private dialogService: DialogService,
     private activatedRoute: ActivatedRoute,
-    @Self()
-    private elementRef: ElementRef
+    @Self() private elementRef: ElementRef
   ) {
     const cardDragBag = dragulaService.createGroup('CARD', {
-      moves: (el, container, handle) => {
+      moves: (el) => {
         return !!el.getAttribute('data-card-id') && Math.min(window.outerWidth, window.outerHeight) > 540;
       },
       accepts: (el, target, source) => {
@@ -112,6 +98,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     dragulaService.drop('CARD')
       .pipe(
         takeUntil(this.unsubscribe$),
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         switchMap(({name, el, target, source}) => {
           const targetId = Number.parseInt(target.getAttribute('data-column-id'));
           const sourceId = Number.parseInt(source.getAttribute('data-column-id'));
@@ -150,8 +137,8 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap(({el, target, source}) => {
-          const targetIndex = Number.parseInt(target.getAttribute('data-view-column-index'))
-          const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'))
+          const targetIndex = Number.parseInt(target.getAttribute('data-view-column-index'));
+          const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'));
           const elIndex = Number.parseInt(el.getAttribute('data-column-index'));
 
           return this.updateColumnsArrangement(targetIndex, sourceIndex, elIndex);
@@ -163,39 +150,39 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap(({el, source}) => {
-          const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'))
+          const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'));
           const elIndex = Number.parseInt(el.getAttribute('data-column-index'));
 
           return this.updateColumnsArrangement(null, sourceIndex, elIndex);
         })
       )
-      .subscribe()
+      .subscribe();
   }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.authService.getCurrentUser().subscribe(t => this.currentUser = t);
   }
 
-  handleFilter(value?: CardFilter) {
+  public applyFilter(value?: CardFilter): void {
     this.filterValue = value;
     this.mapCardsByColumnId(this.cards);
   }
 
-  moveCardToColumn(cardId: number, fromId: number, toId: number): Observable<void> {
+  private moveCardToColumn(cardId: number, fromId: number, toId: number): Observable<void> {
     const card = this.cards.find(t => t.id === cardId);
-    const from = FindColumnRecursiveFunction(this.columns, fromId);
-    const to = FindColumnRecursiveFunction(this.columns, toId);
+    const from = findColumnRecursive(this.columns, fromId);
+    const to = findColumnRecursive(this.columns, toId);
 
     return this.dialogService.cardTransition(card, from, to)
       .pipe(
-        tap(card => {
+        tap(() => {
           this.refresh(true);
         }),
         map(() => {})
       );
   }
 
-  updateColumnsArrangement(targetIndex: number|null, sourceIndex: number, colIndex: number): Observable<void> {
+  private updateColumnsArrangement(targetIndex: number|null, sourceIndex: number, colIndex: number): Observable<void> {
     const column: ColumnEx = this.viewColumns[sourceIndex].columns[colIndex];
     const currentCustomGroup = this.customColumns.find(g => g.indexOf(column.id) !== -1);
 
@@ -227,7 +214,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     return this.boardService.setCustomColumns(this.board.id, this.customColumns);
   }
 
-  rearrangeColumns() {
+  private rearrangeColumns(): void {
     this.viewColumns = [];
 
     for (const col of this.columns) {
@@ -251,21 +238,21 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  sortColumns() {
+  private sortColumns(): void {
     for (const col of this.columns) {
       if (!col.subcolumns?.length) {
         continue;
       }
 
-      col.subcolumns!.sort(colSortPredicate)
+      col.subcolumns!.sort(colSortPredicate);
     }
 
     this.columns.sort(colSortPredicate);
   }
 
-  mapCardsByColumnId(cards: CardEx[]) {
+  private mapCardsByColumnId(cards: CardEx[]): void {
     const cardsByColumnId: { [key: number]: CardEx[] } = {};
-    for (let card of cards) {
+    for (const card of cards) {
       let cards = cardsByColumnId[card.column_id];
       if (!cards) {
         cards = [];
@@ -301,7 +288,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     this.cardsByColumnId = cardsByColumnId;
   }
 
-  refresh(pullData: boolean) {
+  protected refresh(pullData: boolean = false): void {
     if (this.isBoardLoading) {
       return;
     }
@@ -335,16 +322,16 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  public ngOnChanges(changes: SimpleChanges): void {
     if (changes['cards'].currentValue && changes['columns']?.currentValue) {
-      this.refresh(false)
+      this.refresh(false);
     } else if (changes['boardId']) {
       this.refresh(true);
     }
   }
 
   @HostListener('window:keydown', ['$event'])
-  handleKey(event: KeyboardEvent): void {
+  private handleKey(event: KeyboardEvent): void {
     if (event.code === 'KeyH' && event.ctrlKey) {
       event.preventDefault();
       event.stopPropagation();
@@ -353,7 +340,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  getColumnLimitFullfillment(columnId: number, limitType: WipLimitType): number {
+  protected getColumnLimitFulfillment(columnId: number, limitType: WipLimitType): number {
     if (limitType === WipLimitType.Size) {
       return this.cardsSizeByRootColumnId[columnId];
     }
@@ -361,7 +348,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     return this.cardsCountByRootColumnId[columnId];
   }
 
-  private countCards() {
+  private countCards(): void {
     this.cardsCountByRootColumnId = {};
     this.cardsSizeByRootColumnId = {};
     for (const card of this.cards) {
@@ -388,7 +375,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
   }

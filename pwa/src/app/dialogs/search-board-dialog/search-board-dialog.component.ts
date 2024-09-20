@@ -1,7 +1,5 @@
 import { Component, Injectable } from '@angular/core';
-import { Space } from '../../models/space';
-import { FileService } from '../../services/file.service';
-import { InputFromEventFunction } from '../../functions/input-from-event.function';
+import { inputFromEvent } from '../../functions/input-from-event';
 import { NgForOf, NgIf } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
@@ -16,7 +14,7 @@ export interface SpaceBoardPermissionsViewModel extends SpaceBoardPermissions {
 
 @Injectable({ providedIn: 'root' })
 class SearchBoardDialogService {
-  lastFilterTerm?: string;
+  public lastFilterTerm?: string;
 }
 
 @Component({
@@ -32,14 +30,13 @@ class SearchBoardDialogService {
   styleUrl: './search-board-dialog.component.scss'
 })
 export class SearchBoardDialogComponent {
-  InputFromEventFunction = InputFromEventFunction;
+  protected readonly InputFromEventFunction = inputFromEvent;
+  private allBoards: SpaceBoardPermissionsViewModel[] = [];
+  protected filteredBoard: SpaceBoardPermissionsViewModel[] = [];
+  protected isLoading: boolean = false;
+  protected filterTerm?: string;
 
-  allBoards: SpaceBoardPermissionsViewModel[] = [];
-  filteredBoard: SpaceBoardPermissionsViewModel[] = [];
-  isLoading: boolean = false;
-  filterTerm?: string;
-
-  constructor(
+  public constructor(
     private boardService: BoardService,
     public modal: NgbActiveModal,
     private searchBoardDialogService: SearchBoardDialogService
@@ -63,7 +60,7 @@ export class SearchBoardDialogComponent {
             const viewModel = <SpaceBoardPermissionsViewModel>{
               ...board,
               full_title: `${spaceById[board.space_id].title} / ${board.title}`,
-            }
+            };
             acc[viewModel.id] = viewModel;
             return acc;
           }, {});
@@ -75,7 +72,7 @@ export class SearchBoardDialogComponent {
       });
   }
 
-  filter(term?: string) {
+  protected filter(term?: string): void {
     this.filterTerm = term;
     this.searchBoardDialogService.lastFilterTerm = term;
     if (typeof term === 'string') {
@@ -85,7 +82,7 @@ export class SearchBoardDialogComponent {
     }
   }
 
-  switchBoard(spaceId: number, boardId: number) {
+  protected switchBoard(spaceId: number, boardId: number): void {
     this.modal.close({spaceId, boardId});
   }
 }

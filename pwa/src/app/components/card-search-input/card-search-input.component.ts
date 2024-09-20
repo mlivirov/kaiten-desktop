@@ -4,7 +4,7 @@ import {
   BADGE_SERVICE,
   BadgeService,
   BadgeType,
-  TypeaheadBadgeItemTemplate,
+  TypeaheadBadgeItemTemplateDirective,
   TypeaheadComponent,
   TypeaheadComponentValue
 } from '../typeahead/typeahead.component';
@@ -17,27 +17,27 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
 import { CardFilter } from '../../services/card-search.service';
 import { TagService } from '../../services/tag.service';
 import { UserService } from '../../services/user.service';
+import { ChangeCallback, TouchedCallback } from '../../core/types/change-callback.type';
 
 @Injectable()
 class CardBadgeService implements BadgeService {
-  static readonly BadgeTypeMember: BadgeType = { name: 'member', multi: true, getTitle(item: User) { return item.full_name; } };
-  static readonly BadgeTypeOwner: BadgeType = { name: 'owner', multi: true, getTitle(item: User) { return item.full_name; } };
-  static readonly BadgeTypeTag: BadgeType = { name: 'tag', multi: true, getTitle(item: Tag) { return item.name; } };
-  static readonly BadgeTypeSpace: BadgeType = { name: 'tag', multi: true, getTitle(item: Tag) { return item.name; } };
-  static readonly BadgeTypeArchived: BadgeType = { name: 'archived', multi: false, getTitle(val: boolean): string { return val ? 'Yes' : 'No';  } };
+  public static readonly BadgeTypeMember: BadgeType = { name: 'member', multi: true, getTitle(item: User) { return item.full_name; } };
+  public static readonly BadgeTypeOwner: BadgeType = { name: 'owner', multi: true, getTitle(item: User) { return item.full_name; } };
+  public static readonly BadgeTypeTag: BadgeType = { name: 'tag', multi: true, getTitle(item: Tag) { return item.name; } };
+  public static readonly BadgeTypeArchived: BadgeType = { name: 'archived', multi: false, getTitle(val: boolean): string { return val ? 'Yes' : 'No';  } };
 
-  constructor(private tagService: TagService, private userService: UserService) {
+  public constructor(private tagService: TagService, private userService: UserService) {
   }
 
-  getUsers(offset: number, limit: number, query: string): Observable<User[]> {
+  private getUsers(offset: number, limit: number, query: string): Observable<User[]> {
     return this.userService.getUsers(offset, limit, query);
   }
 
-  getTags(offset: number, limit: number, query: string): Observable<Tag[]> {
+  private getTags(offset: number, limit: number, query: string): Observable<Tag[]> {
     return this.tagService.getTags(offset, limit, query);
   }
 
-  public getOptions(type: BadgeType, offset: number, limit: number, query: string): Observable<any> {
+  public getOptions(type: BadgeType, offset: number, limit: number, query: string): Observable<unknown[]> {
     switch (type) {
       case CardBadgeService.BadgeTypeMember:
       case CardBadgeService.BadgeTypeOwner:
@@ -59,7 +59,7 @@ export type CardSearchInputBadgeTypes = 'member'|'owner'|'tag'|'archived';
   standalone: true,
   imports: [
     TypeaheadComponent,
-    TypeaheadBadgeItemTemplate,
+    TypeaheadBadgeItemTemplateDirective,
     InlineMemberComponent,
     JsonPipe,
     FormsModule
@@ -79,48 +79,37 @@ export type CardSearchInputBadgeTypes = 'member'|'owner'|'tag'|'archived';
   ]
 })
 export class CardSearchInputComponent implements ControlValueAccessor, OnInit {
-  BadgeTypeMember = CardBadgeService.BadgeTypeMember;
-  BadgeTypeOwner = CardBadgeService.BadgeTypeOwner;
-  BadgeTypeTag = CardBadgeService.BadgeTypeTag;
-  BadgeTypeArchived = CardBadgeService.BadgeTypeArchived;
+  protected readonly BadgeTypeMember = CardBadgeService.BadgeTypeMember;
+  protected readonly BadgeTypeOwner = CardBadgeService.BadgeTypeOwner;
+  protected readonly BadgeTypeTag = CardBadgeService.BadgeTypeTag;
+  protected readonly BadgeTypeArchived = CardBadgeService.BadgeTypeArchived;
+  protected badgeTypes: Array<BadgeType> = [];
+  protected value: TypeaheadComponentValue = null;
+  @Input() public badges: CardSearchInputBadgeTypes[] = ['member', 'owner', 'tag'];
+  @Input() public inputClass: string = '';
+  @Input() public placeholder?: string = '';
+  @Input() public title: string;
+  @Input() public titleClass: string;
+  @ViewChild('typeahead', { read: TypeaheadComponent }) private typeahead: TypeaheadComponent;
+  private onChangeCallback?: ChangeCallback<TypeaheadComponentValue>;
+  private onTouchedCallback?: TouchedCallback;
 
-  badgeTypes = []
-
-  value: TypeaheadComponentValue = null;
-
-  @Input()
-  badges: CardSearchInputBadgeTypes[] = ['member', 'owner', 'tag'];
-
-  @Input()
-  inputClass: string = '';
-
-  @Input()
-  placeholder?: string = '';
-
-  @Input()
-  title: string;
-
-  @Input()
-  titleClass: string;
-
-  @ViewChild('typeahead', { read: TypeaheadComponent })
-  typeahead: TypeaheadComponent;
-
-  onChangeCallback?: (value: TypeaheadComponentValue) => void;
-  onTouchedCallback?: () => void;
-
-  constructor() {
+  public constructor() {
   }
 
-  registerOnChange(fn: any): void {
+  public focus(): void {
+    this.typeahead?.focus();
+  }
+
+  public registerOnChange(fn: ChangeCallback<TypeaheadComponentValue>): void {
     this.onChangeCallback = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  public registerOnTouched(fn: TouchedCallback): void {
     this.onTouchedCallback = fn;
   }
 
-  writeValue(value: CardFilter): void {
+  public writeValue(value: CardFilter): void {
     const badges = [
       ...value?.members?.map((user: User) => (<Badge>{ type: this.BadgeTypeMember, value: user })) ?? [],
       ...value?.owners?.map((user: User) => (<Badge>{ type: this.BadgeTypeOwner, value: user })) ?? [],
@@ -140,7 +129,7 @@ export class CardSearchInputComponent implements ControlValueAccessor, OnInit {
     };
   }
 
-  changeAndNotify(value: TypeaheadComponentValue) {
+  protected changeAndNotify(value: TypeaheadComponentValue): void {
     this.value = value;
     this.onChangeCallback?.call(this, <CardFilter>{
       text: this.value.text,
@@ -151,7 +140,7 @@ export class CardSearchInputComponent implements ControlValueAccessor, OnInit {
     });
   }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     if (this.badges.includes('member')) {
       this.badgeTypes.push(this.BadgeTypeMember);
     }

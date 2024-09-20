@@ -6,20 +6,20 @@ import { HttpClient } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class CustomPropertyService {
-  constructor(private httpClient: HttpClient) {
+  public constructor(private httpClient: HttpClient) {
   }
 
-  getCustomProperties(): Observable<CustomProperty[]> {
-    const request$ = this.httpClient.get<CustomProperty[]>(`http://server/api/latest/company/custom-properties`);
+  public getCustomProperties(): Observable<CustomProperty[]> {
+    const request$ = this.httpClient.get<CustomProperty[]>('http://server/api/latest/company/custom-properties');
     return getManyWithCache(request$, Database.customProperties);
   }
 
-  getCustomPropertyValues(id: number): Observable<CustomPropertySelectValue[]> {
+  public getCustomPropertyValues(id: number): Observable<CustomPropertySelectValue[]> {
     const request$ = this.httpClient.get<CustomPropertySelectValue[]>(`http://server/api/latest/company/custom-properties/${id}/select-values`);
     return getManyWithCache(request$, Database.customPropertySelectValues, t => t.where({ custom_property_id: id }));
   }
 
-  getCustomPropertiesWithValues(): Observable<CustomPropertyAndValues[]> {
+  public getCustomPropertiesWithValues(): Observable<CustomPropertyAndValues[]> {
     return this.getCustomProperties()
       .pipe(
         switchMap(properties => {

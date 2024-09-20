@@ -1,4 +1,4 @@
-export function UnionIfNotExistsFunction(collection: Array<any>, item: any, idProperty: string): Array<any> {
+export function unionIfNotExists<T>(collection: Array<T>, item: T, idProperty: string): Array<T> {
   const result = [];
 
   if (collection?.length) {

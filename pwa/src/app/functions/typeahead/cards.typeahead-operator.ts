@@ -1,8 +1,5 @@
 import { debounceTime, Observable, OperatorFunction, switchMap } from 'rxjs';
 import { inject } from '@angular/core';
-import { FileService } from '../../services/file.service';
-import { User } from '../../models/user';
-import { UserService } from '../../services/user.service';
 import { CardSearchService } from '../../services/card-search.service';
 import { Card } from '../../models/card';
 

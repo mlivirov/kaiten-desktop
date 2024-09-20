@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NgIf } from '@angular/common';
 import { TimeDotsComponent } from '../../components/time-dots/time-dots.component';
@@ -17,8 +17,8 @@ import { User } from '../../models/user';
   styleUrl: './login-confirmation-dialog.component.scss'
 })
 export class LoginConfirmationDialogComponent {
-  user?: User;
+  @Input() public user?: User;
 
-  constructor(public modal: NgbActiveModal) {
+  public constructor(public modal: NgbActiveModal) {
   }
 }

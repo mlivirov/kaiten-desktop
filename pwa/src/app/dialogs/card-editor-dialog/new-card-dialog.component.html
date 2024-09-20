@@ -1,22 +1,37 @@
 <div class="modal-body mx-2">
-    <app-card-editor
-            *ngIf="card"
-            [alwaysEditable]="true"
-            [card]="card"
-            [showComments]="false"
-            [showReferences]="false"
-            [collapsableProperties]="true"
-    ></app-card-editor>
+  <app-card-editor
+    *ngIf="card"
+    [alwaysEditable]="true"
+    [card]="card"
+    [showComments]="false"
+    [showReferences]="false"
+    [collapsableProperties]="true"
+  ></app-card-editor>
 </div>
 
 <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="modal.close()" [disabled]="isSaving">
-        Save as Draft
-    </button>
-    <button type="button" class="btn btn-danger" (click)="modal.close(0)" [disabled]="isSaving">
-        Discard
-    </button>
-    <button type="button" class="btn btn-primary" (click)="save()" [disabled]="isSaving">
-        Save
-    </button>
+  <button
+    type="button"
+    class="btn btn-secondary"
+    (click)="modal.close()"
+    [disabled]="isSaving"
+  >
+    Save as Draft
+  </button>
+  <button
+    type="button"
+    class="btn btn-danger"
+    (click)="modal.close(0)"
+    [disabled]="isSaving"
+  >
+    Discard
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="save()"
+    [disabled]="isSaving"
+  >
+    Save
+  </button>
 </div>

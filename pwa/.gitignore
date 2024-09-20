@@ -43,3 +43,6 @@ Thumbs.db
 /.idea/
 /.vscode/
 /.angular/
+
+.nx/cache
+.nx/workspace-data

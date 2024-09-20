@@ -10,30 +10,29 @@ import {
 import {
   EditorProperty,
   EditorPropertyClickedEvent,
-  EditorPropertyTemplate,
+  EditorPropertyTemplateDirective,
   GroupOfEditorProperties,
   PropertiesEditorComponent
 } from '../../properties-editor/properties-editor.component';
 import { CardEx } from '../../../models/card-ex';
-import { Column } from '../../../models/column';
+import { Column, ColumnBase } from '../../../models/column';
 import { catchError, EMPTY, finalize, forkJoin, of, switchMap } from 'rxjs';
 import { User } from '../../../models/user';
 import { Tag } from '../../../models/tag';
 import { CustomProperty, CustomPropertyAndValues, CustomPropertySelectValue } from '../../../models/custom-property';
 import { CardProperties } from '../../../models/card-properties';
-import { StringToDateFunction } from '../../../functions/string-to-date.function';
+import { stringToDate } from '../../../functions/string-to-date';
 import { Owner } from '../../../models/owner';
 import { MemberType } from '../../../models/member-type';
-import { UnionIfNotExistsFunction } from '../../../functions/union-if-not-exists.function';
+import { unionIfNotExists } from '../../../functions/union-if-not-exists';
 import { CardStateLabelComponent } from '../card-state-label/card-state-label.component';
 import { AsyncPipe, DatePipe, NgForOf, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InlineMemberComponent } from '../../inline-member/inline-member.component';
-import { FindColumnRecursiveFunction } from '../../../functions/find-column-recursive.function';
+import { findColumnRecursive } from '../../../functions/find-column-recursive';
 import { ColumnEx } from '../../../models/column-ex';
-import { FlattenColumnsFunction } from '../../../functions/flatten-columns.function';
+import { flattenColumns } from '../../../functions/flatten-columns';
 import { NgbDateStringAdapter } from '../ngb-date-string-adapter.service';
-import { Board } from '../../../models/board';
 import { SpaceBoardPermissions } from '../../../models/space-board-permissions';
 import { Lane } from '../../../models/lane';
 import { CardUsersTypeaheadOperator } from '../../../functions/typeahead/card-users.typeahead-operator';
@@ -43,7 +42,12 @@ import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../services/card-e
 import { BoardService } from '../../../services/board.service';
 import { CustomPropertyService } from '../../../services/custom-property.service';
 import { CardState } from '../../../models/card-state';
-import { getLaneColor } from '../../../functions/get-lane-color.function';
+import { getLaneColor } from '../../../functions/get-lane-color';
+import { nameof } from '../../../functions/name-of';
+
+interface CustomDatePropertyValue {
+  date: string;
+}
 
 @Component({
   selector: 'app-card-properties',
@@ -57,7 +61,7 @@ import { getLaneColor } from '../../../functions/get-lane-color.function';
     NgbInputDatepicker,
     NgbTypeahead,
     PropertiesEditorComponent,
-    EditorPropertyTemplate,
+    EditorPropertyTemplateDirective,
     NgbDatepicker,
     NgbInputDatepicker,
     NgbTypeahead,
@@ -73,43 +77,33 @@ import { getLaneColor } from '../../../functions/get-lane-color.function';
   ]
 })
 export class CardPropertiesComponent implements OnChanges {
-  NumberMin = Number.MIN_VALUE;
-  NumberMax = Number.MAX_VALUE;
-  FindColumnRecursiveFunction = FindColumnRecursiveFunction;
-  MemberType = MemberType;
-
-  @ViewChild('propertiesEditor')
-  propertiesEditor: PropertiesEditorComponent;
-
-  @Input({ required: true })
-  card: CardEx;
-
-  @ViewChild('locationPopover')
-  locationPopover: NgbPopover;
-
-  newMember: Owner = null;
-  newBoardId?: number;
-  newLaneId?: number;
-  newColumnId?: number;
-
-  cardUsersTypeaheadSearch = CardUsersTypeaheadOperator(() => this.card.state === CardState.Draft ? null : this.card.id);
-  allUsersTypeaheadSearch = UsersTypeaheadOperator();
-  tagTypeaheadSearch = TagsTypeaheadOperator();
-
-  userTypeaheadFormatter = (item: User) => item.full_name;
-  tagTypeaheadFormatter = (item: Tag) => item.name;
-
-  properties: GroupOfEditorProperties[] = [];
-  spaceBoardPermissions: SpaceBoardPermissions[] = [];
-  lanes: Lane[] = [];
-  columns: Column[] = [];
-  newBoardColumns: Column[] = [];
-  isSaveInProgress: boolean = false;
-  isLoading: boolean = false;
-  isLoadingBoardAndLanes: boolean = false;
+  protected readonly NumberMin = Number.MIN_VALUE;
+  protected readonly NumberMax = Number.MAX_VALUE;
+  protected readonly findColumnRecursive = findColumnRecursive;
+  protected readonly MemberType = MemberType;
+  protected readonly cardUsersTypeaheadSearch = CardUsersTypeaheadOperator(() => this.card.state === CardState.Draft ? null : this.card.id);
+  protected readonly allUsersTypeaheadSearch = UsersTypeaheadOperator();
+  protected readonly tagTypeaheadSearch = TagsTypeaheadOperator();
+  protected readonly userTypeaheadFormatter = (item: User): string => item.full_name;
+  protected readonly tagTypeaheadFormatter = (item: Tag): string => item.name;
+  @ViewChild('propertiesEditor') protected propertiesEditor: PropertiesEditorComponent;
+  @Input({ required: true }) public card: CardEx;
+  @ViewChild('locationPopover') public locationPopover: NgbPopover;
+  protected newMember: Owner = null;
+  protected newBoardId?: number;
+  protected newLaneId?: number;
+  protected newColumnId?: number;
+  protected properties: GroupOfEditorProperties[] = [];
+  protected spaceBoardPermissions: SpaceBoardPermissions[] = [];
+  protected lanes: Lane[] = [];
+  protected columns: Column[] = [];
+  protected newBoardColumns: Column[] = [];
+  protected isSaveInProgress: boolean = false;
+  protected isLoading: boolean = false;
+  protected isLoadingBoardAndLanes: boolean = false;
   private customProperties: CustomPropertyAndValues[] = [];
 
-  constructor(
+  public constructor(
     private boardService: BoardService,
     private customPropertyService: CustomPropertyService,
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService
@@ -123,15 +117,15 @@ export class CardPropertiesComponent implements OnChanges {
       .subscribe(spaces => this.spaceBoardPermissions = spaces.flatMap(s => s.boards));
   }
 
-  findSelectValue(values: CustomPropertySelectValue[], id: number) {
+  protected findSelectValue(values: CustomPropertySelectValue[], id: number): CustomPropertySelectValue {
     return values.find(value => value.id === id);
   }
 
-  getLaneColor(lane: Lane) {
+  protected getLaneColor(lane: Lane): string {
     return getLaneColor(lane);
   }
 
-  getCustomPropertyValue(values: CardProperties, property: CustomProperty) {
+  private getCustomPropertyValue(values: CardProperties, property: CustomProperty): unknown {
     if (!values) {
       return null;
     }
@@ -147,7 +141,7 @@ export class CardPropertiesComponent implements OnChanges {
     }
   }
 
-  extractProperties() {
+  private extractProperties(): void {
     this.properties = [];
 
     const globalPropertiesGroup = {
@@ -182,7 +176,7 @@ export class CardPropertiesComponent implements OnChanges {
     const timeManagementGroup = {
       title: 'Time management',
       properties: [
-        <EditorProperty>{ label: 'Due date', value: StringToDateFunction(this.card.due_date), multi: false, name: 'due_date', type: 'date' },
+        <EditorProperty>{ label: 'Due date', value: stringToDate(this.card.due_date), multi: false, name: 'due_date', type: 'date' },
       ]
     };
 
@@ -219,31 +213,31 @@ export class CardPropertiesComponent implements OnChanges {
     this.properties.push(tagsGroup);
   }
 
-  confirmSave(property: EditorProperty) {
+  protected confirmSave(property: EditorProperty): void {
     if (property.type === 'tag') {
-      this.addTag(property);
+      this.addTag(<EditorProperty<string|Tag>>property);
     } else if (property.type === 'member') {
-      this.addMember(property);
+      this.addMember();
     } else if (property.type === 'custom-date') {
-      this.updateCustomDate(property);
+      this.updateCustomDate(<EditorProperty<CustomDatePropertyValue, CustomPropertyAndValues>>property);
     } else if (property.type === 'custom-string') {
-      this.updateCustomString(property);
+      this.updateCustomString(<EditorProperty<string, CustomPropertyAndValues>>property);
     } else if (property.type === 'custom-select') {
-      this.updateCustomSelect(property);
+      this.updateCustomSelect(<EditorProperty<number, CustomPropertyAndValues>>property);
     } else if (property.type === 'custom-checkbox') {
-      this.updateCustomCheckbox(property);
+      this.updateCustomCheckbox(<EditorProperty<boolean, CustomPropertyAndValues>>property);
     } else if (property.type === 'custom-user') {
-      this.updateCustomUser(property);
+      this.updateCustomUser(<EditorProperty<string, CustomPropertyAndValues>>property);
     } else if (property.type === 'size') {
-      this.updateSize(property);
+      this.updateSize(<EditorProperty<number>>property);
     } else if (property.type === 'column') {
-      this.updateColumn(property);
+      this.updateColumn(<EditorProperty<Column<ColumnBase>>>property);
     } else if (property.type === 'date') {
-      this.updateDateProperty(property);
+      this.updateDateProperty(<EditorProperty<string>>property);
     }
   }
 
-  updateBoardAndLane() {
+  protected updateBoardAndLane(): void {
     this.isLoadingBoardAndLanes = true;
     this.isSaveInProgress = true;
 
@@ -259,7 +253,7 @@ export class CardPropertiesComponent implements OnChanges {
           return forkJoin({
             card: of(card),
             board: this.boardService.getBoard(card.board_id),
-          })
+          });
         })
       )
       .subscribe(({card, board}) => {
@@ -279,7 +273,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  updateDateProperty(property: EditorProperty<string>) {
+  private updateDateProperty(property: EditorProperty<string>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
         [property.name]: property.value
@@ -295,7 +289,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  updateColumn(property: EditorProperty<Column>) {
+  private updateColumn(property: EditorProperty<Column>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
         column_id: property.value.id
@@ -313,7 +307,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  updateSize(property: EditorProperty<number>) {
+  private updateSize(property: EditorProperty<number>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
         size: property.value
@@ -329,7 +323,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  updateCustomUser(property: EditorProperty<string, CustomPropertyAndValues>) {
+  private updateCustomUser(property: EditorProperty<string, CustomPropertyAndValues>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
         properties: {
@@ -347,7 +341,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  updateCustomCheckbox(property: EditorProperty<boolean, CustomPropertyAndValues>) {
+  private updateCustomCheckbox(property: EditorProperty<boolean, CustomPropertyAndValues>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
         properties: {
@@ -365,7 +359,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  updateCustomSelect(property: EditorProperty<number, CustomPropertyAndValues>) {
+  private updateCustomSelect(property: EditorProperty<number, CustomPropertyAndValues>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
         properties: {
@@ -383,7 +377,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  updateCustomString(property: EditorProperty<string, CustomPropertyAndValues>) {
+  private updateCustomString(property: EditorProperty<string, CustomPropertyAndValues>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
         properties: {
@@ -401,15 +395,15 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  updateCustomDate(property: EditorProperty<{ date: string}, CustomPropertyAndValues>) {
+  private updateCustomDate(property: EditorProperty<CustomDatePropertyValue, CustomPropertyAndValues>): void {
     let newValue = null;
-    const date = StringToDateFunction(property.value.date);
+    const date = stringToDate(property.value.date);
     if (date) {
       newValue = {
         date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`,
         time: null,
         tzOffset: null
-      }
+      };
     }
 
     this.cardEditorService
@@ -429,7 +423,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  makeMemberResponsible(member: Owner) {
+  protected makeMemberResponsible(member: Owner): void {
     this.isSaveInProgress = true;
     const previousResponsible = this.card.members.find(t => t.type === MemberType.Responsible);
     this.cardEditorService
@@ -446,7 +440,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  addMember(property: EditorProperty<User>) {
+  private addMember(): void {
     this.cardEditorService
       .addMemberToCard(this.card.id, this.newMember.id)
       .pipe(
@@ -456,12 +450,12 @@ export class CardPropertiesComponent implements OnChanges {
         })
       )
       .subscribe(member => {
-        this.card.members = UnionIfNotExistsFunction(this.card.members, member, 'id');
+        this.card.members = unionIfNotExists(this.card.members, member, 'id');
         this.propertiesEditor.commitChanges(this.card.members);
-      })
+      });
   }
 
-  removeMember(member: User, property: EditorProperty<User[]>) {
+  protected removeMember(member: User): void {
     this.isSaveInProgress = true;
     this.cardEditorService
       .removeMemberFromCard(this.card.id, member.id)
@@ -474,7 +468,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  addTag(property: EditorProperty) {
+  private addTag(property: EditorProperty<string|Tag>): void {
     const name = typeof property.value === 'string' ? property.value : property.value.name;
     this.cardEditorService
       .createTag(this.card.id, name)
@@ -485,12 +479,12 @@ export class CardPropertiesComponent implements OnChanges {
         })
       )
       .subscribe(tag => {
-        this.card.tags = UnionIfNotExistsFunction(this.card.tags, tag, 'id');
+        this.card.tags = unionIfNotExists(this.card.tags, tag, 'id');
         this.propertiesEditor.commitChanges(this.card.tags);
       });
   }
 
-  removeTag(tag: Tag, property: EditorProperty<Tag[]>) {
+  protected removeTag(tag: Tag): void {
     this.isSaveInProgress = true;
     this.cardEditorService
       .removeTag(this.card.id, tag.id)
@@ -503,23 +497,29 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<CardPropertiesComponent>('card')]) {
+      this.loadProperties();
+    }
+  }
+
+  private loadProperties(): void {
     this.isLoading = true;
     forkJoin({
       card: of(this.card),
       customProperties: this.customPropertyService.getCustomPropertiesWithValues(),
       columns: this.boardService.getColumns(this.card.board_id)
     }).pipe(
-        finalize(() => this.isLoading = false)
-      )
+      finalize(() => this.isLoading = false)
+    )
       .subscribe((data: { card: CardEx, customProperties: CustomPropertyAndValues[], columns: ColumnEx[] }) => {
         this.customProperties = data.customProperties;
-        this.columns = FlattenColumnsFunction(data.columns);
+        this.columns = flattenColumns(data.columns);
         this.extractProperties();
       });
   }
 
-  handlePropertyClick(event: EditorPropertyClickedEvent) {
+  protected handlePropertyClick(event: EditorPropertyClickedEvent): void {
     if (event.property.name === 'board' || event.property.name === 'lane') {
       this.locationPopover.positionTarget = event.event.target as HTMLElement;
       this.newBoardId = this.card.board_id;
@@ -531,7 +531,7 @@ export class CardPropertiesComponent implements OnChanges {
     }
   }
 
-  handleNewBoardSelected(boardId: number) {
+  protected handleNewBoardSelected(boardId: number): void {
     this.isLoadingBoardAndLanes = true;
 
     forkJoin({
@@ -546,12 +546,12 @@ export class CardPropertiesComponent implements OnChanges {
         this.lanes = lanes;
 
         if (lanes.length === 1) {
-          this.newLaneId = lanes[0].id
+          this.newLaneId = lanes[0].id;
         } else {
           this.newLaneId = null;
         }
 
-        this.newBoardColumns = FlattenColumnsFunction(columns);
+        this.newBoardColumns = flattenColumns(columns);
         this.newBoardColumns.sort((a, b) => a.sort_order - b.sort_order);
 
         if (this.newBoardColumns.length === 1) {
@@ -562,12 +562,12 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  checkNewLocationCanBeSaved() {
-    return !this.isLoadingBoardAndLanes && this.newLaneId && this.newBoardId && this.newColumnId;
+  protected checkNewLocationCanBeSaved(): boolean {
+    return !this.isLoadingBoardAndLanes && !!this.newLaneId && !!this.newBoardId && !!this.newColumnId;
   }
 
   @HostListener('keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
+  private handleKeyDown(event: KeyboardEvent): void {
     if (this.locationPopover.isOpen() && event.code === 'Enter' && event.ctrlKey && this.checkNewLocationCanBeSaved()) {
       this.updateBoardAndLane();
       event.preventDefault();

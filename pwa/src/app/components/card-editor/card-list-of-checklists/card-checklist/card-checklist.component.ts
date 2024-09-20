@@ -1,9 +1,7 @@
 import {
   Component,
-  ElementRef,
   EventEmitter,
-  HostListener, Inject,
-  Injectable,
+  Inject,
   Input,
   OnChanges,
   Output,
@@ -30,20 +28,19 @@ import { FormsModule } from '@angular/forms';
 import { TimeagoModule } from 'ngx-timeago';
 import { MdViewerComponent } from '../../../md-viewer/md-viewer.component';
 import { CheckListItem } from '../../../../models/check-list-item';
-import { FileService } from '../../../../services/file.service';
-import { filter, finalize, switchMap, tap } from 'rxjs';
+import { finalize, tap } from 'rxjs';
 import { NgbDateStringAdapter } from '../../ngb-date-string-adapter.service';
 import { MdEditorComponent } from '../../../md-editor/md-editor.component';
 import {
   CardChecklistItemComponent,
 } from '../card-checklist-item/card-checklist-item.component';
-import { UnionIfNotExistsFunction } from '../../../../functions/union-if-not-exists.function';
+import { unionIfNotExists } from '../../../../functions/union-if-not-exists';
 import { TextEditorComponent, TextEditorSaveEvent } from '../../../text-editor/text-editor.component';
 import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../../services/card-editor.service';
-import { DraftCardEditorService } from '../../../../services/implementations/draft-card-editor.service';
 import { CurrentBoardService } from '../../../../services/current-board.service';
 import { DialogService } from '../../../../services/dialog.service';
 import { Router } from '@angular/router';
+import { nameof } from '../../../../functions/name-of';
 
 @Component({
   selector: 'app-card-checklist',
@@ -76,27 +73,15 @@ import { Router } from '@angular/router';
   ]
 })
 export class CardChecklistComponent implements OnChanges {
-  @Input()
-  checklist?: CheckList;
+  @Input() public checklist?: CheckList;
+  @Input({required: true}) public cardId: number;
+  @Input() public disabled: boolean = false;
+  @Output() protected delete: EventEmitter<CheckList> = new EventEmitter();
+  @ViewChildren(CardChecklistItemComponent) protected itemsComponents: QueryList<CardChecklistItemComponent> = new QueryList();
+  @ViewChild(TextEditorComponent) protected textEditorComponent: TextEditorComponent;
+  protected isSaving: boolean = false;
 
-  @Input({required: true})
-  cardId: number;
-
-  @Input()
-  disabled: boolean = false;
-
-  isSaving: boolean = false;
-
-  @Output()
-  delete: EventEmitter<CheckList> = new EventEmitter();
-
-  @ViewChildren(CardChecklistItemComponent)
-  itemsComponents: QueryList<CardChecklistItemComponent> = new QueryList();
-
-  @ViewChild(TextEditorComponent)
-  textEditorComponent: TextEditorComponent;
-
-  constructor(
+  public constructor(
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
     private currentBoardService: CurrentBoardService,
     private dialogService: DialogService,
@@ -104,15 +89,18 @@ export class CardChecklistComponent implements OnChanges {
   ) {
   }
 
-  sortItems() {
+  // TODO: extract into standalone function
+  private sortItems(): void {
     this.checklist.items?.sort((a, b) => a.sort_order - b.sort_order);
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    this.sortItems();
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<CardChecklistComponent>('checklist')]) {
+      this.sortItems();
+    }
   }
 
-  deleteItem(item: CheckListItem) {
+  protected deleteItem(item: CheckListItem): void {
     this.isSaving = true;
     this.cardEditorService
       .deleteCheckListItem(this.cardId, this.checklist.id, item.id)
@@ -126,13 +114,13 @@ export class CardChecklistComponent implements OnChanges {
       .subscribe();
   }
 
-  createCardFromItem(item: CheckListItem) {
+  protected createCardFromItem(item: CheckListItem): void {
     this.dialogService
       .createCard(this.currentBoardService.boardId, this.currentBoardService.laneId, null, item.text)
       .subscribe(id => this.router.navigate(['card', id]));
   }
 
-  insertAfter(item: CheckListItem) {
+  protected insertAfter(item: CheckListItem): void {
     let position = item.sort_order;
     const indexOfItem = this.checklist.items.indexOf(item);
     if (indexOfItem === this.checklist.items.length - 1) {
@@ -146,7 +134,7 @@ export class CardChecklistComponent implements OnChanges {
     this.insertItem(position);
   }
 
-  insertBefore(item: CheckListItem) {
+  protected insertBefore(item: CheckListItem): void {
     let position = item.sort_order;
     const indexOfItem = this.checklist.items.indexOf(item);
     if (indexOfItem === 0) {
@@ -160,7 +148,7 @@ export class CardChecklistComponent implements OnChanges {
     this.insertItem(position);
   }
 
-  appendItem(event: Event) {
+  protected appendItem(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
 
@@ -171,7 +159,7 @@ export class CardChecklistComponent implements OnChanges {
     this.insertItem(position);
   }
 
-  insertItem(offset: number) {
+  private insertItem(offset: number): void {
     this.isSaving = true;
     this.cardEditorService
       .addCheckListItem(this.cardId, this.checklist.id, `This is your ${this.checklist.items?.length ?? 1} item.`, offset)
@@ -179,7 +167,7 @@ export class CardChecklistComponent implements OnChanges {
         finalize(() => this.isSaving = false)
       )
       .subscribe(item => {
-        this.checklist.items = UnionIfNotExistsFunction(this.checklist.items, item, 'id');
+        this.checklist.items = unionIfNotExists(this.checklist.items, item, 'id');
         this.sortItems();
 
         setTimeout(() => {
@@ -189,11 +177,11 @@ export class CardChecklistComponent implements OnChanges {
       });
   }
 
-  openTextEditor() {
+  public openTextEditor(): void {
     this.textEditorComponent.openEditor(null, true);
   }
 
-  saveText(event: TextEditorSaveEvent) {
+  protected saveText(event: TextEditorSaveEvent): void {
     this.isSaving = true;
     this.cardEditorService
       .updateCardCheckList(this.cardId, this.checklist.id, {

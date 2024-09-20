@@ -5,21 +5,21 @@ export class CordovaApplication {
   private static _instance: CordovaApplication;
   private readonly _readySubject: Subject<CordovaApplication> = new Subject();
 
-  constructor() {
+  public constructor() {
     setTimeout(() => {
       document.addEventListener('deviceready', this.initialize.bind(this), false);
     }, 1000);
   }
 
-  static instance(): CordovaApplication {
+  public static instance(): CordovaApplication {
     return CordovaApplication._instance;
   }
 
-  static isAvailable(): boolean {
+  public static isAvailable(): boolean {
     return window['build-type'] === 'cordova';
   }
 
-  static create(): Observable<CordovaApplication> {
+  public static create(): Observable<CordovaApplication> {
     if (!CordovaApplication.isAvailable()) {
       return EMPTY;
     }
@@ -34,12 +34,12 @@ export class CordovaApplication {
     return applicationProxy._readySubject;
   }
 
-  initialize(): void {
+  private initialize(): void {
     this._readySubject.next(this);
     this._readySubject.complete();
   }
 
-  public sendHttpRequest(request: HttpRequest<any>): Observable<HttpEvent<any>> {
+  public sendHttpRequest(request: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
     return new Observable(subscriber => {
       const http = window['cordova']['plugin']['http'];
 
@@ -53,7 +53,7 @@ export class CordovaApplication {
         serializer = 'json';
       }
 
-      request.serializeBody()
+      request.serializeBody();
 
       http.sendRequest(request.url, {
         method: request.method,

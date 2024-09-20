@@ -1,14 +1,25 @@
-<div class="d-flex mb-2" *ngIf="countOfAllReferences > 5">
-    <div *ngFor="let ref of references; index as i" class="small cursor-pointer strong me-2 user-select-none" (click)="focus(i)">{{ref.title}} ({{ref.references.length}})</div>
+<div
+  class="d-flex mb-2"
+  *ngIf="countOfAllReferences > 5"
+>
+  <div
+    *ngFor="let ref of references; index as i"
+    class="small cursor-pointer strong me-2 user-select-none"
+    (click)="focus(i)"
+  >{{ref.title}} ({{ref.references.length}})</div>
 </div>
-<div *ngIf="countOfAllReferences" class="border-top border-bottom border-1 pt-2" style="{{countOfAllReferences > 5 ? 'max-height: 15rem; overflow-y: scroll' : ''}}">
-    <app-list-of-related-cards
-            #group
-            *ngFor="let ref of references"
-            [items]="ref.references"
-            [title]="ref.title"
-            [completedLabel]="ref.completedLabel"
-            (delete)="deleteReference(ref, $event)"
-            [disabled]="disabled"
-    ></app-list-of-related-cards>
+<div
+  *ngIf="countOfAllReferences"
+  class="border-top border-bottom border-1 pt-2"
+  style="{{countOfAllReferences > 5 ? 'max-height: 15rem; overflow-y: scroll' : ''}}"
+>
+  <app-list-of-related-cards
+    #group
+    *ngFor="let ref of references"
+    [items]="ref.references"
+    [title]="ref.title"
+    [completedLabel]="ref.completedLabel"
+    (delete)="deleteReference(ref, $event)"
+    [disabled]="disabled"
+  ></app-list-of-related-cards>
 </div>

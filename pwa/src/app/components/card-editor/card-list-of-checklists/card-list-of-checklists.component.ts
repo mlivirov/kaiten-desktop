@@ -2,11 +2,11 @@ import { Component, Inject, Input, OnChanges, QueryList, SimpleChanges, ViewChil
 import { CardEx } from '../../../models/card-ex';
 import { CardChecklistComponent } from './card-checklist/card-checklist.component';
 import { NgForOf } from '@angular/common';
-import { FileService } from '../../../services/file.service';
 import { CheckList } from '../../../models/check-list';
 import { filter, finalize } from 'rxjs';
 import { DialogService } from '../../../services/dialog.service';
 import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../services/card-editor.service';
+import { nameof } from '../../../functions/name-of';
 
 @Component({
   selector: 'app-card-list-of-checklists',
@@ -19,21 +19,17 @@ import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../services/card-e
   styleUrl: './card-list-of-checklists.component.scss'
 })
 export class CardListOfChecklistsComponent implements OnChanges {
-  @Input()
-  card: CardEx;
+  @Input() public card: CardEx;
+  protected isSaving = false;
+  @ViewChildren(CardChecklistComponent) protected checklists: QueryList<CardChecklistComponent> = new QueryList<CardChecklistComponent>();
 
-  isSaving = false;
-
-  @ViewChildren(CardChecklistComponent)
-  checklists: QueryList<CardChecklistComponent> = new QueryList<CardChecklistComponent>();
-
-  constructor(
+  public constructor(
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
     private dialogService: DialogService
   ) {
   }
 
-  deleteList(checklist: CheckList) {
+  protected deleteList(checklist: CheckList): void {
     this.dialogService
       .confirmation('Are you sure you want to delete the checklist and all it\'s content?')
       .pipe(
@@ -42,7 +38,7 @@ export class CardListOfChecklistsComponent implements OnChanges {
       .subscribe(this.doDelete.bind(this, checklist));
   }
 
-  doDelete(checklist: CheckList) {
+  private doDelete(checklist: CheckList): void {
     this.isSaving = true;
     this.cardEditorService
       .deleteCheckList(this.card.id, checklist.id)
@@ -55,7 +51,14 @@ export class CardListOfChecklistsComponent implements OnChanges {
       });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    this.card.checklists?.sort((a: CheckList, b: CheckList) => a.sort_order - b.sort_order);
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<CardListOfChecklistsComponent>('card')]) {
+      this.card.checklists?.sort((a: CheckList, b: CheckList) => a.sort_order - b.sort_order);
+    }
+  }
+
+  public openTextEditor(checklistId: number): void {
+    const checklist = this.checklists.find(t => t.checklist.id == checklistId);
+    checklist?.openTextEditor();
   }
 }

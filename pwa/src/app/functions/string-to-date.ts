@@ -1,4 +1,4 @@
-export function StringToDateFunction(value: string): Date|null {
+export function stringToDate(value: string): Date|null {
   if (!value) {
     return null;
   }

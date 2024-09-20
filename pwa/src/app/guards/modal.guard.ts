@@ -2,7 +2,7 @@ import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { DialogService } from '../services/dialog.service';
 
-export const modalGuard: CanActivateFn = (route, state) => {
+export const modalGuard: CanActivateFn = (route) => {
   const dialogService = inject(DialogService);
 
   if (dialogService.hasOpenDialog()) {

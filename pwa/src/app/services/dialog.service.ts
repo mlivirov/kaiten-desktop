@@ -11,20 +11,20 @@ import {
   switchMap,
   tap,
   throwError,
-  throwIfEmpty, zip
+  throwIfEmpty,
+  zip
 } from 'rxjs';
 import {
   CardTransitionConfirmationDialogComponent
 } from '../dialogs/card-transition-confirmation-dialog/card-transition-confirmation-dialog.component';
 import { Column } from '../models/column';
 import { AlertDialogComponent } from '../dialogs/alert-dialog/alert-dialog.component';
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { SearchBoardDialogComponent } from '../dialogs/search-board-dialog/search-board-dialog.component';
 import { User } from '../models/user';
 import {
   LoginConfirmationDialogComponent
 } from '../dialogs/login-confirmation-dialog/login-confirmation-dialog.component';
-import { Card } from '../models/card';
 import {
   CardGlobalSearchComponent,
   CardSearchSelectMode
@@ -36,26 +36,23 @@ import {
   ConfirmationDialogComponent
 } from '../dialogs/confirmation-dialog/confirmation-dialog.component';
 import { BlockBlocker } from '../models/block-blocker.model';
-import {
-  CardBlockDialogComponent,
-  CardBlockDialogResult
-} from '../dialogs/card-block-dialog/card-block-dialog.component';
+import { CardBlockDialogComponent } from '../dialogs/card-block-dialog/card-block-dialog.component';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
   private activeModals: Array<NgbModalRef> = [];
 
-  constructor(
+  public constructor(
     private modal: NgbModal,
     private draftCardEditorService: DraftCardEditorService,
   ) {
   }
 
-  private removeActiveModal(modal: NgbModalRef) {
+  private removeActiveModal(modal: NgbModalRef): void {
     this.activeModals.splice(this.activeModals.indexOf(modal), 1);
   }
 
-  cardTransition(card: CardEx, from: Column, to: Column): Observable<CardEx> {
+  public cardTransition(card: CardEx, from: Column, to: Column): Observable<CardEx> {
     const instance = this.modal.open(
       CardTransitionConfirmationDialogComponent
     );
@@ -66,6 +63,7 @@ export class DialogService {
     instance.componentInstance.from = from;
     instance.componentInstance.to = to;
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     return instance.closed
       .pipe(
@@ -80,7 +78,7 @@ export class DialogService {
       );
   }
 
-  loginConfirmation(user: User): Observable<boolean> {
+  public loginConfirmation(user: User): Observable<boolean> {
     const instance = this.modal.open(
       LoginConfirmationDialogComponent
     );
@@ -88,6 +86,7 @@ export class DialogService {
 
     instance.componentInstance.user = user;
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     return instance.closed
       .pipe(
@@ -102,12 +101,13 @@ export class DialogService {
       );
   }
 
-  alert(text: string): Observable<any> {
+  public alert(text: string): Observable<boolean> {
     const instance = this.modal.open(AlertDialogComponent);
     this.activeModals.push(instance);
 
     instance.componentInstance.text = text;
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     return instance.closed
       .pipe(
@@ -122,7 +122,7 @@ export class DialogService {
       );
   }
 
-  confirmation(prompt: string, title?: string, buttons?: ConfirmationDialogButton[]): Observable<any> {
+  public confirmation(prompt: string, title?: string, buttons?: ConfirmationDialogButton[]): Observable<unknown> {
     const instance = this.modal.open(ConfirmationDialogComponent);
     this.activeModals.push(instance);
 
@@ -133,6 +133,7 @@ export class DialogService {
       { title: 'Continue', resultCode: true, style: 'btn-primary' },
     ];
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     return instance.closed
       .pipe(
@@ -147,7 +148,7 @@ export class DialogService {
       );
   }
 
-  editBlocker(cardId: number, blockerId?: number): Observable<BlockBlocker> {
+  public editBlocker(cardId: number, blockerId?: number): Observable<BlockBlocker> {
     if (this.activeModals.some(modal => modal.componentInstance instanceof CardBlockDialogComponent)) {
       return EMPTY;
     }
@@ -159,6 +160,7 @@ export class DialogService {
     instance.componentInstance.blockerId = blockerId;
 
     this.activeModals.push(instance);
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     return instance.closed
       .pipe(
@@ -174,7 +176,7 @@ export class DialogService {
       );
   }
 
-  searchCard(selectMode: CardSearchSelectMode = 'none', title = 'Search everywhere'): Observable<CardEx[]> {
+  public searchCard(selectMode: CardSearchSelectMode = 'none', title = 'Search everywhere'): Observable<CardEx[]> {
     if (this.activeModals.some(modal => modal.componentInstance instanceof CardGlobalSearchComponent)) {
       return EMPTY;
     }
@@ -187,6 +189,7 @@ export class DialogService {
     instance.componentInstance.title = title;
     this.activeModals.push(instance);
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     return instance.closed
       .pipe(
@@ -201,7 +204,7 @@ export class DialogService {
       );
   }
 
-  searchBoard(closable: boolean = true): Observable<{spaceId: number, boardId: number}> {
+  public searchBoard(closable: boolean = true): Observable<{spaceId: number, boardId: number}> {
     if (this.activeModals.some(modal => modal.componentInstance instanceof SearchBoardDialogComponent)) {
       return EMPTY;
     }
@@ -214,6 +217,7 @@ export class DialogService {
 
     this.activeModals.push(instance);
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     return instance.closed
       .pipe(
@@ -228,7 +232,7 @@ export class DialogService {
       );
   }
 
-  createCard(boardId: number, laneId?: number, typeId?: number, title: string|null = null): Observable<number> {
+  public createCard(boardId: number, laneId?: number, typeId?: number, title: string|null = null): Observable<number> {
     if (this.activeModals.some(modal => modal.componentInstance instanceof NewCardDialogComponent)) {
       return EMPTY;
     }
@@ -243,10 +247,10 @@ export class DialogService {
           draft === null
             ? newDraft$
             : this.confirmation('There is unsaved draft. Would you like to continue editing?', null, [
-                { title: 'Cancel', resultCode: undefined, style: 'btn-secondary' },
-                { title: 'Discard', resultCode: 'discard', style: 'btn-danger' },
-                { title: 'Continue editing', resultCode: 'continue', style: 'btn-primary' },
-              ])
+              { title: 'Cancel', resultCode: undefined, style: 'btn-secondary' },
+              { title: 'Discard', resultCode: 'discard', style: 'btn-danger' },
+              { title: 'Continue editing', resultCode: 'continue', style: 'btn-primary' },
+            ])
               .pipe(
                 switchMap((result: string) => {
                   if (result === 'continue') {
@@ -275,7 +279,7 @@ export class DialogService {
       );
   }
 
-  editCard(card: CardEx, closable: boolean = true): Observable<number> {
+  public editCard(card: CardEx, closable: boolean = true): Observable<number> {
     if (this.activeModals.some(modal => modal.componentInstance instanceof NewCardDialogComponent)) {
       return EMPTY;
     }
@@ -292,6 +296,7 @@ export class DialogService {
 
     this.activeModals.push(instance);
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     return instance.closed
       .pipe(
@@ -306,15 +311,15 @@ export class DialogService {
       );
   }
 
-  hasOpenDialog(): boolean {
+  public hasOpenDialog(): boolean {
     return this.activeModals.length > 0;
   }
 
-  closeMostRecent() {
+  public closeMostRecent(): void {
     this.activeModals[this.activeModals.length - 1].close();
   }
 
-  showNotImplementedDialog(): Observable<boolean> {
+  public showNotImplementedDialog(): Observable<boolean> {
     return this.alert('We are sorry, this feature is not implemented yet. Stay tuned!');
   }
 }

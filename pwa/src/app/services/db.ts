@@ -43,18 +43,18 @@ export interface CardEntity extends CardEx, EntityBase { }
 export interface CardTypeEntity extends CardType, EntityBase {}
 
 export class Db extends Dexie {
-  avatars!: Table<AvatarEntity, number>;
-  columns!: Table<ColumnEntity, number>;
-  boards!: Table<BoardEntity, number>;
-  spaces!: Table<SpaceEntity, number>;
-  customProperties!: Table<CustomPropertyEntity, number>;
-  customPropertySelectValues!: Table<CustomPropertySelectValueEntity, number>;
-  users!: Table<UserEntity, number>;
-  lanes!: Table<LaneEntity, number>;
-  cardTypes!: Table<CardTypeEntity, number>;
-  cardDrafts!: Table<CardEntity, number>;
+  public avatars!: Table<AvatarEntity, number>;
+  public columns!: Table<ColumnEntity, number>;
+  public boards!: Table<BoardEntity, number>;
+  public spaces!: Table<SpaceEntity, number>;
+  public customProperties!: Table<CustomPropertyEntity, number>;
+  public customPropertySelectValues!: Table<CustomPropertySelectValueEntity, number>;
+  public users!: Table<UserEntity, number>;
+  public lanes!: Table<LaneEntity, number>;
+  public cardTypes!: Table<CardTypeEntity, number>;
+  public cardDrafts!: Table<CardEntity, number>;
 
-  constructor() {
+  public constructor() {
     super('torpedo');
 
     this.version(1).stores({
@@ -71,7 +71,6 @@ export class Db extends Dexie {
     });
   }
 }
-
 
 export const Database = new Db();
 
@@ -102,7 +101,7 @@ export function getManyWithCache<TDto, TEntity extends EntityBase & TDto>(reques
     );
 }
 
-export function getSingleWithCache<TDto, TEntity extends EntityBase & TDto>(request$: Observable<TDto>, table: Table<TEntity>, key: any): Observable<TDto> {
+export function getSingleWithCache<TDto, TEntity extends EntityBase & TDto>(request$: Observable<TDto>, table: Table<TEntity>, key: unknown): Observable<TDto> {
   return from(table.get(key))
     .pipe(
       switchMap(data => {
@@ -127,13 +126,12 @@ export function getSingleWithCache<TDto, TEntity extends EntityBase & TDto>(requ
     );
 }
 
-
 export interface Mapper<TDto, TEntity> {
   toEntity: (dto: TDto) => TEntity;
   toDto: (dto: TEntity) => TDto;
 }
 
-export function getSingleWithCacheWithMap<TDto, TEntity extends EntityBase>(request$: Observable<TDto>, table: Table<TEntity>, key: any, mapper: Mapper<TDto, TEntity>, timeout: number = 1000 * 60): Observable<TDto> {
+export function getSingleWithCacheWithMap<TDto, TEntity extends EntityBase>(request$: Observable<TDto>, table: Table<TEntity>, key: unknown, mapper: Mapper<TDto, TEntity>, timeout: number = 1000 * 60): Observable<TDto> {
   return from(table.get(key))
     .pipe(
       switchMap(data => {

@@ -1,7 +1,16 @@
 <ng-container [ngSwitch]="state">
-    <span *ngSwitchCase="CardState.Draft">Draft</span>
-    <span *ngSwitchCase="CardState.Queued" [class.text-warning]="colored">Queued</span>
-    <span *ngSwitchCase="CardState.InProgress" [class.text-success]="colored">In progress</span>
-    <span *ngSwitchCase="CardState.Done" [class.text-kaiten]="colored">Done</span>
-    <span *ngSwitchDefault>Unknown</span>
+  <span *ngSwitchCase="CardState.Draft">Draft</span>
+  <span
+    *ngSwitchCase="CardState.Queued"
+    [class.text-warning]="colored"
+  >Queued</span>
+  <span
+    *ngSwitchCase="CardState.InProgress"
+    [class.text-success]="colored"
+  >In progress</span>
+  <span
+    *ngSwitchCase="CardState.Done"
+    [class.text-kaiten]="colored"
+  >Done</span>
+  <span *ngSwitchDefault>Unknown</span>
 </ng-container>

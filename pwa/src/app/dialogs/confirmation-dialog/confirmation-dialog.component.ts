@@ -1,11 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { NgForOf, NgIf } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
-
 export interface ConfirmationDialogButton {
   title: string;
-  resultCode: any,
+  resultCode: unknown,
   style: string;
 }
 
@@ -20,10 +19,10 @@ export interface ConfirmationDialogButton {
   styleUrl: './confirmation-dialog.component.scss'
 })
 export class ConfirmationDialogComponent {
-  text: string;
-  title: string = 'Information';
-  buttons: ConfirmationDialogButton[] = [];
+  @Input() public text: string;
+  @Input() public title: string = 'Information';
+  @Input() public buttons: ConfirmationDialogButton[] = [];
 
-  constructor(public modal: NgbActiveModal) {
+  public constructor(public modal: NgbActiveModal) {
   }
 }

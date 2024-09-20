@@ -14,12 +14,11 @@ import { Setting } from '../../../models/setting';
   styleUrl: './card-attachments.component.scss'
 })
 export class CardAttachmentsComponent {
-  @Input()
-  card: CardEx;
-  baseUrl: string;
-  isLoading: boolean = false;
+  @Input() public card: CardEx;
+  protected baseUrl: string;
+  protected isLoading: boolean = false;
 
-  constructor(private settingService: SettingService) {
+  public constructor(private settingService: SettingService) {
     this.settingService
       .getSetting(Setting.ApiUrl)
       .subscribe(url => {

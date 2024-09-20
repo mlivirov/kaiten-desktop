@@ -1,114 +1,189 @@
-<div class="p-2 mb-2 shadow border border-1 border-opacity-25 rounded position-relative"
-     style="{{getBackgroundColor()}}"
-     [class.bg-light-subtle]="getBackgroundColor() === ''"
-     (mouseover)="active = true"
-     (mouseout)="active = false"
-     (focusin)="active = true"
-     (focusout)="active = false"
-     *ngIf="card"
-     [class.shake]="highlight"
+<div
+  class="p-2 mb-2 shadow border border-1 border-opacity-25 rounded position-relative"
+  style="{{getBackgroundColor()}}"
+  [class.bg-light-subtle]="getBackgroundColor() === ''"
+  (mouseover)="active = true"
+  (mouseout)="active = false"
+  (focusin)="active = true"
+  (focusout)="active = false"
+  *ngIf="card"
+  [class.shake]="highlight"
 >
-    <div class="d-flex align-items-center mb-2" style="min-height: 1.5rem;">
-        <div class="smaller me-1 strong badge text-bg-danger" *ngIf="card.asap"><span>asap</span></div>
-        <div class="smaller" style="cursor: pointer" (click)="openCard(card.id)">{{card.type.name}}</div>
-        <div class="mx-2 d-md-none d-xl-block">
-            <app-time-dots [since]="card.column_changed_at"></app-time-dots>
-        </div>
-        <div class="ms-auto"></div>
-        <div [ngClass]="{ 'invisible': disabled || !active }" class="d-flex align-items-center me-1 ms-md-1 ">
-            <button
-                    ngbTooltip="Add blocker"
-                    type="button"
-                    class="btn btn-sm btn-icon-sm me-1 border border-1 d-inline-block d-md-none d-lg-inline-block text-secondary"
-                    (click)="addBlock()"
-                    [disabled]="isSaving"
-            >
-                <i class="pi pi-lock"></i>
-            </button>
-            <button
-                    ngbTooltip="Move to next column"
-                    type="button"
-                    class="btn btn-sm btn-icon-sm text-primary border border-1 me-1"
-                    (click)="transitionToNextColumn()"
-                    [disabled]="isSaving"
-            >
-                <i class="pi pi-angle-double-right"></i>
-            </button>
-            <app-copy-to-clipboard-button btnClass="btn-sm border border-1 me-1 text-secondary d-block" [data]="clipboardLink$"></app-copy-to-clipboard-button>
-        </div>
-        <div class="small ms-1 ms-md-0 text-nowrap d-inline d-sm-none"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
-        <div class="small ms-1 ms-md-0 text-nowrap opacity-75 d-none d-sm-inline cursor-pointer" (click)="openCard(card.id)"><i class="pi pi-hashtag" style="font-size: .775em;"></i><strong>{{card.id}}</strong></div>
-    </div>
-    <div class="p-2 font-size-medium my-2 text-bg-purple border border-1 rounded"
-       *ngFor="let blocker of card?.blockers"
+  <div
+    class="d-flex align-items-center mb-2"
+    style="min-height: 1.5rem;"
+  >
+    <div
+      class="smaller me-1 strong badge text-bg-danger"
+      *ngIf="card.asap"
     >
-        <div *ngIf="!blocker.blocker_card_id" class="d-flex align-items-start">
-            <i class="pi pi-exclamation-circle strong mt-1"></i>
-            <span class="ms-1">
-                <app-md-viewer class="small" [ngModel]="blocker.reason" [hideBorder]="true"></app-md-viewer>
-            </span>
-        </div>
-        <div *ngIf="blocker.blocker_card_id"
-             (click)="openCard(blocker.blocker_card_id)"
-             class="cursor-pointer"
+      <span>asap</span>
+    </div>
+    <div
+      class="smaller"
+      style="cursor: pointer"
+      (click)="openCard(card.id)"
+    >{{card.type.name}}</div>
+    <div class="mx-2 d-md-none d-xl-block">
+      <app-time-dots [since]="card.column_changed_at"></app-time-dots>
+    </div>
+    <div class="ms-auto"></div>
+    <div
+      [ngClass]="{ 'invisible': disabled || !active }"
+      class="d-flex align-items-center me-1 ms-md-1 "
+    >
+      <button
+        ngbTooltip="Add blocker"
+        type="button"
+        class="btn btn-sm btn-icon-sm me-1 border border-1 d-inline-block d-md-none d-lg-inline-block text-secondary"
+        (click)="addBlock()"
+        [disabled]="isSaving"
+      >
+        <i class="pi pi-lock"></i>
+      </button>
+      <button
+        ngbTooltip="Move to next column"
+        type="button"
+        class="btn btn-sm btn-icon-sm text-primary border border-1 me-1"
+        (click)="transitionToNextColumn()"
+        [disabled]="isSaving"
+      >
+        <i class="pi pi-angle-double-right"></i>
+      </button>
+      <app-copy-to-clipboard-button
+        btnClass="btn-sm border border-1 me-1 text-secondary d-block"
+        [data]="clipboardLink$"
+      ></app-copy-to-clipboard-button>
+    </div>
+    <div class="small ms-1 ms-md-0 text-nowrap d-inline d-sm-none">
+      <i
+        class="pi pi-hashtag"
+        style="font-size: .775em;"
+      ></i>
+      <strong>{{card.id}}</strong>
+    </div>
+    <div
+      class="small ms-1 ms-md-0 text-nowrap opacity-75 d-none d-sm-inline cursor-pointer"
+      (click)="openCard(card.id)"
+    >
+      <i
+        class="pi pi-hashtag"
+        style="font-size: .775em;"
+      ></i>
+      <strong>{{card.id}}</strong>
+    </div>
+  </div>
+  <div
+    class="p-2 font-size-medium my-2 text-bg-purple border border-1 rounded"
+    *ngFor="let blocker of card?.blockers"
+  >
+    <div
+      *ngIf="!blocker.blocker_card_id"
+      class="d-flex align-items-start"
+    >
+      <i class="pi pi-exclamation-circle strong mt-1"></i>
+      <span class="ms-1">
+        <app-md-viewer
+          class="small"
+          [ngModel]="blocker.reason"
+          [hideBorder]="true"
+        ></app-md-viewer>
+      </span>
+    </div>
+    <div
+      *ngIf="blocker.blocker_card_id"
+      (click)="openCard(blocker.blocker_card_id)"
+      class="cursor-pointer"
+    >
+      <i class="pi pi-lock strong"></i>
+      <span class="ms-1">
+        <span class="strong small">{{blocker.card?.id}}</span>
+        <span> - {{blocker.card?.title}}</span>
+      </span>
+    </div>
+  </div>
+  <p
+    class="p-2 font-size-medium my-2 cursor-pointer text-bg-warning border border-1 rounded"
+    *ngFor="let blocker of card?.blocking_blockers"
+    (click)="openCard(blocker.blocked_card?.id)"
+  >
+    <i class="pi pi-lock strong"></i>
+    <span class="ms-1">
+      <span class="strong small">{{blocker.blocked_card?.id}}</span>
+      <span> - {{blocker.blocked_card?.title}}</span>
+    </span>
+  </p>
+  <p
+    class="mb-2 text-break"
+    style="font-size: 14px; cursor: pointer;"
+    (click)="openCard(card.id)"
+  >{{card.title}}</p>
+  <div
+    *ngFor="let member of assignedMembers"
+    class="mt-2-next font-size-medium "
+  >
+    <app-inline-member [profile]="member"></app-inline-member>
+  </div>
+  <ng-template #goalsOverlay>
+    <div *ngIf="isExtendedDataLoading">
+      <i class="pi pi-spinner pi-spin me-2"></i>
+      Loading
+    </div>
+    <div
+      *ngIf="isExtendedDataLoaded"
+      class="overflow-y-auto me-2"
+      style="max-height: 20rem;"
+    >
+      <ul class="list-unstyled">
+        <li
+          *ngFor="let checklist of card.checklists"
+          class="mt-2-next"
         >
-            <i class="pi pi-lock strong"></i>
-            <span class="ms-1">
-              <span class="strong small">{{blocker.card?.id}}</span>
-              <span> - {{blocker.card?.title}}</span>
-            </span>
-        </div>
+          <div class="strong">{{checklist.name}}</div>
+          <ul class="list-unstyled mt-2">
+            <li
+              *ngFor="let item of checklist.items"
+              class="ms-2 small d-flex align-items-start mt-2-next"
+            >
+              <input
+                type="checkbox"
+                class="form-check-inline mt-1 text-primary"
+                [checked]="item.checked"
+                [disabled]="true"
+              >
+              <app-md-viewer
+                [ngModel]="item.text"
+                [hideBorder]="true"
+                class="ms-n2"
+              ></app-md-viewer>
+            </li>
+          </ul>
+        </li>
+      </ul>
     </div>
-    <p class="p-2 font-size-medium my-2 cursor-pointer text-bg-warning border border-1 rounded"
-       *ngFor="let blocker of card?.blocking_blockers"
-       (click)="openCard(blocker.blocked_card?.id)"
-    >
-        <i class="pi pi-lock strong"></i>
-        <span class="ms-1">
-          <span class="strong small">{{blocker.blocked_card?.id}}</span>
-          <span> - {{blocker.blocked_card?.title}}</span>
-        </span>
-    </p>
-    <p class="mb-2 text-break" style="font-size: 14px; cursor: pointer;" (click)="openCard(card.id)">{{card.title}}</p>
-    <div *ngFor="let member of assignedMembers" class="mt-2-next font-size-medium ">
-        <app-inline-member [profile]="member"></app-inline-member>
-    </div>
-    <ng-template #goalsOverlay>
-        <div *ngIf="isExtendedDataLoading">
-            <i class="pi pi-spinner pi-spin me-2"></i>
-            Loading
-        </div>
-        <div *ngIf="isExtendedDataLoaded" class="overflow-y-auto me-2" style="max-height: 20rem;">
-            <ul class="list-unstyled">
-               <li *ngFor="let checklist of card.checklists" class="mt-2-next">
-                   <div class="strong">{{checklist.name}}</div>
-                   <ul class="list-unstyled mt-2">
-                       <li *ngFor="let item of checklist.items" class="ms-2 small d-flex align-items-start mt-2-next">
-                           <input type="checkbox" class="form-check-inline mt-1 text-primary" [checked]="item.checked" [disabled]="true">
-                           <app-md-viewer [ngModel]="item.text" [hideBorder]="true" class="ms-n2"></app-md-viewer>
-                       </li>
-                   </ul>
-               </li>
-            </ul>
-        </div>
-    </ng-template>
-    <div *ngIf="card.goals_total"
-          [ngbPopover]="goalsOverlay"
-          triggers="click"
-          container="body"
-          autoClose="outside"
-          (shown)="handleGoalsTooltipShown()"
-          class="opacity-50 smaller strong text-uppercase user-select-none text-end cursor-pointer"
-    >
-        <span *ngIf="card.goals_done && card.goals_done !== card.goals_total">{{card.goals_done}} of {{card.goals_total}} goals reached</span>
-        <span *ngIf="card.goals_done && card.goals_done === card.goals_total">all goals reached</span>
-        <span *ngIf="!card.goals_done">no goals reached</span>
-    </div>
-    <div class="progress mb-n2 mx-n2"
-         role="progressbar"
-         style="height: .25rem"
-         *ngIf="card.goals_total"
-    >
-        <div class="progress-bar progress-bar-striped" [ngStyle]="{ 'width': (card.goals_done / card.goals_total * 100.).toString() + '%' }"></div>
-    </div>
+  </ng-template>
+  <div
+    *ngIf="card.goals_total"
+    [ngbPopover]="goalsOverlay"
+    triggers="click"
+    container="body"
+    autoClose="outside"
+    (shown)="handleGoalsTooltipShown()"
+    class="opacity-50 smaller strong text-uppercase user-select-none text-end cursor-pointer"
+  >
+    <span *ngIf="card.goals_done && card.goals_done !== card.goals_total">{{card.goals_done}} of {{card.goals_total}} goals reached</span>
+    <span *ngIf="card.goals_done && card.goals_done === card.goals_total">all goals reached</span>
+    <span *ngIf="!card.goals_done">no goals reached</span>
+  </div>
+  <div
+    class="progress mb-n2 mx-n2"
+    role="progressbar"
+    style="height: .25rem"
+    *ngIf="card.goals_total"
+  >
+    <div
+      class="progress-bar progress-bar-striped"
+      [ngStyle]="{ 'width': (card.goals_done / card.goals_total * 100.).toString() + '%' }"
+    ></div>
+  </div>
 </div>

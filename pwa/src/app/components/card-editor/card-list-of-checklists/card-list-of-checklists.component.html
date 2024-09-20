@@ -1,6 +1,7 @@
-<app-card-checklist *ngFor="let checklist of card.checklists"
-                    [checklist]="checklist"
-                    [cardId]="card.id"
-                    [disabled]="isSaving"
-                    (delete)="deleteList($event)"
+<app-card-checklist
+  *ngFor="let checklist of card.checklists"
+  [checklist]="checklist"
+  [cardId]="card.id"
+  [disabled]="isSaving"
+  (delete)="deleteList($event)"
 ></app-card-checklist>

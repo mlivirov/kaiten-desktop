@@ -1,20 +1,32 @@
 <app-typeahead
-        #typeahead
-        [inputClass]="inputClass"
-        [badgeTypes]="badgeTypes"
-        [ngModel]="value"
-        (ngModelChange)="changeAndNotify($event)"
-        [placeholder]="placeholder"
-        [title]="title"
-        [titleClass]="titleClass"
+  #typeahead
+  [inputClass]="inputClass"
+  [badgeTypes]="badgeTypes"
+  [ngModel]="value"
+  (ngModelChange)="changeAndNotify($event)"
+  [placeholder]="placeholder"
+  [title]="title"
+  [titleClass]="titleClass"
 >
-    <ng-template [appTypeaheadBadgeItemTemplate] [type]="BadgeTypeMember" let-data="data">
-        <app-inline-member [profile]="data"></app-inline-member>
-    </ng-template>
-    <ng-template [appTypeaheadBadgeItemTemplate] [type]="BadgeTypeOwner" let-data="data">
-        <app-inline-member [profile]="data"></app-inline-member>
-    </ng-template>
-    <ng-template [appTypeaheadBadgeItemTemplate] [type]="BadgeTypeTag" let-data="data">
-        <span>{{data.name}}</span>
-    </ng-template>
+  <ng-template
+    [appTypeaheadBadgeItemTemplate]
+    [type]="BadgeTypeMember"
+    let-data="data"
+  >
+    <app-inline-member [profile]="data"></app-inline-member>
+  </ng-template>
+  <ng-template
+    [appTypeaheadBadgeItemTemplate]
+    [type]="BadgeTypeOwner"
+    let-data="data"
+  >
+    <app-inline-member [profile]="data"></app-inline-member>
+  </ng-template>
+  <ng-template
+    [appTypeaheadBadgeItemTemplate]
+    [type]="BadgeTypeTag"
+    let-data="data"
+  >
+    <span>{{data.name}}</span>
+  </ng-template>
 </app-typeahead>

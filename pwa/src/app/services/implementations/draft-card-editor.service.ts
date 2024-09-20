@@ -1,5 +1,5 @@
 import { CardEx } from '../../models/card-ex';
-import { EMPTY, forkJoin, from, last, map, mergeMap, Observable, of, switchMap } from 'rxjs';
+import { EMPTY, forkJoin, from, map, Observable, of, switchMap } from 'rxjs';
 import { Owner } from '../../models/owner';
 import { MemberType } from '../../models/member-type';
 import { CheckListItem } from '../../models/check-list-item';
@@ -10,30 +10,28 @@ import { CardEditorService } from '../card-editor.service';
 import { Injectable } from '@angular/core';
 import { CardEntity, Database } from '../db';
 import { UserService } from '../user.service';
-import { UnionIfNotExistsFunction } from '../../functions/union-if-not-exists.function';
+import { unionIfNotExists } from '../../functions/union-if-not-exists';
 import { CardState } from '../../models/card-state';
 import { AuthService } from '../auth.service';
 import { BoardService } from '../board.service';
-import { FlattenColumnsFunction } from '../../functions/flatten-columns.function';
-import { Space } from '../../models/space';
-import { Card } from '../../models/card';
+import { flattenColumns } from '../../functions/flatten-columns';
 import { CardActivity } from '../../models/card-activity';
 import { BlockBlocker } from '../../models/block-blocker.model';
 
 @Injectable({ providedIn: 'root' })
 export class DraftCardEditorService implements CardEditorService {
-  constructor(
+  public constructor(
     private userService: UserService,
     private authService: AuthService,
     private boardService: BoardService,
   ) {
   }
 
-  getLastDraft(): Observable<CardEx> {
+  public getLastDraft(): Observable<CardEx> {
     return from(Database.cardDrafts.toArray()).pipe(switchMap(drafts => drafts?.length ? of(drafts[drafts.length - 1]) : EMPTY));
   }
 
-  createNewDraft(boardId: number, laneId?: number, typeId?: number, title: string|null = null): Observable<CardEx> {
+  public createNewDraft(boardId: number, laneId?: number, typeId?: number, title: string|null = null): Observable<CardEx> {
     return forkJoin({
       owner: this.authService.getCurrentUser(),
       board: this.boardService.getBoard(boardId),
@@ -50,8 +48,8 @@ export class DraftCardEditorService implements CardEditorService {
         return lanes.sort((a, b) => a.sort_order - b.sort_order)[0];
       })),
       column: this.boardService.getColumns(boardId).pipe(map(columns => {
-        const flattenColumns = FlattenColumnsFunction(columns).sort((a, b) => a.sort_order - b.sort_order);
-        return flattenColumns[0];
+        const cols = flattenColumns(columns).sort((a, b) => a.sort_order - b.sort_order);
+        return cols[0];
       })),
       type: this.boardService.getCardTypes().pipe(
         map(types => types.find(t => t.id === typeId || !typeId)),
@@ -88,41 +86,41 @@ export class DraftCardEditorService implements CardEditorService {
       );
   }
 
-  updateCard(id: number, properties: Partial<CardEx>): Observable<CardEx> {
+  public updateCard(id: number, properties: Partial<CardEx>): Observable<CardEx> {
     const card$ = from(Database.cardDrafts.get(id));
     return card$.pipe(
-        switchMap((card: CardEx) => {
-          Object.assign(card, properties);
-          return from(Database.cardDrafts.put(<CardEntity>card)).pipe(map(() => card));
-        })
-      );
+      switchMap((card: CardEx) => {
+        Object.assign(card, properties);
+        return from(Database.cardDrafts.put(<CardEntity>card)).pipe(map(() => card));
+      })
+    );
   }
 
-  addMemberToCard(cardId: number, userId: number): Observable<Owner> {
+  public addMemberToCard(cardId: number, userId: number): Observable<Owner> {
     return forkJoin({
       user: this.userService.getUserById(userId),
       card: from(Database.cardDrafts.get(cardId))
     })
-    .pipe(
-      switchMap(({user, card}) => {
-        const member = <Owner>{
-          ...user,
-          card_id: cardId,
-          user_id: userId,
-          type: MemberType.Member,
-        };
+      .pipe(
+        switchMap(({user, card}) => {
+          const member = <Owner>{
+            ...user,
+            card_id: cardId,
+            user_id: userId,
+            type: MemberType.Member,
+          };
 
-        card.members = UnionIfNotExistsFunction(card.members, member, 'id');
-        return forkJoin({
+          card.members = unionIfNotExists(card.members, member, 'id');
+          return forkJoin({
             card: from(Database.cardDrafts.put(card)),
             member: of(member)
-        });
-      }),
-      map(({card, member}) => member)
-    );
+          });
+        }),
+        map(({member}) => member)
+      );
   }
 
-  removeMemberFromCard(cardId: number, userId: number): Observable<void> {
+  public removeMemberFromCard(cardId: number, userId: number): Observable<void> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
@@ -132,10 +130,10 @@ export class DraftCardEditorService implements CardEditorService {
           return from(Database.cardDrafts.put(card));
         }),
         map(() => {})
-      )
+      );
   }
 
-  makeMemberResponsible(cardId: number, userId: number): Observable<void> {
+  public makeMemberResponsible(cardId: number, userId: number): Observable<void> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
@@ -143,38 +141,44 @@ export class DraftCardEditorService implements CardEditorService {
           return from(Database.cardDrafts.put(card));
         }),
         map(() => {})
-      )
+      );
   }
 
-  removeRelation(parentCardId: number, childCardId: number): Observable<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public removeRelation(parentCardId: number, childCardId: number): Observable<void> {
     throw new Error('Not supported');
   }
 
-  addRelation(parentCardId: number, childCardId: number): Observable<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public addRelation(parentCardId: number, childCardId: number): Observable<void> {
     throw new Error('not supported');
   }
 
-  getCardActivity(cardId: number): Observable<CardActivity[]> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getCardActivity(cardId: number): Observable<CardActivity[]> {
     throw new Error('not supported');
   }
 
-  getCardComments(cardId: number): Observable<CardComment[]> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getCardComments(cardId: number): Observable<CardComment[]> {
     throw new Error('not supported');
   }
 
-  addComment(cardId: number, text: string): Observable<CardComment> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public addComment(cardId: number, text: string): Observable<CardComment> {
     throw new Error('not supported');
   }
 
-  updateComment(cardId: number, commentId: number, text: string): Observable<CardComment> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public updateComment(cardId: number, commentId: number, text: string): Observable<CardComment> {
     throw new Error('not supported');
   }
 
-  getCard(id: number): Observable<CardEx> {
+  public getCard(id: number): Observable<CardEx> {
     return from(Database.cardDrafts.get(id));
   }
 
-  updateCardCheckListItem(cardId: number, checklistId: number, checkListItemId: number, checklistItem: Partial<CheckListItem>): Observable<CheckListItem> {
+  public updateCardCheckListItem(cardId: number, checklistId: number, checkListItemId: number, checklistItem: Partial<CheckListItem>): Observable<CheckListItem> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
@@ -184,10 +188,10 @@ export class DraftCardEditorService implements CardEditorService {
 
           return from(Database.cardDrafts.put(card)).pipe(map(() => item));
         }),
-      )
+      );
   }
 
-  updateCardCheckList(cardId: number, checklistId: number, data: Partial<CheckList>): Observable<CheckList> {
+  public updateCardCheckList(cardId: number, checklistId: number, data: Partial<CheckList>): Observable<CheckList> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
@@ -196,10 +200,10 @@ export class DraftCardEditorService implements CardEditorService {
 
           return from(Database.cardDrafts.put(card)).pipe(map(() => checklist));
         }),
-      )
+      );
   }
 
-  addCheckListItem(cardId: number, checklistId: number, text: string, position: number|undefined): Observable<CheckListItem> {
+  public addCheckListItem(cardId: number, checklistId: number, text: string, position: number|undefined): Observable<CheckListItem> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
@@ -211,13 +215,13 @@ export class DraftCardEditorService implements CardEditorService {
             id: Math.random() * Number.MAX_VALUE
           };
 
-          checklist.items = UnionIfNotExistsFunction(checklist.items, item, 'id');
+          checklist.items = unionIfNotExists(checklist.items, item, 'id');
           return from(Database.cardDrafts.put(card)).pipe(map(() => item));
         }),
-      )
+      );
   }
 
-  deleteCheckListItem(cardId: number, checklistId: number, checklistItemId: number): Observable<void> {
+  public deleteCheckListItem(cardId: number, checklistId: number, checklistItemId: number): Observable<void> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
@@ -231,7 +235,7 @@ export class DraftCardEditorService implements CardEditorService {
       );
   }
 
-  deleteCheckList(cardId: number, checklistId: number): Observable<void> {
+  public deleteCheckList(cardId: number, checklistId: number): Observable<void> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
@@ -244,7 +248,7 @@ export class DraftCardEditorService implements CardEditorService {
       );
   }
 
-  addCardCheckList(cardId: number, data: Partial<CheckList>): Observable<CheckList> {
+  public addCardCheckList(cardId: number, data: Partial<CheckList>): Observable<CheckList> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
@@ -255,14 +259,14 @@ export class DraftCardEditorService implements CardEditorService {
             items: []
           };
 
-          card.checklists = UnionIfNotExistsFunction(card.checklists, checklist, 'id');
+          card.checklists = unionIfNotExists(card.checklists, checklist, 'id');
 
           return from(Database.cardDrafts.put(card)).pipe(map(() => checklist));
         })
       );
   }
 
-  createTag(cardId: number, name: string): Observable<Tag> {
+  public createTag(cardId: number, name: string): Observable<Tag> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
@@ -271,14 +275,14 @@ export class DraftCardEditorService implements CardEditorService {
             name: name,
           };
 
-          card.tags = UnionIfNotExistsFunction(card.tags, tag, 'id');
+          card.tags = unionIfNotExists(card.tags, tag, 'id');
 
           return from(Database.cardDrafts.put(card)).pipe(map(() => tag));
         })
       );
   }
 
-  removeTag(cardId: number, tagId: number): Observable<void> {
+  public removeTag(cardId: number, tagId: number): Observable<void> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
@@ -290,19 +294,22 @@ export class DraftCardEditorService implements CardEditorService {
       );
   }
 
-  deleteCard(cardId: number): Observable<void> {
+  public deleteCard(cardId: number): Observable<void> {
     return from(Database.cardDrafts.delete(cardId));
   }
 
-  addBlocker(cardId: number, blockingCardId?: number, reason?: string): Observable<BlockBlocker> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public addBlocker(cardId: number, blockingCardId?: number, reason?: string): Observable<BlockBlocker> {
     throw new Error('not supported');
   }
 
-  editBlocker(cardId: number, blockerId: number, reason?: string): Observable<BlockBlocker> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public editBlocker(cardId: number, blockerId: number, reason?: string): Observable<BlockBlocker> {
     throw new Error('not supported');
   }
 
-  removeBlocker(cardId: number, blockerId: number): Observable<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public removeBlocker(cardId: number, blockerId: number): Observable<void> {
     throw new Error('not supported');
   }
 }

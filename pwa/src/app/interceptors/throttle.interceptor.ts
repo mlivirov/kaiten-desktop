@@ -4,29 +4,29 @@ import { inject, Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 class ThrottleService {
-  queue = new Array<{req: HttpRequest<any>, next: HttpHandlerFn}>();
-  active$ = new BehaviorSubject<{req: HttpRequest<any>, next: HttpHandlerFn}>(null);
-  interval$ = interval(1000/4);
+  private queue = new Array<{req: HttpRequest<unknown>, next: HttpHandlerFn}>();
+  private active$ = new BehaviorSubject<{req: HttpRequest<unknown>, next: HttpHandlerFn}>(null);
+  private interval$ = interval(1000/4);
 
-  constructor() {
+  public constructor() {
     this.interval$
       .pipe(
-        filter(t => this.queue.length > 0),
-        map(t => this.queue.shift())
+        filter(() => this.queue.length > 0),
+        map(() => this.queue.shift())
       )
       .subscribe((item) => {
         this.active$.next(item);
       });
   }
 
-  throttle(req: HttpRequest<any>, next: HttpHandlerFn): Observable<HttpEvent<any>> {
+  public throttle(req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> {
     this.queue.push({req, next});
 
     return this.active$
       .pipe(
         filter(x => x?.req === req),
         take(1),
-        switchMap((x: {req: HttpRequest<any>, next: HttpHandlerFn}) => x.next(x.req)),
+        switchMap((x: {req: HttpRequest<unknown>, next: HttpHandlerFn}) => x.next(x.req)),
       );
   }
 }

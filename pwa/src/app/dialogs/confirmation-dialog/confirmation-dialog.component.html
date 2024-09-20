@@ -1,13 +1,27 @@
 
 <div class="modal-header">
-    <h1 class="modal-title fs-5" id="exampleModalLabel">{{title}}</h1>
-    <button type="button" class="btn-close" aria-label="Close" tabindex="-1" (click)="modal.close()"></button>
+  <h1
+    class="modal-title fs-5"
+    id="exampleModalLabel"
+  >{{title}}</h1>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    tabindex="-1"
+    (click)="modal.close()"
+  ></button>
 </div>
 <div class="modal-body">
-    <p>{{text}}</p>
+  <p>{{text}}</p>
 </div>
 <div class="modal-footer">
-    <button type="button" class="btn ms-2 {{button.style}}" (click)="modal.close(button.resultCode)" *ngFor="let button of buttons">
-        {{button.title}}
-    </button>
+  <button
+    type="button"
+    class="btn ms-2 {{button.style}}"
+    (click)="modal.close(button.resultCode)"
+    *ngFor="let button of buttons"
+  >
+    {{button.title}}
+  </button>
 </div>

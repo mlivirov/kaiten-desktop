@@ -3,17 +3,16 @@ import { CardComment, CardCommentType } from '../../../models/card-comment';
 import { MdEditorComponent } from '../../md-editor/md-editor.component';
 import { DatePipe, DecimalPipe, NgForOf, NgIf, NgStyle, PercentPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FileService } from '../../../services/file.service';
 import { InlineMemberComponent } from '../../inline-member/inline-member.component';
 import { MdViewerComponent } from '../../md-viewer/md-viewer.component';
 import { TimeagoModule } from 'ngx-timeago';
 import { User } from '../../../models/user';
-import { finalize, forkJoin, map } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { TextEditorComponent, TextEditorSaveEvent } from '../../text-editor/text-editor.component';
 import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../services/card-editor.service';
 import { AuthService } from '../../../services/auth.service';
 import { CardActivity } from '../../../models/card-activity';
-import { getTextOrDefault } from '../../../functions/get-text-or-default.function';
+import { getTextOrDefault } from '../../../functions/get-text-or-default';
 import { BoardService } from '../../../services/board.service';
 import { CardType } from '../../../models/card-type';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
@@ -59,24 +58,24 @@ export interface CardCommentViewModel {
 export class CardCommentsComponent implements OnChanges {
   protected readonly CardCommentType = CardCommentType;
   protected readonly CardState = CardState;
+  @Input() public cardId: number;
+  private cardTypes: CardType[] = [];
+  protected entries: CardCommentViewModel[] = [];
+  private comments: CardCommentViewModel[] = [];
+  private activities: CardCommentViewModel[] = [];
+  protected currentUser: User;
+  protected text: string;
+  protected isSavingInProgress: boolean = false;
+  protected isLoading: boolean = false;
+  protected areCommentsVisible: boolean = true;
+  protected areActivitiesVisible: boolean = true;
+  protected throughputReport?: ThroughputReport;
 
-  @Input()
-  cardId: number;
+  public get countOfAllEntries(): number {
+    return this.activities.length + this.comments.length;
+  }
 
-  cardTypes: CardType[] = [];
-  entries: CardCommentViewModel[] = [];
-  comments: CardCommentViewModel[] = [];
-  activities: CardCommentViewModel[] = [];
-  currentUser: User;
-  text: string;
-  isSavingInProgress: boolean = false;
-  isLoading: boolean = false;
-
-  areCommentsVisible: boolean = true;
-  areActivitiesVisible: boolean = true;
-  throughputReport?: ThroughputReport;
-
-  constructor(
+  public constructor(
     private authService: AuthService,
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
     private boardService: BoardService,
@@ -87,7 +86,7 @@ export class CardCommentsComponent implements OnChanges {
       .subscribe(currentUser => this.currentUser = currentUser );
   }
 
-  getThroughputColumnTitle(column: Column, subcolumn?: Column): string {
+  protected getThroughputColumnTitle(column: Column, subcolumn?: Column): string {
     let title = getTextOrDefault(column.title);
 
     if (subcolumn?.title?.length) {
@@ -97,14 +96,14 @@ export class CardCommentsComponent implements OnChanges {
     return title;
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.cardId) {
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['cardId'] && this.cardId) {
       this.throughputReport = null;
       this.loadActivities();
     }
   }
 
-  submit() {
+  protected submit(): void {
     if (this.isSavingInProgress) {
       return;
     }
@@ -123,7 +122,7 @@ export class CardCommentsComponent implements OnChanges {
       });
   }
 
-  makeEntries() {
+  private makeEntries(): void {
     this.entries = [];
     if (this.areCommentsVisible) {
       this.entries.push(...this.comments);
@@ -145,8 +144,7 @@ export class CardCommentsComponent implements OnChanges {
       );
   }
 
-
-  loadActivities() {
+  private loadActivities(): void {
     this.isLoading = true;
     forkJoin({
       cardTypes: this.boardService.getCardTypes(),
@@ -169,7 +167,7 @@ export class CardCommentsComponent implements OnChanges {
       });
   }
 
-  mapCommentToModel(comment: CardComment): CardCommentViewModel {
+  private mapCommentToModel(comment: CardComment): CardCommentViewModel {
     return <CardCommentViewModel>{
       comment_id: comment.id,
       action: 'commented',
@@ -179,16 +177,17 @@ export class CardCommentsComponent implements OnChanges {
       text: comment.text,
       created: new Date(comment.created),
       comment_type: comment.type
-    }
+    };
   }
 
-  getPropertyValue(val: unknown, mapper: (v) => string = (v) => v) {
+  // TODO: extract into function cuz this seems to be required elsewhere
+  private getPropertyValue(val: unknown, mapper: (v) => string = (v) => v): unknown {
     if (val === null || val === undefined) {
       return 'Not set';
     }
 
     if (typeof val === 'string') {
-      return val
+      return val;
     } else if (val['id'] && val['value']) {
       return val['value'] as string;
     } else if (Array.isArray(val)) {
@@ -198,37 +197,37 @@ export class CardCommentsComponent implements OnChanges {
     return val;
   }
 
-  getBlockerTextFromActivity(activity: CardActivity): string {
+  private getBlockerTextFromActivity(activity: CardActivity): string {
     let text = '';
     if (activity.data?.dump?.block?.blocker_card_id) {
-      text += ` [${activity.data?.dump?.block?.blocker_card_id}](/${activity.data?.dump?.block?.blocker_card_id})`
+      text += ` [${activity.data?.dump?.block?.blocker_card_id}](/${activity.data?.dump?.block?.blocker_card_id})`;
     }
 
     if (activity.data?.dump?.block?.reason) {
-      text += 'comment'
-      text += '\n>'+activity.data?.dump?.block?.reason
+      text += 'comment';
+      text += '\n>'+activity.data?.dump?.block?.reason;
     }
 
     return text;
   }
 
-  getTextForRelationChanged(activity: CardActivity): string {
+  private getTextForRelationChanged(activity: CardActivity): string {
     const relation = activity.data.dump.parent_card || activity.data.dump.child_card;
     return `${activity.data.dump.parent_card ? 'parent' : 'child'} card [${relation?.id} - ${relation?.title}](/../card/${relation?.id})`;
   }
 
-  getTextForTransition(activity: CardActivity): string {
+  private getTextForTransition(activity: CardActivity): string {
     let text = `${getTextOrDefault(activity.lane.title, 'Default')}" lane`;
     text += ` of "[${activity.board.title}](/../board/${activity.board_id})"`;
-    text += ` > "${getTextOrDefault(activity.column.title, activity.board.title)}"`
+    text += ` > "${getTextOrDefault(activity.column.title, activity.board.title)}"`;
     if (activity.subcolumn?.title?.length) {
-      text += ` > "${activity.subcolumn.title}"`
+      text += ` > "${activity.subcolumn.title}"`;
     }
 
     return text;
   }
 
-  mapActivityToModel(activity: CardActivity): CardCommentViewModel {
+  private mapActivityToModel(activity: CardActivity): CardCommentViewModel {
     let text: string = `Card updated. Action: ${activity.action}`;
     if (activity.changed_field) {
       text += `, field: ${activity.changed_field}`;
@@ -300,13 +299,13 @@ export class CardCommentsComponent implements OnChanges {
           text = `Changed type to "${this.cardTypes.find(t => t.id === activity.type_id)?.name}"`;
           break;
         } else if (activity.changed_field === 'description') {
-          text = `Updated description`;
+          text = 'Updated description';
           break;
         } else if (activity.changed_field === 'properties' && activity.property_type === 'user') {
           const username = this.getPropertyValue(activity.property_value, (v) => v['username']);
           text = username === 'Not set'
-             ? `Updated property ${activity.property_name} to "${username}"`
-             : `Updated property ${activity.property_name} to @${username}`;
+            ? `Updated property ${activity.property_name} to "${username}"`
+            : `Updated property ${activity.property_name} to @${username}`;
           break;
         } if (activity.changed_field === 'properties') {
           text = `Updated property ${activity.property_name} to "${this.getPropertyValue(activity.property_value)}"`;
@@ -318,7 +317,7 @@ export class CardCommentsComponent implements OnChanges {
           text = `Added tags: ${activity.added_tags.map(t => t.name).join(', ')}`;
           break;
         }
-      break;
+        break;
     }
 
     return <CardCommentViewModel>{
@@ -333,7 +332,7 @@ export class CardCommentsComponent implements OnChanges {
     };
   }
 
-  update(comment: CardCommentViewModel, event: TextEditorSaveEvent) {
+  protected update(comment: CardCommentViewModel, event: TextEditorSaveEvent): void {
     if (this.isSavingInProgress) {
       return;
     }
@@ -351,12 +350,12 @@ export class CardCommentsComponent implements OnChanges {
       });
   }
 
-  toggleActivitiesVisible() {
+  protected toggleActivitiesVisible(): void {
     this.areActivitiesVisible = !this.areActivitiesVisible;
     this.makeEntries();
   }
 
-  toggleCommentsVisible() {
+  protected toggleCommentsVisible(): void {
     this.areCommentsVisible = !this.areCommentsVisible;
     this.makeEntries();
   }

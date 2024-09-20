@@ -1,170 +1,272 @@
 <ng-template #controls>
-    <button class="btn btn-icon-sm btn-link text-secondary popover-control"
-            type="button"
-            *ngIf="!item.responsible_id"
-            ngbTooltip="Set responsible"
-            container="body"
-            (click)="openUserEditor($event)"
-            [disabled]="isSaving || disabled"
-    >
-        <i class="pi pi-user-edit"></i>
-    </button>
-    <app-inline-member [profileId]="item.responsible_id"
-                       *ngIf="item.responsible_id"
-                       [showName]="false"
-                       ngbTooltip="Set responsible"
-                       container="body"
-                       [disableTooltip]="!!item.responsible_id"
-                       class="ms-2 cursor-pointer popover-control"
-                       (click)="openUserEditor($event)"
-    ></app-inline-member>
-    <div class="badge ms-2 cursor-pointer popover-control"
-         [class.text-bg-secondary]="getExpirationStatus() === ExpirationStatus.FAR"
-         [class.text-bg-success]="getExpirationStatus() === ExpirationStatus.WEEK"
-         [class.text-bg-warning]="getExpirationStatus() === ExpirationStatus.TODAY"
-         [class.text-bg-danger]="getExpirationStatus() === ExpirationStatus.EXPIRED"
-         *ngIf="item.due_date"
-         ngbTooltip="Due {{item.due_date | date: 'd MMMM, yyyy'}}"
-         (click)="openDueDateEditor($event)"
-    >
-        {{item.due_date | date: 'dd MMM'}}
-    </div>
-    <button class="btn btn-icon-sm btn-link ms-2 text-secondary popover-control"
-            type="button"
-            *ngIf="!item.due_date"
-            ngbTooltip="Set due date"
-            [disabled]="isSaving || disabled"
-            (click)="openDueDateEditor($event)"
-    >
-        <i class="pi pi-clock"></i>
-    </button>
+  <button
+    class="btn btn-icon-sm btn-link text-secondary popover-control"
+    type="button"
+    *ngIf="!item.responsible_id"
+    ngbTooltip="Set responsible"
+    container="body"
+    (click)="openUserEditor($event)"
+    [disabled]="isSaving || disabled"
+  >
+    <i class="pi pi-user-edit"></i>
+  </button>
+  <app-inline-member
+    [profileId]="item.responsible_id"
+    *ngIf="item.responsible_id"
+    [showName]="false"
+    ngbTooltip="Set responsible"
+    container="body"
+    [disableTooltip]="!!item.responsible_id"
+    class="ms-2 cursor-pointer popover-control"
+    (click)="openUserEditor($event)"
+  ></app-inline-member>
+  <div
+    class="badge ms-2 cursor-pointer popover-control"
+    [class.text-bg-secondary]="getExpirationStatus() === ExpirationStatus.FAR"
+    [class.text-bg-success]="getExpirationStatus() === ExpirationStatus.WEEK"
+    [class.text-bg-warning]="getExpirationStatus() === ExpirationStatus.TODAY"
+    [class.text-bg-danger]="getExpirationStatus() === ExpirationStatus.EXPIRED"
+    *ngIf="item.due_date"
+    ngbTooltip="Due {{item.due_date | date: 'd MMMM, yyyy'}}"
+    (click)="openDueDateEditor($event)"
+  >
+    {{item.due_date | date: 'dd MMM'}}
+  </div>
+  <button
+    class="btn btn-icon-sm btn-link ms-2 text-secondary popover-control"
+    type="button"
+    *ngIf="!item.due_date"
+    ngbTooltip="Set due date"
+    [disabled]="isSaving || disabled"
+    (click)="openDueDateEditor($event)"
+  >
+    <i class="pi pi-clock"></i>
+  </button>
 
-    <div class="d-inline-block" ngbDropdown #myDrop="ngbDropdown" container="body">
-        <button
-                type="button"
-                class="btn btn-icon-sm btn-link ms-2 text-secondary"
-                [id]="'actions' + item.id"
-                ngbTooltip="More actions"
-                container="body"
-                triggers="click hover"
-                ngbDropdownAnchor
-                (focus)="myDrop.open()"
-                [disabled]="isSaving || disabled"
-        >
-            <i class="pi pi-ellipsis-v"></i>
-        </button>
-        <div ngbDropdownMenu [attr.aria-labelledby]="'actions' + item.id">
-            <button ngbDropdownItem type="button" (click)="insertBefore.emit(item)"><i class="pi pi-arrow-up"></i> Insert before</button>
-            <button ngbDropdownItem type="button" (click)="insertAfter.emit(item)"><i class="pi pi-arrow-down"></i> Insert after</button>
-            <button ngbDropdownItem type="button" (click)="createCard.emit(item)"><i class="pi pi-plus-circle"></i> Convert into card</button>
-            <button ngbDropdownItem type="button" (click)="delete.emit(item)"><i class="pi pi-trash"></i> Delete</button>
-        </div>
+  <div
+    class="d-inline-block"
+    ngbDropdown
+    #myDrop="ngbDropdown"
+    container="body"
+  >
+    <button
+      type="button"
+      class="btn btn-icon-sm btn-link ms-2 text-secondary"
+      [id]="'actions' + item.id"
+      ngbTooltip="More actions"
+      container="body"
+      triggers="click hover"
+      ngbDropdownAnchor
+      (focus)="myDrop.open()"
+      [disabled]="isSaving || disabled"
+    >
+      <i class="pi pi-ellipsis-v"></i>
+    </button>
+    <div
+      ngbDropdownMenu
+      [attr.aria-labelledby]="'actions' + item.id"
+    >
+      <button
+        ngbDropdownItem
+        type="button"
+        (click)="insertBefore.emit(item)"
+      >
+        <i class="pi pi-arrow-up"></i> Insert before
+      </button>
+      <button
+        ngbDropdownItem
+        type="button"
+        (click)="insertAfter.emit(item)"
+      >
+        <i class="pi pi-arrow-down"></i> Insert after
+      </button>
+      <button
+        ngbDropdownItem
+        type="button"
+        (click)="createCard.emit(item)"
+      >
+        <i class="pi pi-plus-circle"></i> Convert into card
+      </button>
+      <button
+        ngbDropdownItem
+        type="button"
+        (click)="delete.emit(item)"
+      >
+        <i class="pi pi-trash"></i> Delete
+      </button>
     </div>
+  </div>
 </ng-template>
 
 <ng-template #editDate>
-    <div class="d-flex" *ngIf="editing">
-        <input class="form-control form-control-sm editor flex-grow-1" type="date" ngbDatepicker [(ngModel)]="editing.due_date" [disabled]="isSaving || disabled"/>
-        <button type="button" class="btn btn-sm btn-link ms-auto" (click)="saveDate($event);" tabindex="0" [disabled]="isSaving || disabled">
-            <i class="pi pi-check text-success" *ngIf="!isSaving"></i>
-            <i class="pi pi-spinner pi-spin" *ngIf="isSaving"></i>
-        </button>
-    </div>
+  <div
+    class="d-flex"
+    *ngIf="editing"
+  >
+    <input
+      class="form-control form-control-sm editor flex-grow-1"
+      type="date"
+      ngbDatepicker
+      [(ngModel)]="editing.due_date"
+      [disabled]="isSaving || disabled"
+    >
+    <button
+      type="button"
+      class="btn btn-sm btn-link ms-auto"
+      (click)="saveDate($event);"
+      tabindex="0"
+      [disabled]="isSaving || disabled"
+    >
+      <i
+        class="pi pi-check text-success"
+        *ngIf="!isSaving"
+      ></i>
+      <i
+        class="pi pi-spinner pi-spin"
+        *ngIf="isSaving"
+      ></i>
+    </button>
+  </div>
 </ng-template>
 <div
-    #editDatePopover="ngbPopover"
-    [ngbPopover]="editDate"
-    [autoClose]="false"
-    (hidden)="discardChanges()"
-    triggers="manual"
-    container="body"
+  #editDatePopover="ngbPopover"
+  [ngbPopover]="editDate"
+  [autoClose]="false"
+  (hidden)="discardChanges()"
+  triggers="manual"
+  container="body"
 ></div>
 
 <ng-template #editUser>
-    <div class="d-flex" *ngIf="editing">
-        <ng-template #userTypeahead let-profile="result">
-            <app-inline-member [profile]="profile"></app-inline-member>
-        </ng-template>
+  <div
+    class="d-flex"
+    *ngIf="editing"
+  >
+    <ng-template
+      #userTypeahead
+      let-profile="result"
+    >
+      <app-inline-member [profile]="profile"></app-inline-member>
+    </ng-template>
 
-        <app-inline-member #member class="d-none" [profileId]="editing?.responsible_id"></app-inline-member>
+    <app-inline-member
+      #member
+      class="d-none"
+      [profileId]="editing?.responsible_id"
+    ></app-inline-member>
 
-        <input type="text"
-               class="form-control form-control-sm editor"
-               [placeholder]="'Type user name'"
-               [ngModel]="member.profile"
-               (ngModelChange)="editing.responsible_id = $event?.id"
-               [ngbTypeahead]="allUsersTypeaheadOperator"
-               [resultTemplate]="userTypeahead"
-               [inputFormatter]="userTypeaheadFormatter"
-               [editable]="false"
-               [disabled]="isSaving || disabled"
-        >
+    <input
+      type="text"
+      class="form-control form-control-sm editor"
+      [placeholder]="'Type user name'"
+      [ngModel]="member.profile"
+      (ngModelChange)="editing.responsible_id = $event?.id"
+      [ngbTypeahead]="allUsersTypeaheadOperator"
+      [resultTemplate]="userTypeahead"
+      [inputFormatter]="userTypeaheadFormatter"
+      [editable]="false"
+      [disabled]="isSaving || disabled"
+    >
 
-        <button type="button" class="btn btn-sm btn-link ms-1 me-1" (click)="saveUser($event);" tabindex="0" [disabled]="isSaving || disabled">
-            <i class="pi pi-check text-success" *ngIf="!isSaving"></i>
-            <i class="pi pi-spinner pi-spin" *ngIf="isSaving"></i>
-        </button>
-        <button type="button" class="btn btn-sm btn-link" *ngIf="item.responsible_id" (click)="clearUser($event);" tabindex="0" [disabled]="isSaving || disabled">
-            <i class="pi pi-times"></i>
-        </button>
-    </div>
+    <button
+      type="button"
+      class="btn btn-sm btn-link ms-1 me-1"
+      (click)="saveUser($event);"
+      tabindex="0"
+      [disabled]="isSaving || disabled"
+    >
+      <i
+        class="pi pi-check text-success"
+        *ngIf="!isSaving"
+      ></i>
+      <i
+        class="pi pi-spinner pi-spin"
+        *ngIf="isSaving"
+      ></i>
+    </button>
+    <button
+      type="button"
+      class="btn btn-sm btn-link"
+      *ngIf="item.responsible_id"
+      (click)="clearUser($event);"
+      tabindex="0"
+      [disabled]="isSaving || disabled"
+    >
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
 </ng-template>
 <div
-    #editUserPopover="ngbPopover"
-    [ngbPopover]="editUser"
-    [autoClose]="false"
-    (hidden)="discardChanges()"
-    triggers="manual"
-    container="body"
+  #editUserPopover="ngbPopover"
+  [ngbPopover]="editUser"
+  [autoClose]="false"
+  (hidden)="discardChanges()"
+  triggers="manual"
+  container="body"
 ></div>
 
-<div class="mt-2 ps-1 py-1 item hover"
+<div
+  class="mt-2 ps-1 py-1 item hover"
+  [class.has-popover]="editDatePopover.isOpen() || editUserPopover.isOpen()"
+  [attr.data-checklist-item-id]="item.id"
+>
 
-     [class.has-popover]="editDatePopover.isOpen() || editUserPopover.isOpen()"
-     [attr.data-checklist-item-id]="item.id">
-
-    <div class="d-flex align-items-start">
-        <div class="form-check">
-            <input
-                    class="form-check-input"
-                    type="checkbox"
-                    style="margin-top: 2px;"
-                    [ngModel]="item.checked"
-                    (ngModelChange)="updateChecklistItemState($event)"
-                    [id]="item.id"
-                    [disabled]="isSaving || disabled"
-            >
-        </div>
-
-        <div class="flex-grow-1 pe-2">
-            <app-text-editor
-                #textEditor
-                type="markdown"
-                class="me-2"
-                [ngModel]="item.text"
-                [disabled]="disabled"
-                [isLoading]="isSaving"
-                (save)="saveText($event)"
-                [minHeight]="85"
-                [additionalControls]="editorControls"
-            >
-                <ng-template #editorControls>
-                    <div *ngIf="item.checker_id && item.checked && !textEditor.isEditing" class="flex-grow-1 d-flex align-items-center flex-wrap font-size-medium opacity-75">
-                        <span>Checked by</span>
-                        <app-inline-member class="mx-2 d-none d-md-inline" [size]="18" [profileId]="item.checker_id"></app-inline-member>
-                        <app-inline-member class="mx-2 d-inline d-md-none" [showName]="false" [profileId]="item.checker_id"></app-inline-member>
-                        <span class="d-none d-sm-block">({{item.checked_at | timeago}})</span>
-                    </div>
-
-                    <div class="d-flex d-md-none ms-auto align-items-center opacity-75 me-n2">
-                        <ng-container [ngTemplateOutlet]="controls"></ng-container>
-                    </div>
-                </ng-template>
-            </app-text-editor>
-        </div>
-
-        <div class="opacity-75 d-none d-md-flex d-flex align-items-center" style="margin-top: 2px">
-            <ng-container [ngTemplateOutlet]="controls"></ng-container>
-        </div>
+  <div class="d-flex align-items-start">
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        style="margin-top: 2px;"
+        [ngModel]="item.checked"
+        (ngModelChange)="updateChecklistItemState($event)"
+        [id]="item.id"
+        [disabled]="isSaving || disabled"
+      >
     </div>
+
+    <div class="flex-grow-1 pe-2">
+      <app-text-editor
+        #textEditor
+        type="markdown"
+        class="me-2"
+        [ngModel]="item.text"
+        [disabled]="disabled"
+        [isLoading]="isSaving"
+        (save)="saveText($event)"
+        [minHeight]="85"
+        [additionalControls]="editorControls"
+      >
+        <ng-template #editorControls>
+          <div
+            *ngIf="item.checker_id && item.checked && !textEditor.isEditing"
+            class="flex-grow-1 d-flex align-items-center flex-wrap font-size-medium opacity-75"
+          >
+            <span>Checked by</span>
+            <app-inline-member
+              class="mx-2 d-none d-md-inline"
+              [size]="18"
+              [profileId]="item.checker_id"
+            ></app-inline-member>
+            <app-inline-member
+              class="mx-2 d-inline d-md-none"
+              [showName]="false"
+              [profileId]="item.checker_id"
+            ></app-inline-member>
+            <span class="d-none d-sm-block">({{item.checked_at | timeago}})</span>
+          </div>
+
+          <div class="d-flex d-md-none ms-auto align-items-center opacity-75 me-n2">
+            <ng-container [ngTemplateOutlet]="controls"></ng-container>
+          </div>
+        </ng-template>
+      </app-text-editor>
+    </div>
+
+    <div
+      class="opacity-75 d-none d-md-flex d-flex align-items-center"
+      style="margin-top: 2px"
+    >
+      <ng-container [ngTemplateOutlet]="controls"></ng-container>
+    </div>
+  </div>
 </div>

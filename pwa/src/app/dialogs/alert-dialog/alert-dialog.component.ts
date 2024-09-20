@@ -14,15 +14,15 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
   styleUrl: './alert-dialog.component.scss'
 })
 export class AlertDialogComponent {
-  text: string;
-  title: string = 'Information';
-  cancelable = false;
+  public text: string;
+  public title: string = 'Information';
+  public cancelable = false;
 
-  constructor(public modal: NgbActiveModal) {
+  public constructor(public modal: NgbActiveModal) {
   }
 
   @HostListener('window:keydown', ['$event'])
-  handleKey(event: KeyboardEvent): void {
+  private handleKey(event: KeyboardEvent): void {
     if (event.code === 'Enter' && event.ctrlKey) {
       event.preventDefault();
       event.stopPropagation();

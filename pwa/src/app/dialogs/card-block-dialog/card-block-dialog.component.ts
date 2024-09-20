@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, Input } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgIf, NgOptimizedImage } from '@angular/common';
 import { NgbActiveModal, NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
@@ -9,7 +9,6 @@ import { DialogService } from '../../services/dialog.service';
 import { filter, finalize } from 'rxjs';
 import { TextEditorComponent } from '../../components/text-editor/text-editor.component';
 import { CARD_EDITOR_SERVICE, CardEditorService } from '../../services/card-editor.service';
-
 
 export interface CardBlockDialogResult {
   description: string;
@@ -31,23 +30,22 @@ export interface CardBlockDialogResult {
   styleUrl: './card-block-dialog.component.scss'
 })
 export class CardBlockDialogComponent {
-  cardsTypeaheadSearch = CardsTypeaheadOperator();
-  cardTypeaheadFormatter = (item: Card) => item ? `${item.id} - ${item.title}` : '';
+  protected readonly cardsTypeaheadSearch = CardsTypeaheadOperator();
+  protected readonly cardTypeaheadFormatter = (item: Card): string => item ? `${item.id} - ${item.title}` : '';
+  protected isLoading: boolean = false;
+  @Input() public cardId: number;
+  @Input() public blockerId?: number;
+  protected blockerCard: CardEx;
+  protected description: string;
 
-  isLoading: boolean = false;
-  cardId: number;
-  blockerId?: number;
-  blockerCard: CardEx;
-  description: string;
-
-  constructor(
+  public constructor(
     private dialogService: DialogService,
     public modal: NgbActiveModal,
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService
   ) {
   }
 
-  searchCard() {
+  public searchCard(): void {
     this.dialogService
       .searchCard('single')
       .pipe(
@@ -56,7 +54,7 @@ export class CardBlockDialogComponent {
       .subscribe(selected => this.blockerCard = selected[0]);
   }
 
-  continue() {
+  public continue(): void {
     if (!this.blockerCard && !this.description) {
       return;
     }

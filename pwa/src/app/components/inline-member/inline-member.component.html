@@ -1,29 +1,61 @@
-<div *ngIf="isLoading" class="d-flex align-items-center">
-    <span class="placeholder rounded-circle" *ngIf="showAvatar" [ngStyle]="{ width: size + 'px', height: size + 'px'}"></span>
-    <span class="placeholder ms-2" *ngIf="showName" style="width: 20px; height: 12px;"></span>
-    <span class="placeholder ms-1" *ngIf="showName" style="width: 45px; height: 12px;"></span>
+<div
+  *ngIf="isLoading"
+  class="d-flex align-items-center"
+>
+  <span
+    class="placeholder rounded-circle"
+    *ngIf="showAvatar"
+    [ngStyle]="{ width: size + 'px', height: size + 'px'}"
+  ></span>
+  <span
+    class="placeholder ms-2"
+    *ngIf="showName"
+    style="width: 20px; height: 12px;"
+  ></span>
+  <span
+    class="placeholder ms-1"
+    *ngIf="showName"
+    style="width: 45px; height: 12px;"
+  ></span>
 </div>
-<div *ngIf="!profile && !isLoading" class="d-flex align-items-center">
-    <span style="min-width: 24px; min-height: 24px;" class="rounded-circle border d-flex align-items-center justify-content-center">
-        <i class="pi pi-user"></i>
-    </span>
-    <span class="ms-2" *ngIf="showName">Unassigned</span>
+<div
+  *ngIf="!profile && !isLoading"
+  class="d-flex align-items-center"
+>
+  <span
+    style="min-width: 24px; min-height: 24px;"
+    class="rounded-circle border d-flex align-items-center justify-content-center"
+  >
+    <i class="pi pi-user"></i>
+  </span>
+  <span
+    class="ms-2"
+    *ngIf="showName"
+  >Unassigned</span>
 </div>
-<div *ngIf="profile && !isLoading" class="d-flex align-items-center">
-    <img *ngIf="showAvatar && profile.id > 0"
-         class="rounded-circle"
-         alt="avatar"
-         [src]="avatarUrl"
-         [width]="size"
-         [height]="size"
-         [ngbTooltip]="profile?.full_name"
-         [disableTooltip]="showName"
-    />
-    <span class="rounded-circle border border-1 text-center d-flex align-items-center justify-content-center"
-          *ngIf="showAvatar && profile.id <= 0"
-          [ngStyle]="{ width: size + 'px', height: size + 'px'}"
-    >
-        <i class="pi pi-box"></i>
-    </span>
-    <span class="ms-2" *ngIf="showName">{{profile.full_name}}</span>
+<div
+  *ngIf="profile && !isLoading"
+  class="d-flex align-items-center"
+>
+  <img
+    *ngIf="showAvatar && profile.id > 0"
+    class="rounded-circle"
+    alt="avatar"
+    [src]="avatarUrl"
+    [width]="size"
+    [height]="size"
+    [ngbTooltip]="profile?.full_name"
+    [disableTooltip]="showName"
+  >
+  <span
+    class="rounded-circle border border-1 text-center d-flex align-items-center justify-content-center"
+    *ngIf="showAvatar && profile.id <= 0"
+    [ngStyle]="{ width: size + 'px', height: size + 'px'}"
+  >
+    <i class="pi pi-box"></i>
+  </span>
+  <span
+    class="ms-2"
+    *ngIf="showName"
+  >{{profile.full_name}}</span>
 </div>

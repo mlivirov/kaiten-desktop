@@ -3,15 +3,16 @@ import { HttpErrorResponse, HttpEvent, HttpHeaders, HttpRequest, HttpResponse } 
 
 declare interface QObject {}
 
-declare interface QSignal<TCallback = (...args: any) => void> {
+declare interface QSignal<TCallback = (...args: unknown[]) => void> {
   connect(callback: TCallback): void;
 }
 
 export type QHeaders = { [key: string]: string };
 
 declare class ApplicationObject implements QObject {
-  httpRequestReady: QSignal<(requestId: string, statusCode: number, data: string, headers: QHeaders) => void>
-  httpRequest(method: string, url: string, data: string): Promise<string>;
+  public httpRequestReady: QSignal<(requestId: string, statusCode: number, data: string, headers: QHeaders) => void>;
+
+  public httpRequest(method: string, url: string, data: string): Promise<string>;
 }
 
 declare interface QChannel {
@@ -19,7 +20,7 @@ declare interface QChannel {
 }
 
 declare class QWebChannel {
-  constructor(transport: any, callback: (channel: QChannel) => void);
+  public constructor(transport: unknown, callback: (channel: QChannel) => void);
 }
 
 export interface ResponseData {
@@ -32,7 +33,7 @@ interface SentRequest {
   resolve(data: ResponseData): void;
 }
 
-function base64ToBlob(val: string) {
+function base64ToBlob(val: string): Blob {
   const separatorIndex = val.indexOf(':');
   const type = val.substring(0, separatorIndex);
   const base64 = val.substring(separatorIndex + 1);
@@ -44,7 +45,6 @@ function base64ToBlob(val: string) {
 export class QtApplication {
   private static _instance: QtApplication;
   private readonly _readySubject: Subject<QtApplication> = new Subject();
-
   private readonly _promises: { [key: string]: SentRequest } = {};
   private readonly _channel: QWebChannel;
   private _proxy: ApplicationObject;
@@ -53,15 +53,15 @@ export class QtApplication {
     this._channel = new QWebChannel(window['qt'].webChannelTransport, (channel) => this.initialize(channel));
   }
 
-  static instance(): QtApplication {
+  public static instance(): QtApplication {
     return QtApplication._instance;
   }
 
-  static isAvailable(): boolean {
+  public static isAvailable(): boolean {
     return !!window['qt'];
   }
 
-  static create(): Observable<QtApplication> {
+  public static create(): Observable<QtApplication> {
     if (!QtApplication.isAvailable()) {
       return EMPTY;
     }
@@ -89,7 +89,7 @@ export class QtApplication {
     this._readySubject.complete();
   }
 
-  private parseQtResponseBody(request: HttpRequest<any>, data?: string) {
+  private parseQtResponseBody(request: HttpRequest<unknown>, data?: string): unknown {
     switch (request.responseType) {
       case 'json':
         return data ? JSON.parse(data) : null;
@@ -100,14 +100,14 @@ export class QtApplication {
     }
   }
 
-  private processQtApplicationResponse(request: HttpRequest<any>, response: ResponseData): HttpResponse<any> {
+  private processQtApplicationResponse(request: HttpRequest<unknown>, response: ResponseData): HttpResponse<unknown> {
     if (response.statusCode !== 200) {
       return new HttpResponse({
         status: response.statusCode,
         statusText: response.data,
         url: request.url,
         headers: new HttpHeaders(response.headers),
-      })
+      });
     }
 
     const parsedBody = this.parseQtResponseBody(request, response.data);
@@ -119,8 +119,7 @@ export class QtApplication {
     });
   }
 
-
-  sendHttpRequest(request: HttpRequest<any>): Observable<HttpEvent<any>> {
+  public sendHttpRequest(request: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
     const serializedRequestBody = request.serializeBody();
     if (!(serializedRequestBody === null || typeof serializedRequestBody === 'string')) {
       throw('not supported body type');
@@ -156,16 +155,13 @@ export class QtApplication {
     });
   }
 
-
   private sendHttpRequestInner(method, url, data): Promise<ResponseData> {
     return this._proxy
       .httpRequest(method, url, data)
       .then(requestId => {
         let resolveCallback = null;
-        let rejectCallback = null;
-        const promise = new Promise<ResponseData>((resolve, reject) => {
+        const promise = new Promise<ResponseData>((resolve) => {
           resolveCallback = resolve;
-          rejectCallback = reject;
         });
 
         this._promises[requestId] = <SentRequest>{

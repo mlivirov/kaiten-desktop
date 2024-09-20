@@ -6,10 +6,10 @@ import { Injectable } from '@angular/core';
 @Injectable({providedIn: 'root'})
 export class TagService {
 
-  constructor(private httpClient: HttpClient) {
+  public constructor(private httpClient: HttpClient) {
   }
 
-  getTags(offset: number, limit: number, query: string): Observable<Tag[]> {
+  public getTags(offset: number, limit: number, query: string): Observable<Tag[]> {
     let params = new HttpParams();
     params = params.append('offset', offset);
     params = params.append('limit', limit);

@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, Input, ViewChild } from '@angular/core';
+import { Component, HostListener, Input, ViewChild } from '@angular/core';
 import {
   NgbActiveModal,
   NgbScrollSpy,
@@ -6,7 +6,6 @@ import {
   NgbScrollSpyItem,
   NgbTooltip
 } from '@ng-bootstrap/ng-bootstrap';
-import { FileService } from '../../services/file.service';
 import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe, NgForOf, NgIf } from '@angular/common';
@@ -18,7 +17,8 @@ import { MemberType } from '../../models/member-type';
 import { InlineMemberComponent } from '../../components/inline-member/inline-member.component';
 import { finalize } from 'rxjs';
 import { CardFilter, CardSearchService } from '../../services/card-search.service';
-import { getTextOrDefault } from '../../functions/get-text-or-default.function';
+import { getTextOrDefault } from '../../functions/get-text-or-default';
+import { Owner } from '../../models/owner';
 
 export type CardSearchSelectMode = 'single'|'multiple'|'none';
 
@@ -44,25 +44,20 @@ export type CardSearchSelectMode = 'single'|'multiple'|'none';
   styleUrl: './card-global-search.component.scss'
 })
 export class CardGlobalSearchComponent {
-  selected: {} = {};
-  showSelected: boolean = false;
-  cards: CardEx[] = [];
-  isLoading = false;
-  offset = 0;
-  limit = 25;
-  filter: CardFilter;
-  hasMore = false;
+  protected readonly getTextOrDefault = getTextOrDefault;
+  protected selected: Record<number, CardEx> = {};
+  protected showSelected: boolean = false;
+  protected cards: CardEx[] = [];
+  protected isLoading = false;
+  private offset = 0;
+  private readonly limit = 25;
+  protected filter: CardFilter;
+  protected hasMore = false;
+  @Input() public title: string;
+  @Input() public selectMode: CardSearchSelectMode = 'none';
+  @ViewChild('cardSearchInput', { read: CardSearchInputComponent }) protected cardSearchInput: CardSearchInputComponent;
 
-  @Input()
-  title: string;
-
-  @Input()
-  selectMode: CardSearchSelectMode = 'none';
-
-  @ViewChild('cardSearchInput', { read: CardSearchInputComponent })
-  cardSearchInput: CardSearchInputComponent;
-
-  constructor(
+  public constructor(
     public modal: NgbActiveModal,
     private cardSearchService: CardSearchService,
     private router: Router
@@ -70,7 +65,7 @@ export class CardGlobalSearchComponent {
     this.search(null);
   }
 
-  search(filter: CardFilter) {
+  protected search(filter: CardFilter): void {
     if (this.showSelected) {
       this.showSelected = false;
     }
@@ -93,7 +88,7 @@ export class CardGlobalSearchComponent {
       });
   }
 
-  loadMore() {
+  protected loadMore(): void {
     this.offset += this.limit;
     this.isLoading = true;
     this.cardSearchService
@@ -110,17 +105,17 @@ export class CardGlobalSearchComponent {
       });
   }
 
-  openBoard(id: number) {
+  protected openBoard(id: number): void {
     this.modal.close();
     this.router.navigate(['/board', id]);
   }
 
-  openCard(id: number) {
+  protected openCard(id: number): void {
     this.modal.close();
     this.router.navigate(['/card', id]);
   }
 
-  handleCardClick(card: CardEx) {
+  protected handleCardClick(card: CardEx): void {
     if (this.selectMode === 'none') {
       this.openCard(card.id);
     } else {
@@ -129,21 +124,21 @@ export class CardGlobalSearchComponent {
   }
 
   @HostListener('window:keydown', ['$event'])
-  handleKey(event: KeyboardEvent): void {
+  private handleKey(event: KeyboardEvent): void {
     if (event.code === 'KeyF' && event.ctrlKey) {
       event.preventDefault();
       event.stopPropagation();
 
-      this.cardSearchInput?.typeahead.input.nativeElement.focus();
+      this.cardSearchInput?.focus();
     }
   }
 
-  getResponsible(card: CardEx) {
+  protected getResponsible(card: CardEx): Owner {
     const responsible = card.members?.filter(t => t.type === MemberType.Responsible) || [];
     return responsible.length > 0 ? responsible[0] : null;
   }
 
-  toggleSelected(card: CardEx) {
+  protected toggleSelected(card: CardEx): void {
     if (this.selectMode === 'single') {
       Object.keys(this.selected).forEach(c => { delete this.selected[c]; });
     }
@@ -155,7 +150,7 @@ export class CardGlobalSearchComponent {
     }
   }
 
-  toggleShowSelected(value: boolean) {
+  protected toggleShowSelected(value: boolean): void {
     if (value) {
       this.cards = Object.values(this.selected);
       this.showSelected = value;
@@ -165,13 +160,11 @@ export class CardGlobalSearchComponent {
     }
   }
 
-  continue() {
+  protected continue(): void {
     this.modal.close(Object.values(this.selected));
   }
 
-  getSelectedCount(): number {
+  protected getSelectedCount(): number {
     return Object.keys(this.selected).length;
   }
-
-  protected readonly getTextOrDefault = getTextOrDefault;
 }

@@ -15,7 +15,7 @@ import {
 import { JsonPipe, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 
-export interface EditorProperty<TValue = any, TExtra = any> {
+export interface EditorProperty<TValue = unknown, TExtra = unknown> {
   multi: boolean;
   label: string|null;
   name: string;
@@ -36,17 +36,14 @@ export interface EditorPropertyClickedEvent {
 }
 
 @Directive({
-  selector: '[app-editor-property-template]',
+  selector: '[appEditorPropertyTemplate]',
   standalone: true,
 })
-export class EditorPropertyTemplate {
-  @Input()
-  mode: 'read'|'write';
+export class EditorPropertyTemplateDirective {
+  @Input() public mode: 'read'|'write';
+  @Input() public type: string;
 
-  @Input()
-  type: string;
-
-  constructor(@Self() public templateRef: TemplateRef<any>) {
+  public constructor(@Self() public templateRef: TemplateRef<unknown>) {
   }
 }
 
@@ -64,41 +61,42 @@ export class EditorPropertyTemplate {
   styleUrl: './properties-editor.component.scss'
 })
 export class PropertiesEditorComponent {
-  @Input()
-  properties: GroupOfEditorProperties[] = [];
+  @Input() public properties: GroupOfEditorProperties[] = [];
+  @ContentChildren(EditorPropertyTemplateDirective, {read: EditorPropertyTemplateDirective}) protected templates: QueryList<EditorPropertyTemplateDirective> = new QueryList();
+  protected editingProperty?: EditorProperty;
+  protected editingPropertyGroup?: GroupOfEditorProperties;
+  protected editingPropertyValue?: unknown;
+  @ViewChild('editor') private editorContainer: ElementRef;
+  @Output() private saveRequested: EventEmitter<EditorProperty> = new EventEmitter();
+  @Output() private editingStarted: EventEmitter<EditorProperty> = new EventEmitter();
+  @Output() private propertyClick: EventEmitter<EditorPropertyClickedEvent> = new EventEmitter();
+  protected isSaveInProgress: boolean = false;
 
-  @ContentChildren(EditorPropertyTemplate, {read: EditorPropertyTemplate})
-  templates: QueryList<EditorPropertyTemplate> = new QueryList();
+  protected getEnumerablePropertyValues(value: unknown): unknown[] {
+    if (!value) {
+      return [];
+    }
 
-  editingProperty?: EditorProperty;
+    if (!Array.isArray(value)) {
+      throw new TypeError('The value must be a Array');
+    }
 
-  editingPropertyGroup?: GroupOfEditorProperties;
+    return <unknown[]>value;
+  }
 
-  editingPropertyValue?: any;
+  protected checkPropertyHasValue(property: EditorProperty): boolean {
+    return Array.isArray(property.value) && property.value.length > 0;
+  }
 
-  @ViewChild('editor')
-  editorContainer: ElementRef;
-
-  @Output()
-  saveRequested: EventEmitter<EditorProperty> = new EventEmitter();
-
-  @Output()
-  editingStarted: EventEmitter<EditorProperty> = new EventEmitter();
-
-  @Output()
-  propertyClick: EventEmitter<EditorPropertyClickedEvent> = new EventEmitter();
-
-  isSaveInProgress: boolean = false;
-
-  getPropertyReaderTemplate(property: EditorProperty): TemplateRef<any> {
+  protected getPropertyReaderTemplate(property: EditorProperty): TemplateRef<unknown> {
     return this.templates.find(t => t.type === property.type && t.mode === 'read')?.templateRef;
   }
 
-  getPropertyWriterTemplate(property: EditorProperty): TemplateRef<any> {
+  protected getPropertyWriterTemplate(property: EditorProperty): TemplateRef<unknown> {
     return this.templates.find(t => t.type === property.type && t.mode === 'write')?.templateRef;
   }
 
-  startEditing(event: Event, group: GroupOfEditorProperties, property: EditorProperty) {
+  protected startEditing(event: Event, group: GroupOfEditorProperties, property: EditorProperty): void {
     if (property.clickable) {
       this.propertyClick.emit({ property, event });
     }
@@ -114,41 +112,42 @@ export class PropertiesEditorComponent {
     this.editingPropertyGroup = group;
     this.editingProperty = property;
     this.editingPropertyValue = property.value;
+
     setTimeout(() => {
       this.editorContainer.nativeElement.querySelector('.editor')?.focus();
     }, 1);
 
     this.editingStarted.emit(this.editingProperty);
     event.preventDefault();
-    event.stopPropagation()
+    event.stopPropagation();
   }
 
-  stopEditing() {
+  private stopEditing(): void {
     this.editingProperty.value = this.editingPropertyValue;
     this.editingProperty = null;
     this.editingPropertyGroup = null;
   }
 
-  saveProperty(event: Event) {
+  protected saveProperty(event?: Event): void {
     this.isSaveInProgress = true;
     this.saveRequested.emit(this.editingProperty);
-    event.stopPropagation();
-    event.preventDefault();
+    event?.stopPropagation();
+    event?.preventDefault();
   }
 
-  commitChanges(newValue: any) {
+  public commitChanges<T>(newValue: T): void {
     this.editingProperty.value = newValue;
     this.editingProperty = null;
     this.editingPropertyGroup = null;
     this.isSaveInProgress = false;
   }
 
-  abortSave() {
+  public abortSave(): void {
     this.isSaveInProgress = false;
   }
 
   @HostListener('keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
+  private handleKeyDown(event: KeyboardEvent): void {
     if (this.editingProperty && event.code === 'Escape') {
       event.preventDefault();
       event.stopPropagation();
@@ -159,7 +158,7 @@ export class PropertiesEditorComponent {
   }
 
   @HostListener('document:click', ['$event'])
-  handleClickEvent(event: MouseEvent) {
+  private handleClickEvent(event: MouseEvent): void {
     if (!(this.editorContainer && this.editingProperty)) {
       return;
     }

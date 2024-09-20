@@ -1,89 +1,154 @@
 
-<ng-template #value let-property="property" let-value="value">
-    <ng-template #plainValue>
-        <span *ngIf="value">{{value}}</span>
-        <span *ngIf="!value" class="opacity-75">Not set</span>
-    </ng-template>
-    <ng-container
-            *ngIf="getPropertyReaderTemplate(property) && value; else plainValue"
-            [ngTemplateOutlet]="getPropertyReaderTemplate(property)"
-            [ngTemplateOutletContext]="{ data: value, property: property }"
-    ></ng-container>
+<ng-template
+  #value
+  let-property="property"
+  let-value="value"
+>
+  <ng-template #plainValue>
+    <span *ngIf="value">{{value}}</span>
+    <span
+      *ngIf="!value"
+      class="opacity-75"
+    >Not set</span>
+  </ng-template>
+  <ng-container
+    *ngIf="getPropertyReaderTemplate(property) && value; else plainValue"
+    [ngTemplateOutlet]="getPropertyReaderTemplate(property)"
+    [ngTemplateOutletContext]="{ data: value, property: property }"
+  ></ng-container>
 </ng-template>
 
 <ng-template #editorTemplate>
-    <div #editor class="d-flex flex-grow-1">
-        <div class="flex-grow-1 align-self-center">
-            <ng-container
-                    [ngTemplateOutlet]="getPropertyWriterTemplate(editingProperty)"
-                    [ngTemplateOutletContext]="{ property: editingProperty, isSaveInProgress }"
-            ></ng-container>
-        </div>
-
-        <button type="button" class="btn btn-sm btn-link ms-auto me-1" (click)="saveProperty($event);" tabindex="0" [disabled]="isSaveInProgress">
-            <i class="pi pi-check text-success" *ngIf="!isSaveInProgress"></i>
-            <i class="pi pi-spinner pi-spin" *ngIf="isSaveInProgress"></i>
-        </button>
+  <div
+    #editor
+    class="d-flex flex-grow-1"
+  >
+    <div class="flex-grow-1 align-self-center">
+      <ng-container
+        [ngTemplateOutlet]="getPropertyWriterTemplate(editingProperty)"
+        [ngTemplateOutletContext]="{ property: editingProperty, isSaveInProgress }"
+      ></ng-container>
     </div>
+
+    <button
+      type="button"
+      class="btn btn-sm btn-link ms-auto me-1"
+      (click)="saveProperty($event);"
+      tabindex="0"
+      [disabled]="isSaveInProgress"
+    >
+      <i
+        class="pi pi-check text-success"
+        *ngIf="!isSaveInProgress"
+      ></i>
+      <i
+        class="pi pi-spinner pi-spin"
+        *ngIf="isSaveInProgress"
+      ></i>
+    </button>
+  </div>
 </ng-template>
 
 <div class="pt-2">
-    <ul *ngFor="let group of properties; index as groupIndex" class="list-unstyled">
-        <li class="px-2 mb-2">
-            <div class="text-uppercase strong small" [class.blur]="editingProperty && group !== editingPropertyGroup">{{group.title}}</div>
-        </li>
-        <li>
-           <ul class="list-unstyled">
-               <ng-container *ngFor="let property of group.properties; index as propertyIndex">
-                   <li *ngIf="!property.multi"
-                       class="ps-4"
-                       [class.inline-property]="getPropertyWriterTemplate(property) || property.clickable"
-                       [class.active]="property === editingProperty"
-                       [class.blur]="editingProperty && property !== editingProperty"
-                       (click)="startEditing($event, group, property);"
-                       [tabIndex]="1000 * groupIndex + propertyIndex"
-                   >
-                       <div class="form-group row align-items-center small">
-                           <label [for]="property.name" class="col-4 col-form-label small opacity-75">{{property.label}}:</label>
-                           <div class="col-8 d-flex align-items-center" [id]="property.name">
-                               <ng-container *ngIf="editingProperty != property" [ngTemplateOutlet]="value" [ngTemplateOutletContext]="{ property, value: property.value }"></ng-container>
-                               <ng-container *ngIf="editingProperty == property" [ngTemplateOutlet]="editorTemplate"></ng-container>
-                           </div>
-                       </div>
-                   </li>
-                   <li *ngIf="property.multi">
-                       <label [for]="property.name" class="col-4 col-form-label small" *ngIf="property.label">{{property.label}}:</label>
-                       <ul class="list-unstyled" [id]="property.name">
-                           <li *ngFor="let item of (property !== editingProperty ? property.value : editingPropertyValue)"
-                               class="py-2 px-4 d-flex align-items-baseline"
-                               [class.inline-property]="getPropertyWriterTemplate(property)"
-                               [class.blur]="editingProperty && property !== editingProperty">
-                               <ng-container [ngTemplateOutlet]="value" [ngTemplateOutletContext]="{ property, value: item }"></ng-container>
-                           </li>
+  <ul
+    *ngFor="let group of properties; index as groupIndex"
+    class="list-unstyled"
+  >
+    <li class="px-2 mb-2">
+      <div
+        class="text-uppercase strong small"
+        [class.blur]="editingProperty && group !== editingPropertyGroup"
+      >{{group.title}}</div>
+    </li>
+    <li>
+      <ul class="list-unstyled">
+        <ng-container *ngFor="let property of group.properties; index as propertyIndex">
+          <li
+            *ngIf="!property.multi"
+            class="ps-4"
+            [class.inline-property]="getPropertyWriterTemplate(property) || property.clickable"
+            [class.active]="property === editingProperty"
+            [class.blur]="editingProperty && property !== editingProperty"
+            (click)="startEditing($event, group, property);"
+            [tabIndex]="1000 * groupIndex + propertyIndex"
+          >
+            <div class="form-group row align-items-center small">
+              <label
+                [for]="property.name"
+                class="col-4 col-form-label small opacity-75"
+              >{{property.label}}:</label>
+              <div
+                class="col-8 d-flex align-items-center"
+                [id]="property.name"
+              >
+                <ng-container
+                  *ngIf="editingProperty != property"
+                  [ngTemplateOutlet]="value"
+                  [ngTemplateOutletContext]="{ property, value: property.value }"
+                ></ng-container>
+                <ng-container
+                  *ngIf="editingProperty == property"
+                  [ngTemplateOutlet]="editorTemplate"
+                ></ng-container>
+              </div>
+            </div>
+          </li>
+          <li *ngIf="property.multi">
+            <label
+              [for]="property.name"
+              class="col-4 col-form-label small"
+              *ngIf="property.label"
+            >{{property.label}}:</label>
+            <ul
+              class="list-unstyled"
+              [id]="property.name"
+            >
+              <li
+                *ngFor="let item of getEnumerablePropertyValues(property !== editingProperty ? property.value : editingPropertyValue)"
+                class="py-2 px-4 d-flex align-items-baseline"
+                [class.inline-property]="getPropertyWriterTemplate(property)"
+                [class.blur]="editingProperty && property !== editingProperty"
+              >
+                <ng-container
+                  [ngTemplateOutlet]="value"
+                  [ngTemplateOutletContext]="{ property, value: item }"
+                ></ng-container>
+              </li>
 
-                           <li *ngIf="property.value?.length && !(editingProperty === property)"
-                               class="inline-property py-2 px-4 small"
-                               [class.blur]="editingProperty && property !== editingProperty"
-                               (click)="startEditing($event, group, property)">
-                               <i class="pi pi-plus"></i> Add
-                           </li>
+              <li
+                *ngIf="checkPropertyHasValue(property) && !(editingProperty === property)"
+                class="inline-property py-2 px-4 small"
+                [class.blur]="editingProperty && property !== editingProperty"
+                (click)="startEditing($event, group, property)"
+              >
+                <i class="pi pi-plus"></i> Add
+              </li>
 
-                           <li *ngIf="!property.value?.length && !(editingProperty === property)"
-                               class="inline-property py-2 px-4 small"
-                               [class.blur]="editingProperty && property !== editingProperty"
-                               (click)="startEditing($event, group, property);">
-                               <ng-container [ngTemplateOutlet]="value" [ngTemplateOutletContext]="{ property, value: null }"></ng-container>
-                           </li>
+              <li
+                *ngIf="!checkPropertyHasValue(property) && !(editingProperty === property)"
+                class="inline-property py-2 px-4 small"
+                [class.blur]="editingProperty && property !== editingProperty"
+                (click)="startEditing($event, group, property);"
+              >
+                <ng-container
+                  [ngTemplateOutlet]="value"
+                  [ngTemplateOutletContext]="{ property, value: null }"
+                ></ng-container>
+              </li>
 
-                           <li *ngIf="editingProperty === property"
-                               class="py-2 px-4 small inline-property active"
-                           >
-                               <ng-container *ngIf="editingProperty == property" [ngTemplateOutlet]="editorTemplate"></ng-container>
-                           </li>
-                       </ul>
-                   </li>
-               </ng-container>
-           </ul>
-        </li>
-    </ul>
+              <li
+                *ngIf="editingProperty === property"
+                class="py-2 px-4 small inline-property active"
+              >
+                <ng-container
+                  *ngIf="editingProperty == property"
+                  [ngTemplateOutlet]="editorTemplate"
+                ></ng-container>
+              </li>
+            </ul>
+          </li>
+        </ng-container>
+      </ul>
+    </li>
+  </ul>
 </div>

@@ -1,47 +1,69 @@
 <div class="modal-header">
-    <h1 class="modal-title fs-5" id="exampleModalLabel">Add blocker</h1>
-    <button type="button" class="btn-close" aria-label="Close" tabindex="-1" (click)="modal.close()"></button>
+  <h1
+    class="modal-title fs-5"
+    id="exampleModalLabel"
+  >Add blocker</h1>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    tabindex="-1"
+    (click)="modal.close()"
+  ></button>
 </div>
 
 <div class="modal-body">
-    <div class="form-group mb-3">
-        <label for="comment">Comment</label>
-        <app-text-editor
-                id="comment"
-                type="markdown"
-                [alwaysEditable]="true"
-                [(ngModel)]="description"
-                placeholder="Add description here"
-                [minHeight]="100"
-        ></app-text-editor>
+  <div class="form-group mb-3">
+    <label for="comment">Comment</label>
+    <app-text-editor
+      id="comment"
+      type="markdown"
+      [alwaysEditable]="true"
+      [(ngModel)]="description"
+      placeholder="Add description here"
+      [minHeight]="100"
+    ></app-text-editor>
+  </div>
+  <div class="form-group mb-3">
+    <label for="card-input">Blocking card (optional)</label>
+    <div class="input-group mb-3">
+      <ng-template
+        #taskTypeahead
+        let-card="result"
+      >
+        {{card.id}} - {{card.title}}
+      </ng-template>
+      <input
+        type="text"
+        id="card-input"
+        class="form-control form-control-sm editor"
+        [placeholder]="'Type title or id'"
+        [ngbTypeahead]="cardsTypeaheadSearch"
+        [resultTemplate]="taskTypeahead"
+        [inputFormatter]="cardTypeaheadFormatter"
+        container="body"
+        [editable]="false"
+        [ngModel]="blockerCard"
+        (ngModelChange)="blockerCard = $event"
+      >
+      <button
+        class="btn btn-outline-secondary"
+        type="button"
+        (click)="searchCard()"
+      >
+        <i class="pi pi-search"></i>
+      </button>
     </div>
-    <div class="form-group mb-3">
-        <label for="card-input">Blocking card (optional)</label>
-        <div class="input-group mb-3">
-            <ng-template #taskTypeahead let-card="result">
-                {{card.id}} - {{card.title}}
-            </ng-template>
-            <input type="text"
-                   id="card-input"
-                   class="form-control form-control-sm editor"
-                   [placeholder]="'Type title or id'"
-                   [ngbTypeahead]="cardsTypeaheadSearch"
-                   [resultTemplate]="taskTypeahead"
-                   [inputFormatter]="cardTypeaheadFormatter"
-                   container="body"
-                   [editable]="false"
-                   [ngModel]="blockerCard"
-                   (ngModelChange)="blockerCard = $event"
-            >
-            <button class="btn btn-outline-secondary" type="button" (click)="searchCard()">
-                <i class="pi pi-search"></i>
-            </button>
-        </div>
-    </div>
+  </div>
 </div>
 
 <div class="modal-footer">
-    <button type="button" class="btn btn-primary" (click)="continue()" [disabled]="isLoading || !description">
-        Continue
-    </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="continue()"
+    [disabled]="isLoading || !description"
+  >
+    Continue
+  </button>
 </div>

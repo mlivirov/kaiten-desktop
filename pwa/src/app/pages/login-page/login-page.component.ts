@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import {NgIf, NgOptimizedImage} from '@angular/common';
+import { NgIf, NgOptimizedImage } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FileService } from '../../services/file.service';
 import { catchError, filter, switchMap } from 'rxjs';
 import { DialogService } from '../../services/dialog.service';
 import { Credentials } from '../../models/credentials';
@@ -22,13 +21,13 @@ import { BoardService } from '../../services/board.service';
   styleUrl: './login-page.component.scss'
 })
 export class LoginPageComponent implements OnInit {
-  form: FormGroup<{
+  protected form: FormGroup<{
     apiEndpoint: FormControl<string>,
     resourcesEndpoint: FormControl<string>,
     apiToken: FormControl<string>
   }>;
 
-  constructor(
+  public constructor(
     private fb: FormBuilder,
     private dialogService: DialogService,
     private router: Router,
@@ -37,7 +36,7 @@ export class LoginPageComponent implements OnInit {
   ) {
   }
 
-  getApiKeyUrl(): string {
+  protected getApiKeyUrl(): string {
     const apiEndpoint = this.form.value.apiEndpoint ?? '';
     const pathStartIndex = apiEndpoint.lastIndexOf('/api');
     if (pathStartIndex === -1) {
@@ -47,13 +46,13 @@ export class LoginPageComponent implements OnInit {
     return this.form.value.apiEndpoint.substring(0, pathStartIndex) + '/profile/api-key';
   }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.authService
       .getCredentials()
       .subscribe(creds => this.initializeForm(creds));
   }
 
-  initializeForm(creds: Credentials) {
+  private initializeForm(creds: Credentials): void {
     this.form = this.fb.group({
       apiEndpoint: [creds.apiEndpoint, [Validators.required]],
       resourcesEndpoint: [creds.resourcesEndpoint, [Validators.required]],
@@ -61,12 +60,12 @@ export class LoginPageComponent implements OnInit {
     });
   }
 
-  submit() {
+  protected submit(): void {
     this.authService
       .login(this.form.value)
       .pipe(
         switchMap(v => this.dialogService.loginConfirmation(v)),
-        catchError((err) => this.dialogService.alert('Failed to login. Please make sure that credentials are valid.')),
+        catchError(() => this.dialogService.alert('Failed to login. Please make sure that credentials are valid.')),
         filter(t => t),
         switchMap(() => this.boardService.getSpaces()),
       )

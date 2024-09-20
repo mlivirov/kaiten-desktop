@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Inject, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, OnInit, Output, ViewChild } from '@angular/core';
 import {
   AsyncPipe,
   DatePipe,
@@ -23,7 +23,7 @@ import { CardReferencesAccordionComponent } from './card-references-accordion/ca
 import { RouterLink } from '@angular/router';
 import { TimeagoModule } from 'ngx-timeago';
 import { CardCommentsComponent } from './card-comments/card-comments.component';
-import { EditorPropertyTemplate, PropertiesEditorComponent, } from '../properties-editor/properties-editor.component';
+import { EditorPropertyTemplateDirective, PropertiesEditorComponent, } from '../properties-editor/properties-editor.component';
 import {
   NgbCollapse,
   NgbDatepicker,
@@ -39,20 +39,19 @@ import {
 import { CardPropertiesComponent } from './card-properties/card-properties.component';
 import { CardChecklistComponent } from './card-list-of-checklists/card-checklist/card-checklist.component';
 import { CardListOfChecklistsComponent } from './card-list-of-checklists/card-list-of-checklists.component';
-import { UnionIfNotExistsFunction } from '../../functions/union-if-not-exists.function';
+import { unionIfNotExists } from '../../functions/union-if-not-exists';
 import { TextEditorComponent, TextEditorSaveEvent } from '../text-editor/text-editor.component';
 import { CARD_EDITOR_SERVICE, CardEditorService } from '../../services/card-editor.service';
 import { CardState } from '../../models/card-state';
 import { BoardService } from '../../services/board.service';
 import { CardType } from '../../models/card-type';
 import { SettingService } from '../../services/setting.service';
-import { formatCardLinkForClipboard } from '../../functions/format-card-link-for-clipboard.function';
+import { formatCardLinkForClipboard } from '../../functions/format-card-link-for-clipboard';
 import { Setting } from '../../models/setting';
 import { CopyToClipboardButtonComponent } from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
 import { CardAttachmentsComponent } from './card-attachments/card-attachments.component';
 import { DialogService } from '../../services/dialog.service';
 import { MdViewerComponent } from '../md-viewer/md-viewer.component';
-
 
 @Component({
   selector: 'app-card-editor',
@@ -75,7 +74,7 @@ import { MdViewerComponent } from '../md-viewer/md-viewer.component';
     TimeagoModule,
     CardCommentsComponent,
     PropertiesEditorComponent,
-    EditorPropertyTemplate,
+    EditorPropertyTemplateDirective,
     NgbDatepicker,
     NgbInputDatepicker,
     NgbTypeahead,
@@ -102,51 +101,27 @@ import { MdViewerComponent } from '../md-viewer/md-viewer.component';
   styleUrl: './card-editor.component.scss',
 })
 export class CardEditorComponent implements OnInit {
-  CardState = CardState;
+  protected readonly CardState = CardState;
+  @Input() public showHeader: boolean = true;
+  @Input() public card: CardEx;
+  @Input() public showComments: boolean = true;
+  @Input() public showReferences: boolean = true;
+  @Input() public alwaysEditable: boolean = false;
+  protected isSaving: boolean = false;
+  @ViewChild(CardListOfChecklistsComponent) protected cardListOfChecklists: CardListOfChecklistsComponent;
+  @ViewChild(CardReferencesAccordionComponent) protected cardReferencesAccordionComponent: CardReferencesAccordionComponent;
+  @Output() protected delete: EventEmitter<number> = new EventEmitter();
+  @Output() protected update: EventEmitter<number> = new EventEmitter();
+  @Input() public collapsableProperties: boolean = false;
+  protected isCollapsedProperties: boolean = false;
+  protected cardTypes: CardType[] = [];
+  protected clipboardLink$: Observable<string>;
 
-  @Input()
-  showHeader: boolean = true;
-
-  @Input()
-  card: CardEx;
-
-  @Input()
-  showComments: boolean = true
-
-  @Input()
-  showReferences: boolean = true;
-
-  @Input()
-  alwaysEditable: boolean = false;
-
-  isSaving: boolean = false;
-
-  @ViewChild(CardListOfChecklistsComponent)
-  cardListOfChecklists: CardListOfChecklistsComponent;
-
-  @ViewChild(CardReferencesAccordionComponent)
-  cardReferencesAccordionComponent: CardReferencesAccordionComponent;
-
-  @Output()
-  delete: EventEmitter<number> = new EventEmitter();
-
-  @Output()
-  update: EventEmitter<number> = new EventEmitter();
-
-  @Input()
-  collapsableProperties: boolean = false;
-
-  isCollapsedProperties: boolean = false;
-
-  cardTypes: CardType[] = [];
-
-  clipboardLink$: Observable<string>;
-
-  get propertiesHeight(): number {
+  protected get propertiesHeight(): number {
     return window.outerHeight * 0.8;
   }
 
-  constructor(
+  public constructor(
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
     private boardService: BoardService,
     private settingService: SettingService,
@@ -161,11 +136,11 @@ export class CardEditorComponent implements OnInit {
       );
   }
 
-  updateAsap(value: boolean) {
+  protected updateAsap(value: boolean): void {
     this.updateCard({ asap: value }).subscribe();
   }
 
-  addChecklist() {
+  protected addChecklist(): void {
     this.isSaving = true;
     this.cardEditorService
       .addCardCheckList(this.card.id, {
@@ -175,16 +150,15 @@ export class CardEditorComponent implements OnInit {
         finalize(() => this.isSaving = false)
       )
       .subscribe(checklist => {
-        this.card.checklists = UnionIfNotExistsFunction(this.card.checklists, checklist, 'id');
+        this.card.checklists = unionIfNotExists(this.card.checklists, checklist, 'id');
 
         setTimeout(() => {
-          const found = this.cardListOfChecklists.checklists.find(t => t.checklist.id == checklist.id);
-          found.openTextEditor();
+          this.cardListOfChecklists.openTextEditor(checklist.id);
         }, 1);
       });
   }
 
-  saveType(type: CardType): void {
+  protected saveType(type: CardType): void {
     this
       .updateCard({ type_id: type.id })
       .subscribe(() => {
@@ -192,19 +166,19 @@ export class CardEditorComponent implements OnInit {
       });
   }
 
-  saveTitle(saveEvent: TextEditorSaveEvent): void {
+  protected saveTitle(saveEvent: TextEditorSaveEvent): void {
     this
       .updateCard({ title: saveEvent.value })
       .subscribe(saveEvent.commit.bind(saveEvent));
   }
 
-  saveDescription(saveEvent: TextEditorSaveEvent): void {
+  protected saveDescription(saveEvent: TextEditorSaveEvent): void {
     this
       .updateCard({ description: saveEvent.value })
       .subscribe(saveEvent.commit.bind(saveEvent));
   }
 
-  updateCard(data: Partial<CardEx>): Observable<void> {
+  private updateCard(data: Partial<CardEx>): Observable<void> {
     this.isSaving = true;
     return this.cardEditorService
       .updateCard(this.card.id, data)
@@ -217,35 +191,35 @@ export class CardEditorComponent implements OnInit {
       );
   }
 
-  instantUpdateTitle(value: string) {
+  protected instantUpdateTitle(value: string): void {
     this.card.title = value;
-    return this.cardEditorService
+    this.cardEditorService
       .updateCard(this.card.id, {
         title: this.card.title,
       })
       .subscribe();
   }
 
-  instantUpdateDescription(value: string) {
+  protected instantUpdateDescription(value: string): void {
     this.card.description = value;
-    return this.cardEditorService
+    this.cardEditorService
       .updateCard(this.card.id, {
         description: this.card.description,
       })
       .subscribe();
   }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     if (this.collapsableProperties) {
       this.isCollapsedProperties = window.innerWidth < 768;
     }
   }
 
-  focusBlocker() {
+  protected focusBlocker(): void {
     this.cardReferencesAccordionComponent?.focusByType('BLOCKER');
   }
 
-  deleteParent(id: number) {
+  protected deleteParent(id: number): void {
     this.isSaving = true;
     this.cardEditorService
       .removeRelation(id, this.card.id)
@@ -259,7 +233,7 @@ export class CardEditorComponent implements OnInit {
       });
   }
 
-  deleteChild(id: number) {
+  protected deleteChild(id: number): void {
     this.isSaving = true;
     this.cardEditorService
       .removeRelation(this.card.id, id)
@@ -273,7 +247,7 @@ export class CardEditorComponent implements OnInit {
       });
   }
 
-  addParent() {
+  protected addParent(): void {
     this.isSaving = true;
     this.dialogService
       .searchCard('single')
@@ -289,7 +263,7 @@ export class CardEditorComponent implements OnInit {
       });
   }
 
-  addChild() {
+  protected addChild(): void {
     this.isSaving = true;
     this.dialogService
       .searchCard('single')
@@ -305,19 +279,19 @@ export class CardEditorComponent implements OnInit {
       });
   }
 
-  addRelated() {
+  protected addRelated(): void {
     this.isSaving = true;
     this.dialogService
       .searchCard('single')
       .pipe(
         filter(r => !!r),
-        switchMap(r => this.dialogService.showNotImplementedDialog()),
+        switchMap(() => this.dialogService.showNotImplementedDialog()),
         finalize(() => this.isSaving = false)
       )
       .subscribe();
   }
 
-  addBlocker() {
+  protected addBlocker(): void {
     this.isSaving = true;
     this.dialogService
       .editBlocker(this.card.id)
@@ -331,7 +305,7 @@ export class CardEditorComponent implements OnInit {
       });
   }
 
-  deleteCard() {
+  protected deleteCard(): void {
     this.isSaving = true;
     this.dialogService
       .confirmation('Are you sure you want to delete this card?')
@@ -345,7 +319,7 @@ export class CardEditorComponent implements OnInit {
       });
   }
 
-  deleteBlockerById(id: number) {
+  protected deleteBlockerById(id: number): void {
     this.isSaving = true;
     this.cardEditorService
       .removeBlocker(this.card.id, id)
@@ -359,7 +333,7 @@ export class CardEditorComponent implements OnInit {
       });
   }
 
-  deleteBlocker() {
+  protected deleteBlocker(): void {
     const mainBlocker = this.card.blockers.find(b => b.blocker_id === this.card.blocker_id);
     this.deleteBlockerById(mainBlocker.id);
   }

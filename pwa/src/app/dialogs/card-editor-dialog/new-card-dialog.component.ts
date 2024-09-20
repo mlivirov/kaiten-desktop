@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, Input } from '@angular/core';
 import { CardEditorComponent } from '../../components/card-editor/card-editor.component';
 import { NgIf } from '@angular/common';
 import { CardEx } from '../../models/card-ex';
@@ -22,17 +22,17 @@ import { MemberType } from '../../models/member-type';
   ]
 })
 export class NewCardDialogComponent {
-  card: CardEx;
-  isSaving = false;
+  @Input() public card: CardEx;
+  protected isSaving = false;
 
-  constructor(
+  public constructor(
     public modal: NgbActiveModal,
     private serverCardEditorService: ServerCardEditorService,
     @Inject(CARD_EDITOR_SERVICE) private draftCardEditorService: CardEditorService
   ) {
   }
 
-  save() {
+  public save(): void {
     this.isSaving = true;
 
     this.draftCardEditorService
@@ -63,14 +63,14 @@ export class NewCardDialogComponent {
         ),
         switchMap(() => this.card.checklists?.length
           ? zip(this.card.checklists.map(m => this.serverCardEditorService.addCardCheckList(this.card.id, m)
-              .pipe(
-                tap(saved => m.id = saved.id),
-                switchMap(saved =>
-                  m.items?.length
+            .pipe(
+              tap(saved => m.id = saved.id),
+              switchMap(saved =>
+                m.items?.length
                   ? zip(m.items.map(i => this.serverCardEditorService.addCheckListItem(this.card.id, saved.id, i.text, i.sort_order)))
                   : of(null)
-                )
-              )))
+              )
+            )))
           : of(null)
         ),
         finalize(() => this.isSaving = false),

@@ -1,11 +1,11 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { AsyncPipe, JsonPipe, NgIf, NgOptimizedImage, NgStyle } from '@angular/common';
 import { AvatarService } from '../../services/avatar.service';
-import { FileService } from '../../services/file.service';
 import { User } from '../../models/user';
 import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { finalize } from 'rxjs';
 import { UserService } from '../../services/user.service';
+import { nameof } from '../../functions/name-of';
 
 @Component({
   selector: 'app-inline-member',
@@ -23,32 +23,22 @@ import { UserService } from '../../services/user.service';
   styleUrl: './inline-member.component.scss'
 })
 export class InlineMemberComponent implements OnChanges {
-  @Input()
-  profile: User = null;
+  @Input() public profile?: User;
+  @Input() public profileUid?: string;
+  @Input() public profileId?: number;
+  @Input() public showAvatar: boolean = true;
+  @Input() public showName: boolean = true;
+  @Input() public size: number = 24;
+  protected avatarUrl?: string;
+  protected isLoading: boolean = false;
 
-  @Input()
-  profileUid: any = null;
-
-  @Input()
-  profileId: any = null;
-
-  @Input()
-  showAvatar: boolean = true;
-
-  @Input()
-  showName: boolean = true;
-
-  @Input()
-  size: number = 24;
-
-  avatarUrl?: string;
-
-  isLoading: boolean = false;
-
-  constructor(private avatarService: AvatarService, private userService: UserService) {
+  public constructor(
+    private avatarService: AvatarService,
+    private userService: UserService
+  ) {
   }
 
-  loadAvatarUrl(): void {
+  private loadAvatarUrl(): void {
     this.isLoading = true;
     this.avatarService
       .getUrl(this.profile)
@@ -60,8 +50,8 @@ export class InlineMemberComponent implements OnChanges {
       });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.profileUid) {
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<InlineMemberComponent>('profileUid')] && this.profileUid) {
       this.isLoading = true;
       this.userService
         .getUserByUid(this.profileUid)
@@ -74,7 +64,7 @@ export class InlineMemberComponent implements OnChanges {
         });
     }
 
-    if (this.profileId) {
+    if (changes[nameof<InlineMemberComponent>('profileId')] && this.profileId) {
       this.isLoading = true;
       this.userService
         .getUserById(this.profileId)
@@ -87,7 +77,7 @@ export class InlineMemberComponent implements OnChanges {
         });
     }
 
-    if (this.profile && this.profile.id > 0) {
+    if (this.profile?.id > 0) {
       this.loadAvatarUrl();
     }
   }

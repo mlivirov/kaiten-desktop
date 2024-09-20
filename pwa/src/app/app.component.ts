@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, HostListener, Injectable } from '@angular/core';
+import { AfterViewInit, Component, HostListener } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import {
   NavigationCancel,
@@ -17,7 +17,6 @@ import { MdEditorComponent } from './components/md-editor/md-editor.component';
 import { FormsModule } from '@angular/forms';
 import { NewCardDialogComponent } from './dialogs/card-editor-dialog/new-card-dialog.component';
 import { CardEditorComponent } from './components/card-editor/card-editor.component';
-import { FileService } from './services/file.service';
 import { Setting } from './models/setting';
 import { TypeaheadComponent } from './components/typeahead/typeahead.component';
 import { CardSearchInputComponent } from './components/card-search-input/card-search-input.component';
@@ -36,10 +35,10 @@ import { filter } from 'rxjs';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements AfterViewInit {
-  isLoading: boolean = false;
-  isFirstRouteReached: boolean = false;
+  protected isLoading: boolean = false;
+  protected isFirstRouteReached: boolean = false;
 
-  constructor(
+  public constructor(
     private router: Router,
     private settingService: SettingService,
     private dialogService: DialogService,
@@ -66,7 +65,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   @HostListener('window:keydown', ['$event'])
-  handleKey(event: KeyboardEvent): void {
+  private handleKey(event: KeyboardEvent): void {
     if (event.code === 'KeyG' && event.ctrlKey) {
       event.preventDefault();
       event.stopPropagation();
@@ -80,7 +79,8 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {
+  public ngAfterViewInit(): void {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     PullToRefresh.init({
       mainElement: 'body',

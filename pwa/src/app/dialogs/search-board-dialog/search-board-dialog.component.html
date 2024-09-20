@@ -1,38 +1,57 @@
 <div class="modal-header bg-kaiten">
-    <div class="w-100 me-3">
-        <input
-                type="search"
-                class="form-control form-control-lg"
-                placeholder="Search boards"
-                id="boardSearchInput"
-                [ngModel]="filterTerm"
-                (ngModelChange)="filter($event)"
-        >
-    </div>
-    <button type="button" class="btn-close" aria-label="Close" (click)="modal.close()"></button>
+  <div class="w-100 me-3">
+    <input
+      type="search"
+      class="form-control form-control-lg"
+      placeholder="Search boards"
+      id="boardSearchInput"
+      [ngModel]="filterTerm"
+      (ngModelChange)="filter($event)"
+    >
+  </div>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modal.close()"
+  ></button>
 </div>
 
 <div class="modal-body">
-    <ul class="list-group">
-        <li *ngFor="let board of filteredBoard; index as i" class="list-group-item">
-            <a class="dropdown-item" href="javascript:void(0)" (click)="switchBoard(board.space_id, board.id)">
-                {{ i > 0 && filteredBoard[i - 1].title == board.title
-                    ? filteredBoard[i - 1].full_title == board.full_title
-                        ? board.full_title + ' [' + board.id + ']'
-                        : board.full_title
-                    : board.title
-                }}
-            </a>
-        </li>
-    </ul>
+  <ul class="list-group">
+    <li
+      *ngFor="let board of filteredBoard; index as i"
+      class="list-group-item"
+    >
+      <a
+        class="dropdown-item"
+        href="javascript:void(0)"
+        (click)="switchBoard(board.space_id, board.id)"
+      >
+        {{ i > 0 && filteredBoard[i - 1].title == board.title
+        ? filteredBoard[i - 1].full_title == board.full_title
+        ? board.full_title + ' [' + board.id + ']'
+        : board.full_title
+        : board.title
+        }}
+      </a>
+    </li>
+  </ul>
 
-    <div *ngIf="isLoading" class="text-center">
-        <div>
-            <i class="pi pi-spin pi-spinner"></i> <span class="ms-2 small">Loading</span>
-        </div>
+  <div
+    *ngIf="isLoading"
+    class="text-center"
+  >
+    <div>
+      <i class="pi pi-spin pi-spinner"></i>
+      <span class="ms-2 small">Loading</span>
     </div>
+  </div>
 
-    <div *ngIf="!isLoading && !filteredBoard?.length" class="opacity-75 small">
-        Nothing found
-    </div>
+  <div
+    *ngIf="!isLoading && !filteredBoard?.length"
+    class="opacity-75 small"
+  >
+    Nothing found
+  </div>
 </div>

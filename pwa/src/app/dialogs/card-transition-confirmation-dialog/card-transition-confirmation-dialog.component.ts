@@ -1,14 +1,13 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, Input } from '@angular/core';
 import { Column } from '../../models/column';
 import { CardEx } from '../../models/card-ex';
 import { NgForOf, NgIf } from '@angular/common';
 import { InlineMemberComponent } from '../../components/inline-member/inline-member.component';
 import { TimeDotsComponent } from '../../components/time-dots/time-dots.component';
-import { FileService } from '../../services/file.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { finalize } from 'rxjs';
 import { CARD_EDITOR_SERVICE, CardEditorService } from '../../services/card-editor.service';
-import { getLaneColor } from '../../functions/get-lane-color.function';
+import { getLaneColor } from '../../functions/get-lane-color';
 
 @Component({
   selector: 'app-card-transition-confirmation-dialog',
@@ -23,19 +22,18 @@ import { getLaneColor } from '../../functions/get-lane-color.function';
   styleUrl: './card-transition-confirmation-dialog.component.scss'
 })
 export class CardTransitionConfirmationDialogComponent {
-  card?: CardEx;
-  from?: Column;
-  to?: Column;
+  @Input() public card?: CardEx;
+  @Input() public from?: Column;
+  @Input() public to?: Column;
+  protected isMovingInProgress: boolean = false;
 
-  isMovingInProgress: boolean = false;
-
-  constructor(
+  public constructor(
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
     public modal: NgbActiveModal
   ) {
   }
 
-  move() {
+  protected move(): void {
     this.isMovingInProgress = true;
 
     this.cardEditorService
@@ -50,7 +48,7 @@ export class CardTransitionConfirmationDialogComponent {
       });
   }
 
-  getBackgroundColor(): string {
+  protected getBackgroundColor(): string {
     return getLaneColor(this.card.lane);
   }
 }

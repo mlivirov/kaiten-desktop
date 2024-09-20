@@ -14,11 +14,7 @@ import { NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
   styleUrl: './card-state-label.component.scss'
 })
 export class CardStateLabelComponent {
-  CardState = CardState;
-
-  @Input()
-  state: CardState;
-
-  @Input()
-  colored: boolean = true;
+  protected readonly CardState = CardState;
+  @Input() public state: CardState;
+  @Input() public colored: boolean = true;
 }

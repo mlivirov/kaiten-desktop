@@ -12,11 +12,10 @@ import { CardType } from '../models/card-type';
 
 @Injectable({ providedIn: 'root' })
 export class BoardService {
-  constructor(private httpClient: HttpClient, private settingsService: SettingService) {
+  public constructor(private httpClient: HttpClient, private settingsService: SettingService) {
   }
 
-
-  getCustomColumns(boardId: number): Observable<number[][]> {
+  public getCustomColumns(boardId: number): Observable<number[][]> {
     return this.settingsService
       .getSetting(Setting.CustomColumns)
       .pipe(
@@ -24,10 +23,10 @@ export class BoardService {
           const parsed = data ? JSON.parse(data) as { [key: string]: number[][] } : {};
           return parsed[boardId] ?? [];
         })
-      )
+      );
   }
 
-  setCustomColumns(boardId: number, columns: number[][]): Observable<void> {
+  public setCustomColumns(boardId: number, columns: number[][]): Observable<void> {
     return this.settingsService
       .getSetting(Setting.CustomColumns)
       .pipe(
@@ -37,30 +36,30 @@ export class BoardService {
 
           return this.settingsService.setSetting(Setting.CustomColumns, JSON.stringify(parsed));
         })
-      )
+      );
   }
 
-  getLanes(boardId: number): Observable<Lane[]> {
+  public getLanes(boardId: number): Observable<Lane[]> {
     const lanes$ = this.httpClient.get<Lane[]>(`http://server/api/latest/boards/${boardId}/lanes`);
     return getManyWithCache(lanes$, Database.lanes, t => t.where({ board_id: boardId }));
   }
 
-  getBoard(boardId: number): Observable<Board> {
+  public getBoard(boardId: number): Observable<Board> {
     const board$ = this.httpClient.get<Board>(`http://server/api/latest/boards/${boardId}`);
     return getSingleWithCache(board$, Database.boards, boardId);
   }
 
-  getColumns(boardId: number): Observable<ColumnEx[]> {
+  public getColumns(boardId: number): Observable<ColumnEx[]> {
     const request$ = this.httpClient.get<ColumnEx[]>(`http://server/api/latest/boards/${boardId}/columns`);
     return getManyWithCache(request$, Database.columns, t => t.where({ board_id: boardId }));
   }
 
-  getSpaces(): Observable<Space[]> {
+  public getSpaces(): Observable<Space[]> {
     const request$ = this.httpClient.get<Space[]>('http://server/api/latest/spaces');
     return getManyWithCache(request$, Database.spaces);
   }
 
-  getCardTypes(): Observable<CardType[]> {
+  public getCardTypes(): Observable<CardType[]> {
     const request$ = this.httpClient.get<CardType[]>('http://server/api/latest/card-types');
     return getManyWithCache(request$, Database.cardTypes);
   }

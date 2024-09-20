@@ -5,7 +5,6 @@ import { Tag } from '../models/tag';
 import { Observable } from 'rxjs';
 import { CardEx } from '../models/card-ex';
 
-
 export interface CardFilter {
   text?: string;
   members?: User[];
@@ -18,10 +17,10 @@ export interface CardFilter {
 @Injectable({ providedIn: 'root' })
 export class CardSearchService {
 
-  constructor(private httpClient: HttpClient) {
+  public constructor(private httpClient: HttpClient) {
   }
 
-  searchCards(filter: CardFilter, offset?: number, limit?: number): Observable<CardEx[]> {
+  public searchCards(filter: CardFilter, offset?: number, limit?: number): Observable<CardEx[]> {
     let params = new HttpParams();
 
     if (offset) {

@@ -1,4 +1,4 @@
-import murmurhash from "murmurhash";
+import murmurhash from 'murmurhash';
 
 export function getPastelColor(value: string): string {
   const hash = murmurhash(value);

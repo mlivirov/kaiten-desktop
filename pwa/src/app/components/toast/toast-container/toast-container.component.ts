@@ -15,7 +15,6 @@ import { NgbToast } from '@ng-bootstrap/ng-bootstrap';
   styleUrl: './toast-container.component.scss'
 })
 export class ToastContainerComponent {
-
-  constructor(public toastService: ToastService) {
+  public constructor(public toastService: ToastService) {
   }
 }

@@ -1,16 +1,19 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, filter, from, interval, map, Observable, tap, timeout } from 'rxjs';
+import { BehaviorSubject, filter, map, Observable, tap } from 'rxjs';
 import { SettingService } from './setting.service';
 import { Setting } from '../models/setting';
-
 export type Theme = 'light' | 'dark' | 'auto';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeManagerService {
-  public currentTheme$: BehaviorSubject<Theme> = new BehaviorSubject('light');
-  public autoThemeTimeout?: number;
+  private currentTheme$: BehaviorSubject<Theme> = new BehaviorSubject('light');
+  private autoThemeTimeout?: number;
 
-  constructor(private settingsService: SettingService) {
+  public get currentTheme(): Observable<Theme> {
+    return this.currentTheme$.asObservable();
+  }
+
+  public constructor(private settingsService: SettingService) {
     this.settingsService
       .getSetting(Setting.Theme)
       .pipe(
@@ -25,12 +28,12 @@ export class ThemeManagerService {
           clearTimeout(this.autoThemeTimeout);
         } else if (theme === 'auto') {
           this.autoSetTheme();
-          this.autoThemeTimeout ??= setTimeout(() => this.currentTheme$.next(this.currentTheme$.value), 1000 * 60 * 60)
+          this.autoThemeTimeout ??= <number><unknown>setTimeout(() => this.currentTheme$.next(this.currentTheme$.value), 1000 * 60 * 60);
         }
       });
   }
 
-  setTheme(theme: Theme): Observable<void> {
+  public setTheme(theme: Theme): Observable<void> {
     return this.settingsService
       .setSetting(Setting.Theme, theme)
       .pipe(

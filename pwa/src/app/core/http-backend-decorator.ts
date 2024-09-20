@@ -3,13 +3,11 @@ import { Observable, of } from 'rxjs';
 import { QtApplication } from './qt-application';
 import { CordovaApplication } from './cordova-application';
 
-
 export class HttpBackendDecorator implements HttpBackend {
-  static readonly APP_SETTINGS_PATH = 'app://settings#';
+  private static readonly APP_SETTINGS_PATH = 'app://settings#';
   private readonly _browserBackend: HttpBackend = new FetchBackend();
 
-
-  handle(request: HttpRequest<any>): Observable<HttpEvent<any>> {
+  public handle(request: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
     if (CordovaApplication.isAvailable()) {
       return this.handleByCordova(request);
     } else if (QtApplication.isAvailable()) {
@@ -46,21 +44,21 @@ export class HttpBackendDecorator implements HttpBackend {
     }
   }
 
-  private handleByBrowser(req: HttpRequest<any>): Observable<HttpEvent<any>> {
+  private handleByBrowser(req: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
     if (req.url.startsWith(HttpBackendDecorator.APP_SETTINGS_PATH)) {
-      return of(this.handleByLocalstorage(req));
+      return of(this.handleByLocalstorage(<HttpRequest<string>>req));
     }
 
     return this._browserBackend.handle(req);
   }
 
-  private handleByQt(request: HttpRequest<any>): Observable<HttpEvent<any>> {
-   return QtApplication.instance().sendHttpRequest(request);
+  private handleByQt(request: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
+    return QtApplication.instance().sendHttpRequest(request);
   }
 
-  private handleByCordova(request: HttpRequest<any>): Observable<HttpEvent<any>> {
+  private handleByCordova(request: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
     if (request.url.startsWith(HttpBackendDecorator.APP_SETTINGS_PATH)) {
-      return of(this.handleByLocalstorage(request));
+      return of(this.handleByLocalstorage(<HttpRequest<string>>request));
     }
 
     return CordovaApplication.instance().sendHttpRequest(request);

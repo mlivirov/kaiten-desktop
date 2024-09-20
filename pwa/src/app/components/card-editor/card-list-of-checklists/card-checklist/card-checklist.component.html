@@ -1,49 +1,69 @@
 <h6 class="mt-3 d-flex justify-content-between align-items-start">
-    <app-text-editor
-            #textEditor
-            class="flex-grow-1"
-            type="textarea"
-            [ngModel]="checklist.name"
-            [disabled]="disabled"
-            [isLoading]="isSaving"
-            placeholder="Put your text here"
-            [minHeight]="100"
-            (save)="saveText($event)"
-    ></app-text-editor>
+  <app-text-editor
+    #textEditor
+    class="flex-grow-1"
+    type="textarea"
+    [ngModel]="checklist.name"
+    [disabled]="disabled"
+    [isLoading]="isSaving"
+    placeholder="Put your text here"
+    [minHeight]="100"
+    (save)="saveText($event)"
+  ></app-text-editor>
 
-    <div class="d-inline-block" ngbDropdown #myDrop="ngbDropdown" container="body">
-        <button
-                type="button"
-                class="btn btn-icon-sm btn-link ms-2 text-secondary"
-                [id]="'actions' + checklist.id"
-                ngbTooltip="More actions"
-                container="body"
-                triggers="click hover"
-                ngbDropdownAnchor
-                (focus)="myDrop.open()"
-                [disabled]="isSaving || disabled"
-        >
-            <i class="pi pi-ellipsis-v"></i>
-        </button>
-        <div ngbDropdownMenu [attr.aria-labelledby]="'actions' + checklist.id">
-            <button ngbDropdownItem type="button" (click)="appendItem($event)"><i class="pi pi-plus"></i> Append item</button>
-            <button ngbDropdownItem type="button" (click)="delete.emit(checklist)"><i class="pi pi-trash"></i> Delete</button>
-        </div>
+  <div
+    class="d-inline-block"
+    ngbDropdown
+    #myDrop="ngbDropdown"
+    container="body"
+  >
+    <button
+      type="button"
+      class="btn btn-icon-sm btn-link ms-2 text-secondary"
+      [id]="'actions' + checklist.id"
+      ngbTooltip="More actions"
+      container="body"
+      triggers="click hover"
+      ngbDropdownAnchor
+      (focus)="myDrop.open()"
+      [disabled]="isSaving || disabled"
+    >
+      <i class="pi pi-ellipsis-v"></i>
+    </button>
+    <div
+      ngbDropdownMenu
+      [attr.aria-labelledby]="'actions' + checklist.id"
+    >
+      <button
+        ngbDropdownItem
+        type="button"
+        (click)="appendItem($event)"
+      >
+        <i class="pi pi-plus"></i> Append item
+      </button>
+      <button
+        ngbDropdownItem
+        type="button"
+        (click)="delete.emit(checklist)"
+      >
+        <i class="pi pi-trash"></i> Delete
+      </button>
     </div>
+  </div>
 </h6>
 <div>
-    <app-card-checklist-item
-            *ngFor="let checklistItem of (checklist.items || [])"
-            [cardId]="cardId"
-            [checklistId]="checklist.id"
-            [item]="checklistItem"
-            [disabled]="isSaving"
-            (insertBefore)="insertBefore($event)"
-            (insertAfter)="insertAfter($event)"
-            (delete)="deleteItem($event)"
-            (createCard)="createCardFromItem($event)"
-    ></app-card-checklist-item>
-    <div *ngIf="!checklist.items?.length">
-        <span class="font-size-medium opacity-50">Checklist is empty</span>
-    </div>
+  <app-card-checklist-item
+    *ngFor="let checklistItem of (checklist.items || [])"
+    [cardId]="cardId"
+    [checklistId]="checklist.id"
+    [item]="checklistItem"
+    [disabled]="isSaving"
+    (insertBefore)="insertBefore($event)"
+    (insertAfter)="insertAfter($event)"
+    (delete)="deleteItem($event)"
+    (createCard)="createCardFromItem($event)"
+  ></app-card-checklist-item>
+  <div *ngIf="!checklist.items?.length">
+    <span class="font-size-medium opacity-50">Checklist is empty</span>
+  </div>
 </div>

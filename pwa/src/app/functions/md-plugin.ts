@@ -1,36 +1,33 @@
-import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
-import Editor, { CustomConvertor } from '@toast-ui/editor';
-import Plugin = toastui.Plugin;
+import Editor from '@toast-ui/editor';
 import HTMLToken = toastui.HTMLToken;
 import OpenTagToken = toastui.OpenTagToken;
 import CloseTagToken = toastui.CloseTagToken;
 import PluginInfo = toastui.PluginInfo;
 import Convertor = toastui.Convertor;
-import WysiwygEditor = toastui.WysiwygEditor;
 
 class MdConvertor implements Convertor {
-  constructor(private defaultConvertor: Convertor, private inlineIcon?: string) {
+  public constructor(private defaultConvertor: Convertor, private inlineIcon?: string) {
   }
 
-  initHtmlSanitizer(sanitizer: toastui.Sanitizer): void {
+  public initHtmlSanitizer(sanitizer: toastui.Sanitizer): void {
     this.defaultConvertor.initHtmlSanitizer(sanitizer);
   }
 
-  toHTML(makrdown: string): string {
+  public toHTML(makrdown: string): string {
     return this.defaultConvertor.toHTML(makrdown);
   }
 
-  toHTMLWithCodeHighlight(markdown: string): string {
+  public toHTMLWithCodeHighlight(markdown: string): string {
     return this.defaultConvertor.toHTMLWithCodeHighlight(markdown);
   }
 
-  toMarkdown(html: string, toMarkdownOptions: toastui.ToMarkOptions): string {
+  public toMarkdown(html: string, toMarkdownOptions: toastui.ToMarkOptions): string {
     html = this.removeNonStandardElements(html);
     const md = this.defaultConvertor.toMarkdown(html, toMarkdownOptions);
     return md;
   }
 
-  fixComponentBugs(dom: Document) {
+  private fixComponentBugs(dom: Document): void {
     dom.querySelectorAll('br:only-child').forEach(x => {
       x.parentElement.insertBefore(dom.createTextNode('\u00A0'), x);
     });
@@ -38,7 +35,7 @@ class MdConvertor implements Convertor {
     dom.querySelectorAll('br + br').forEach(x => x.remove());
   }
 
-  removeNonStandardElements(html: string): string {
+  private removeNonStandardElements(html: string): string {
     const dom = new DOMParser().parseFromString(html, 'text/html');
     dom.querySelectorAll('[data-type="user"]').forEach(x => x.replaceWith(x.innerHTML));
     dom.querySelectorAll<HTMLAnchorElement>('[data-type="card-link"]').forEach(x => {
@@ -50,16 +47,6 @@ class MdConvertor implements Convertor {
     this.fixComponentBugs(dom);
 
     return dom.body.innerHTML;
-  }
-}
-
-class MdPlugin implements PluginInfo
-{
-  parser: toastui.CustomParserMap;
-
-  renderer: toastui.CustomHTMLRendererMap;
-
-  pluginFn(editor: toastui.Editor | toastui.Viewer, options: any): void {
   }
 }
 
@@ -115,12 +102,12 @@ export function mdPlugin(): PluginInfo {
 
         const cardLinkRegExp = new RegExp('^\\/\\d+$');
         if (cardLinkRegExp.test(destination)) {
-          destination = `/card` + destination;
+          destination = '/card' + destination;
         }
 
         const cardLongLinkMatch = new RegExp('space\\/\\d+\\/card\\/(?<cardId>\\d+)').exec(destination);
         if (cardLongLinkMatch) {
-          destination = `/card/` + cardLongLinkMatch.groups['cardId'];
+          destination = '/card/' + cardLongLinkMatch.groups['cardId'];
         }
 
         return <OpenTagToken>{
@@ -136,7 +123,7 @@ export function mdPlugin(): PluginInfo {
     parser: {
 
     },
-    pluginFn: (editor: Editor, options: any) => {
+    pluginFn: (editor: Editor,) => {
       editor['convertor'] = new MdConvertor(editor['convertor']);
     }
   };

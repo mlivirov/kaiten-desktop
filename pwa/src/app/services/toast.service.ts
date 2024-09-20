@@ -3,28 +3,28 @@ import { Injectable } from '@angular/core';
 export interface Toast {
   classname?: string;
   delay?: number;
-  message?: any;
+  message?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ToastService {
-  toasts: Toast[] = [];
+  public toasts: Toast[] = [];
 
-  show(toast: Toast) {
+  public show(toast: Toast): void {
     this.toasts.push(toast);
   }
 
-  error(message: string) {
+  public error(message: string): void {
     this.show({ message: message, classname: 'bg-danger text-light' });
   }
 
-  remove(toast: Toast) {
+  public remove(toast: Toast): void {
     this.toasts = this.toasts.filter((t) => t !== toast);
   }
 
-  clear() {
+  public clear(): void {
     this.toasts.splice(0, this.toasts.length);
   }
 }

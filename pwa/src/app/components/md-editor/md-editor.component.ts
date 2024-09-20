@@ -2,18 +2,18 @@ import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, Vie
 import Editor from '@toast-ui/editor';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
-import { mdPlugin } from '../../functions/md-plugin.function';
+import { mdPlugin } from '../../functions/md-plugin';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
 import { NgbPopover, NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { UsersTypeaheadOperator } from '../../functions/typeahead/users.typeahead-operator';
 import { User } from '../../models/user';
-import WysiwygEditor = toastui.WysiwygEditor;
 import { CardsTypeaheadOperator } from '../../functions/typeahead/cards.typeahead-operator';
 import { Card } from '../../models/card';
 import SimpleMDE from 'simplemde';
 import { AutosizeModule } from 'ngx-autosize';
+import WysiwygEditor = toastui.WysiwygEditor;
 import ToolbarItem = toastui.ToolbarItem;
-import ToolbarButton = toastui.ToolbarButton;
+import { ChangeCallback, TouchedCallback } from '../../core/types/change-callback.type';
 
 @Component({
   selector: 'app-md-editor',
@@ -38,50 +38,29 @@ import ToolbarButton = toastui.ToolbarButton;
   ]
 })
 export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValueAccessor {
-  @ViewChild('wysiwygEditorContainer')
-  wysiwygEditorContainer: ElementRef;
-  wysiwygEditor: Editor;
+  @ViewChild('wysiwygEditorContainer') protected wysiwygEditorContainer: ElementRef;
+  private wysiwygEditor: Editor;
+  @ViewChild('markdownEditorTextarea') protected markdownEditorTextarea: ElementRef<HTMLTextAreaElement>;
+  private markdownEditor: SimpleMDE;
+  @Input() public hideToolbar: boolean = false;
+  @Input() public hideBorder: boolean = false;
+  @Input() public placeholder: string;
+  @Input() public minHeight: number = 35;
+  @ViewChild('usersPopover', { read: NgbPopover }) protected usersPopover: NgbPopover;
+  @ViewChild('cardsPopover', { read: NgbPopover }) protected cardsPopover: NgbPopover;
+  @Input() public mode: 'markdown' | 'wysiwyg' = 'wysiwyg';
+  private value: string;
+  protected readonly allUsersTypeaheadSearch = UsersTypeaheadOperator();
+  protected readonly cardsTypeaheadSearch = CardsTypeaheadOperator();
+  protected readonly userTypeaheadFormatter = (item: User): string => item.full_name;
+  protected readonly cardTypeaheadFormatter = (item: Card): string => item ? `${item.id} - ${item.title}` : '';
+  private changeCallback: ChangeCallback<string>;
+  private touchedCallback: TouchedCallback;
 
-  @ViewChild('markdownEditorTextarea')
-  markdownEditorTextarea: ElementRef<HTMLTextAreaElement>;
-  markdownEditor: SimpleMDE;
-
-  @Input()
-  hideToolbar: boolean = false;
-
-  @Input()
-  hideBorder: boolean = false;
-
-  @Input()
-  placeholder: string;
-
-  @Input()
-  minHeight: number = 35;
-
-  @ViewChild('usersPopover', { read: NgbPopover })
-  usersPopover: NgbPopover;
-
-  @ViewChild('cardsPopover', { read: NgbPopover })
-  cardsPopover: NgbPopover;
-
-  @Input()
-  mode: 'markdown' | 'wysiwyg' = 'wysiwyg';
-
-  value: string;
-
-  allUsersTypeaheadSearch = UsersTypeaheadOperator();
-  cardsTypeaheadSearch = CardsTypeaheadOperator();
-
-  userTypeaheadFormatter = (item: User) => item.full_name;
-  cardTypeaheadFormatter = (item: Card) => item ? `${item.id} - ${item.title}` : '';
-
-  changeCallback: (value: string) => void;
-  touchedCallback: () => void;
-
-  constructor() {
+  public constructor() {
   }
 
-  ngAfterViewInit(): void {
+  public ngAfterViewInit(): void {
     if (this.mode === 'markdown') {
       this.initMarkdownEditor();
     } else {
@@ -89,7 +68,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     }
   }
 
-  destroyMarkdownEditor() {
+  private destroyMarkdownEditor(): void {
     if (!this.markdownEditor) {
       return;
     }
@@ -98,9 +77,10 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     delete this.markdownEditor;
   }
 
-  initMarkdownEditor() {
+  private initMarkdownEditor(): void {
     this.mode = 'markdown';
     this.destroyWysiwygEditor();
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     this.markdownEditor = new SimpleMDE({
       element: this.markdownEditorTextarea.nativeElement,
@@ -119,7 +99,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     });
   }
 
-  destroyWysiwygEditor() {
+  private destroyWysiwygEditor(): void {
     if (!this.wysiwygEditor) {
       return;
     }
@@ -128,9 +108,10 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     delete this.wysiwygEditor;
   }
 
-  initWysiwygEditor() {
+  protected initWysiwygEditor(): void {
     this.mode = 'wysiwyg';
     this.destroyMarkdownEditor();
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     this.wysiwygEditor = new Editor({
       el: this.wysiwygEditorContainer.nativeElement,
@@ -142,11 +123,11 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
       previewStyle: 'vertical',
       placeholder: this.placeholder,
       events: {
-        change() {
+        change(): void {
           self.value = self.wysiwygEditor.getMarkdown();
           self.changeCallback?.call(self, self.value);
         },
-        focus() {
+        focus(): void {
           self.touchedCallback?.call(self);
         },
       },
@@ -158,9 +139,9 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     const toolbarButton = document.createElement('button');
     toolbarButton.innerText = 'MARKDOWN';
     toolbarButton.classList.add('custom-button');
-    toolbarButton.onclick = () => {
+    toolbarButton.onclick = (): void => {
       this.initMarkdownEditor();
-    }
+    };
 
     this.wysiwygEditor.getUI().getToolbar().insertItem(0, {
       el: toolbarButton,
@@ -214,20 +195,20 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     });
   }
 
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.destroyMarkdownEditor();
     this.destroyWysiwygEditor();
   }
 
-  registerOnChange(fn: any): void {
+  public registerOnChange(fn: ChangeCallback<string>): void {
     this.changeCallback = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  public registerOnTouched(fn: TouchedCallback): void {
     this.touchedCallback = fn;
   }
 
-  setDisabledState(isDisabled: boolean) {
+  public setDisabledState(isDisabled: boolean): void {
     setTimeout(() => {
       if (isDisabled) {
         this.wysiwygEditor?.getUI().getToolbar().disableAllButton();
@@ -237,13 +218,13 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     }, 1);
   }
 
-  writeValue(obj: any): void {
+  public writeValue(obj: string): void {
     this.value = obj;
     this.wysiwygEditor?.setMarkdown(this.value);
     this.markdownEditor?.value(this.value || '');
   }
 
-  cancelMention() {
+  protected cancelMention(): void {
     this.usersPopover.close();
     this.cardsPopover.close();
     this.wysiwygEditor.focus();
@@ -252,7 +233,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     wysiwygEditor.getBody().querySelectorAll('[data-type="container"]').forEach(e => e.remove());
   }
 
-  addCardLink(card: Card) {
+  protected addCardLink(card: Card): void {
     if (!card) {
       return;
     }
@@ -280,7 +261,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     }, 1);
   }
 
-  addUserMention(user: User) {
+  protected addUserMention(user: User): void {
     if (!user) {
       return;
     }
@@ -306,10 +287,5 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     setTimeout(() => {
       this.wysiwygEditor.focus();
     }, 1);
-  }
-
-  handleMarkdownChanges(value: string) {
-    this.value = value;
-    this.wysiwygEditor?.setMarkdown(value);
   }
 }

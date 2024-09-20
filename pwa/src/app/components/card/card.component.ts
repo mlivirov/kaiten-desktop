@@ -10,13 +10,11 @@ import { MemberType } from '../../models/member-type';
 import { filter, finalize, map, Observable, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
-import { animate, state, style, transition, trigger } from '@angular/animations';
-import { getPastelColor } from '../../functions/pastel-color.function';
 import { CopyToClipboardButtonComponent } from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
 import { Setting } from '../../models/setting';
-import { formatCardLinkForClipboard } from '../../functions/format-card-link-for-clipboard.function';
+import { formatCardLinkForClipboard } from '../../functions/format-card-link-for-clipboard';
 import { SettingService } from '../../services/setting.service';
-import { getLaneColor } from '../../functions/get-lane-color.function';
+import { getLaneColor } from '../../functions/get-lane-color';
 import { ServerCardEditorService } from '../../services/implementations/server-card-editor.service';
 import { MdViewerComponent } from '../md-viewer/md-viewer.component';
 import { FormsModule } from '@angular/forms';
@@ -44,28 +42,18 @@ import { TimeagoModule } from 'ngx-timeago';
   styleUrl: './card.component.scss',
 })
 export class CardComponent {
-  @Input()
-  card?: CardEx;
+  @Input() public card?: CardEx;
+  @Input() public disabled: boolean = false;
+  @Output() protected updated: EventEmitter<CardEx> = new EventEmitter<CardEx>();
+  @Output() protected openRequest: EventEmitter<number> = new EventEmitter();
+  protected active: boolean = false;
+  protected highlight: boolean = false;
+  protected clipboardLink$: Observable<string>;
+  protected isSaving: boolean = false;
+  protected isExtendedDataLoaded: boolean = false;
+  protected isExtendedDataLoading: boolean = false;
 
-  @Input()
-  disabled: boolean = false;
-
-  @Output()
-  updated: EventEmitter<CardEx> = new EventEmitter<CardEx>();
-
-  @Output()
-  open: EventEmitter<number> = new EventEmitter();
-
-  active: boolean = false;
-
-  highlight: boolean = false;
-
-  clipboardLink$: Observable<string>;
-  isSaving: boolean = false;
-  isExtendedDataLoaded: boolean = false;
-  isExtendedDataLoading: boolean = false;
-
-  get assignedMembers(): Owner[] {
+  protected get assignedMembers(): Owner[] {
     if (!this.card?.members) {
       return [];
     }
@@ -83,7 +71,7 @@ export class CardComponent {
     return this.card.members;
   }
 
-  constructor(
+  public constructor(
     @Self() public elementRef: ElementRef,
     private dialogService: DialogService,
     private cardEditorService: ServerCardEditorService,
@@ -98,15 +86,15 @@ export class CardComponent {
       );
   }
 
-  getBackgroundColor(): string {
+  protected getBackgroundColor(): string {
     return getLaneColor(this.card.lane);
   }
 
-  openCard(id: number) {
-    this.open.emit(id);
+  protected openCard(id: number): void {
+    this.openRequest.emit(id);
   }
 
-  transitionToNextColumn() {
+  protected transitionToNextColumn(): void {
     this.isSaving = true;
     this.cardService
       .getTransitionColumns(this.card)
@@ -115,7 +103,7 @@ export class CardComponent {
           if (!cols) {
             return this.dialogService
               .alert('This card is already at the end of the current board.')
-              .pipe(map(r => null))
+              .pipe(map(() => null));
           }
 
           return this.dialogService.cardTransition(this.card, cols.from, cols.to);
@@ -129,7 +117,7 @@ export class CardComponent {
       });
   }
 
-  addBlock() {
+  protected addBlock(): void {
     this.isSaving = true;
     this.dialogService
       .editBlocker(this.card.id)
@@ -142,7 +130,7 @@ export class CardComponent {
       });
   }
 
-  focus() {
+  public focus(): void {
     this.elementRef.nativeElement.scrollIntoView({
       block: 'center',
       behavior: 'instant',
@@ -152,7 +140,7 @@ export class CardComponent {
     setTimeout(() => this.highlight = false, 1000);
   }
 
-  handleGoalsTooltipShown() {
+  protected handleGoalsTooltipShown(): void {
     if (this.isExtendedDataLoaded || this.isExtendedDataLoading) {
       return;
     }
@@ -165,6 +153,6 @@ export class CardComponent {
       .subscribe(card => {
         Object.assign(this.card, card);
         this.isExtendedDataLoaded = true;
-      })
+      });
   }
 }

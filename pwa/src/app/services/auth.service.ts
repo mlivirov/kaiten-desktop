@@ -9,28 +9,28 @@ import { SettingService } from './setting.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  currentUser$: Observable<User> = EMPTY;
+  private currentUser$: Observable<User> = EMPTY;
 
-  constructor(
+  public constructor(
     private httpClient: HttpClient,
     private settingsService: SettingService,
   ) {
     this.resetCurrentUser();
   }
 
-  logout(): Observable<void> {
+  public logout(): Observable<void> {
     return zip(
       this.settingsService.setSetting(Setting.Token, ''),
       from(Database.delete({ disableAutoOpen: false }))
     ).pipe(
-      map(t => {}),
+      map(() => {}),
       tap(() => {
         this.resetCurrentUser();
       })
     );
   }
 
-  login(creds: Credentials): Observable<User> {
+  public login(creds: Credentials): Observable<User> {
     return zip([
       this.settingsService.setSetting(Setting.ApiUrl, creds.apiEndpoint),
       this.settingsService.setSetting(Setting.FilesUrl, creds.resourcesEndpoint),
@@ -43,11 +43,11 @@ export class AuthService {
     );
   }
 
-  getCurrentUser(): Observable<User> {
+  public getCurrentUser(): Observable<User> {
     return this.currentUser$.pipe(take(1));
   }
 
-  getCredentials(): Observable<Credentials | null> {
+  public getCredentials(): Observable<Credentials | null> {
     return forkJoin({
       ApiUrl: this.settingsService.getSetting(Setting.ApiUrl),
       FilesUrl: this.settingsService.getSetting(Setting.FilesUrl),
@@ -65,7 +65,7 @@ export class AuthService {
       );
   }
 
-  resetCurrentUser() {
+  private resetCurrentUser(): void {
     this.currentUser$ = this.httpClient.get<User>('http://server/api/latest/users/current')
       .pipe(
         shareReplay()

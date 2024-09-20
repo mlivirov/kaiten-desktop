@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { catchError, map, switchMap, throwError } from 'rxjs';
+import { catchError, map, throwError } from 'rxjs';
 import { inject } from '@angular/core';
 import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
@@ -23,7 +23,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           .logout()
           .pipe(
             map(() => {
-              router.navigate(['login'])
+              router.navigate(['login']);
             })
           )
           .subscribe();

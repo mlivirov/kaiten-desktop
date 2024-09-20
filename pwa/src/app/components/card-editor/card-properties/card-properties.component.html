@@ -1,230 +1,500 @@
-<div *ngIf="isLoading" class="py-2 ps-2 text-center">
-    <i class="pi pi-spin pi-spinner"></i> <span class="ms-2 small">Loading properties</span>
+<div
+  *ngIf="isLoading"
+  class="py-2 ps-2 text-center"
+>
+  <i class="pi pi-spin pi-spinner"></i>
+  <span class="ms-2 small">Loading properties</span>
 </div>
 
 <ng-template #locationPopoverTemplate>
-    <div class="mb-2">
-        <select class="form-select form-select-sm" [ngModel]="newBoardId" (ngModelChange)="handleNewBoardSelected($event)">
-            <option *ngFor="let board of spaceBoardPermissions" [ngValue]="board.id">{{board.title}}</option>
-        </select>
-    </div>
-    <div class="mb-2" *ngIf="lanes.length > 1">
-        <select class="form-select form-select-sm" [(ngModel)]="newLaneId" [disabled]="isLoadingBoardAndLanes">
-            <option [ngValue]="null" selected class="opacity-50">Select a lane</option>
-            <option *ngFor="let lane of lanes" [ngValue]="lane.id" style="{{getLaneColor(lane)}}">{{lane.title?.length > 0 ? lane.title : 'Default'}}</option>
-        </select>
-    </div>
+  <div class="mb-2">
+    <select
+      class="form-select form-select-sm"
+      [ngModel]="newBoardId"
+      (ngModelChange)="handleNewBoardSelected($event)"
+    >
+      <option
+        *ngFor="let board of spaceBoardPermissions"
+        [ngValue]="board.id"
+      >{{board.title}}</option>
+    </select>
+  </div>
+  <div
+    class="mb-2"
+    *ngIf="lanes.length > 1"
+  >
+    <select
+      class="form-select form-select-sm"
+      [(ngModel)]="newLaneId"
+      [disabled]="isLoadingBoardAndLanes"
+    >
+      <option
+        [ngValue]="null"
+        selected
+        class="opacity-50"
+      >Select a lane</option>
+      <option
+        *ngFor="let lane of lanes"
+        [ngValue]="lane.id"
+        style="{{getLaneColor(lane)}}"
+      >{{lane.title?.length > 0 ? lane.title : 'Default'}}</option>
+    </select>
+  </div>
 
-    <div class="mb-2" *ngIf="newBoardColumns.length > 1">
-        <select class="form-select form-select-sm" [(ngModel)]="newColumnId" [disabled]="isLoadingBoardAndLanes">
-            <option [ngValue]="null" selected class="opacity-50">Select a column</option>
-            <option *ngFor="let column of newBoardColumns" [ngValue]="column.id">{{column.title?.length > 0 ? column.title : 'Default'}}</option>
-        </select>
-    </div>
+  <div
+    class="mb-2"
+    *ngIf="newBoardColumns.length > 1"
+  >
+    <select
+      class="form-select form-select-sm"
+      [(ngModel)]="newColumnId"
+      [disabled]="isLoadingBoardAndLanes"
+    >
+      <option
+        [ngValue]="null"
+        selected
+        class="opacity-50"
+      >Select a column</option>
+      <option
+        *ngFor="let column of newBoardColumns"
+        [ngValue]="column.id"
+      >{{column.title?.length > 0 ? column.title : 'Default'}}</option>
+    </select>
+  </div>
 
-    <div class="d-flex align-items-center justify-content-between">
-        <i class="pi pi-spinner pi-spin" *ngIf="isLoadingBoardAndLanes"></i>
-        <button type="button" class="btn btn-sm btn-outline-primary ms-auto" [disabled]="!checkNewLocationCanBeSaved()" (click)="updateBoardAndLane()">
-            <i class="pi pi-check text-success"></i>
-            Save
-        </button>
-    </div>
+  <div class="d-flex align-items-center justify-content-between">
+    <i
+      class="pi pi-spinner pi-spin"
+      *ngIf="isLoadingBoardAndLanes"
+    ></i>
+    <button
+      type="button"
+      class="btn btn-sm btn-outline-primary ms-auto"
+      [disabled]="!checkNewLocationCanBeSaved()"
+      (click)="updateBoardAndLane()"
+    >
+      <i class="pi pi-check text-success"></i>
+      Save
+    </button>
+  </div>
 
 </ng-template>
 
 <div
-    #locationPopover="ngbPopover"
-    [ngbPopover]="locationPopoverTemplate"
-    autoClose="outside"
-    [triggers]="'manual'"
+  #locationPopover="ngbPopover"
+  [ngbPopover]="locationPopoverTemplate"
+  autoClose="outside"
+  [triggers]="'manual'"
 ></div>
 
 <app-properties-editor
-        #propertiesEditor
-        *ngIf="!isLoading"
-        [properties]="properties"
-        (saveRequested)="confirmSave($event)"
-        (propertyClick)="handlePropertyClick($event)"
+  #propertiesEditor
+  *ngIf="!isLoading"
+  [properties]="properties"
+  (saveRequested)="confirmSave($event)"
+  (propertyClick)="handlePropertyClick($event)"
 >
-    <ng-template [app-editor-property-template] mode="read" type="state" let-data="data">
-        <app-card-state-label [state]="data" [colored]="false"></app-card-state-label>
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="state"
+    let-data="data"
+  >
+    <app-card-state-label
+      [state]="data"
+      [colored]="false"
+    ></app-card-state-label>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="title"
+    let-data="data"
+  >
+    <span>{{data.title?.length > 0 ? data.title : 'Default'}}</span>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="lane"
+    let-data="data"
+  >
+    <span
+      class="border border-1 border-light-subtle me-2"
+      style="min-height: 1rem; min-width: 1rem; {{getLaneColor(data)}}"
+    ></span>
+    <span>{{data.title?.length > 0 ? data.title : 'Default'}}</span>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="size"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <input
+      class="form-control form-control-sm editor"
+      type="number"
+      [ngModel]="property.value"
+      (ngModelChange)="property.value = $event"
+      [disabled]="isSaveInProgress"
+    >
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="plain"
+    let-data="data"
+  >
+    <span>{{data}}</span>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="column"
+    let-data="data"
+  >
+    <span>{{data?.title?.length ? data.title : 'Default'}}</span>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="column"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <select
+      class="form-select form-select-sm editor"
+      [ngModel]="property.value.id"
+      (ngModelChange)="property.value = findColumnRecursive(columns, $event)"
+      [disabled]="isSaveInProgress"
+    >
+      <option
+        *ngFor="let column of columns"
+        [ngValue]="column.id"
+      >{{column.title?.length ? column.title : 'Default'}}</option>
+    </select>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="goals"
+    let-data="data"
+  >
+    <span>{{data.done}} of {{data.total}}</span>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="member"
+    let-data="data"
+    let-property="property"
+  >
+    <div class="d-flex align-items-center flex-grow-1">
+      <app-inline-member
+        [profile]="data"
+        class="small"
+        [class.text-primary-balanced]="data.type === MemberType.Responsible"
+        (dblclick)="makeMemberResponsible(data)"
+        [ngbTooltip]="property.value.type === MemberType.Responsible ? 'This member is responsible' : 'Double click on the member to make it responsible'"
+      ></app-inline-member>
+      <button
+        type="button"
+        class="btn btn-sm btn-link ms-auto visible-on-hover text-secondary"
+        (click)="removeMember(data)"
+        [disabled]="isSaveInProgress"
+      >
+        <i
+          class="pi pi-times"
+          style="font-size: .5em"
+          *ngIf="!isSaveInProgress"
+        ></i>
+        <i
+          class="pi pi-spinner pi-spin"
+          style="font-size: .5em"
+          *ngIf="isSaveInProgress"
+        ></i>
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="member"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <ng-template
+      #userTypeahead
+      let-profile="result"
+    >
+      <app-inline-member [profile]="profile"></app-inline-member>
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="read" type="title" let-data="data">
-        <span>{{data.title?.length > 0 ? data.title : 'Default'}}</span>
+    <input
+      type="text"
+      class="form-control form-control-sm editor"
+      [placeholder]="'Type user name'"
+      [(ngModel)]="newMember"
+      [ngbTypeahead]="cardUsersTypeaheadSearch"
+      [resultTemplate]="userTypeahead"
+      [editable]="false"
+      [inputFormatter]="userTypeaheadFormatter"
+      [disabled]="isSaveInProgress"
+    >
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="tag"
+    let-data="data"
+    let-property="property"
+  >
+    <div class="small border border-1 px-2 d-flex align-items-center bg-light-subtle">
+      <span>{{data.name}}</span>
+      <button
+        type="button"
+        class="btn btn-sm btn-link ms-auto text-secondary"
+        (click)="removeTag(data)"
+        [disabled]="isSaveInProgress"
+      >
+        <i
+          class="pi pi-times"
+          style="font-size: .5em"
+          *ngIf="!isSaveInProgress"
+        ></i>
+        <i
+          class="pi pi-spinner pi-spin"
+          style="font-size: .5em"
+          *ngIf="isSaveInProgress"
+        ></i>
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="tag"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <ng-template
+      #tagTypeahead
+      let-tag="result"
+    >
+      {{ tag.name }}
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="read" type="lane" let-data="data">
-        <span class="border border-1 border-light-subtle me-2" style="min-height: 1rem; min-width: 1rem; {{getLaneColor(data)}}"></span> <span>{{data.title?.length > 0 ? data.title : 'Default'}}</span>
+    <input
+      type="text"
+      class="form-control form-control-sm editor"
+      [placeholder]="'Type tag name'"
+      [ngModel]="property.value"
+      (ngModelChange)="property.value = $event"
+      [ngbTypeahead]="tagTypeaheadSearch"
+      [resultTemplate]="tagTypeahead"
+      [inputFormatter]="tagTypeaheadFormatter"
+      [disabled]="isSaveInProgress"
+    >
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="date"
+    let-data="data"
+  >
+    <span>{{data | date}}</span>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="date"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <input
+      class="form-control form-control-sm editor"
+      type="date"
+      ngbDatepicker
+      [(ngModel)]="property.value"
+      [disabled]="isSaveInProgress"
+    >
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="custom-date"
+    let-data="data"
+  >
+    <span>{{data.date | date}}</span>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="custom-date"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <input
+      class="form-control form-control-sm editor"
+      type="date"
+      ngbDatepicker
+      [ngModel]="property.value?.date"
+      (ngModelChange)="property.value = { date: $event }"
+      [disabled]="isSaveInProgress"
+    >
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="custom-user"
+    let-data="data"
+  >
+    <app-inline-member
+      class="small"
+      [profileUid]="data"
+    ></app-inline-member>
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="custom-user"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <ng-template
+      #userTypeahead
+      let-profile="result"
+    >
+      <app-inline-member [profile]="profile"></app-inline-member>
     </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="size" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <input class="form-control form-control-sm editor"
-               type="number"
-               [ngModel]="property.value"
-               (ngModelChange)="property.value = $event"
-               [disabled]="isSaveInProgress"
-        >
-    </ng-template>
+    <app-inline-member
+      #member
+      class="d-none"
+      [profileUid]="property.value"
+    ></app-inline-member>
 
-    <ng-template [app-editor-property-template] mode="read" type="plain" let-data="data">
-        <span>{{data}}</span>
-    </ng-template>
+    <input
+      type="text"
+      class="form-control form-control-sm editor"
+      [placeholder]="'Type user name'"
+      [ngModel]="member.profile"
+      (ngModelChange)="property.value = $event?.uid"
+      [ngbTypeahead]="allUsersTypeaheadSearch"
+      [resultTemplate]="userTypeahead"
+      [inputFormatter]="userTypeaheadFormatter"
+      [editable]="false"
+      [disabled]="isSaveInProgress"
+    >
+  </ng-template>
 
-    <ng-template [app-editor-property-template] mode="read" type="column" let-data="data">
-        <span>{{data?.title?.length ? data.title : 'Default'}}</span>
-    </ng-template>
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="custom-select"
+    let-data="data"
+    let-property="property"
+  >
+    {{ findSelectValue(property.extra.values, data).value }}
+  </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="column" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <select class="form-select form-select-sm editor"
-                [ngModel]="property.value.id"
-                (ngModelChange)="property.value = FindColumnRecursiveFunction(columns, $event)"
-                [disabled]="isSaveInProgress"
-        >
-            <option *ngFor="let column of columns" [ngValue]="column.id">{{column.title?.length ? column.title : 'Default'}}</option>
-        </select>
-    </ng-template>
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="custom-select"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <select
+      class="form-select form-select-sm editor"
+      [(ngModel)]="property.value"
+      [disabled]="isSaveInProgress"
+    >
+      <option [ngValue]="null">Not Set</option>
+      <option
+        *ngFor="let item of property.extra.values"
+        [ngValue]="item.id"
+      >{{ item.value }}</option>
+    </select>
+  </ng-template>
 
-    <ng-template [app-editor-property-template] mode="read" type="goals" let-data="data">
-        <span>{{data.done}} of {{data.total}}</span>
-    </ng-template>
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
+    type="custom-checkbox"
+    let-data="data"
+  >
+    <input
+      class="form-check-inpu"
+      type="checkbox"
+      [ngModel]="data"
+      [disabled]="true"
+    >
+  </ng-template>
 
-    <ng-template [app-editor-property-template] mode="read" type="member" let-data="data" let-property="property">
-        <div class="d-flex align-items-center flex-grow-1">
-            <app-inline-member [profile]="data"
-                               class="small"
-                               [class.text-primary-balanced]="data.type === MemberType.Responsible"
-                               (dblclick)="makeMemberResponsible(data)"
-                               [ngbTooltip]="property.value.type === MemberType.Responsible ? 'This member is responsible' : 'Double click on the member to make it responsible'"
-            ></app-inline-member>
-            <button type="button" class="btn btn-sm btn-link ms-auto visible-on-hover text-secondary" (click)="removeMember(data, property)" [disabled]="isSaveInProgress">
-                <i class="pi pi-times" style="font-size: .5em" *ngIf="!isSaveInProgress"></i>
-                <i class="pi pi-spinner pi-spin" style="font-size: .5em" *ngIf="isSaveInProgress"></i>
-            </button>
-        </div>
-    </ng-template>
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="custom-checkbox"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <input
+      class="form-check-input editor"
+      type="checkbox"
+      [(ngModel)]="property.value"
+      [disabled]="isSaveInProgress"
+    >
+  </ng-template>
 
-    <ng-template [app-editor-property-template] mode="write" type="member" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <ng-template #userTypeahead let-profile="result">
-            <app-inline-member [profile]="profile"></app-inline-member>
-        </ng-template>
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="custom-string"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <input
+      class="form-control form-control-sm editor"
+      type="text"
+      [(ngModel)]="property.value"
+      [disabled]="isSaveInProgress"
+    >
+  </ng-template>
 
-        <input type="text"
-               class="form-control form-control-sm editor"
-               [placeholder]="'Type user name'"
-               [(ngModel)]="newMember"
-               [ngbTypeahead]="cardUsersTypeaheadSearch"
-               [resultTemplate]="userTypeahead"
-               [editable]="false"
-               [inputFormatter]="userTypeaheadFormatter"
-               [disabled]="isSaveInProgress"
-        >
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="read" type="tag" let-data="data" let-property="property">
-        <div class="small border border-1 px-2 d-flex align-items-center bg-light-subtle">
-            <span>{{data.name}}</span>
-            <button type="button" class="btn btn-sm btn-link ms-auto text-secondary" (click)="removeTag(data, property)" [disabled]="isSaveInProgress">
-                <i class="pi pi-times" style="font-size: .5em" *ngIf="!isSaveInProgress"></i>
-                <i class="pi pi-spinner pi-spin" style="font-size: .5em" *ngIf="isSaveInProgress"></i>
-            </button>
-        </div>
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="write" type="tag" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <ng-template #tagTypeahead let-tag="result">
-            {{ tag.name }}
-        </ng-template>
-
-        <input type="text"
-               class="form-control form-control-sm editor"
-               [placeholder]="'Type tag name'"
-               [ngModel]="property.value"
-               (ngModelChange)="property.value = $event"
-               [ngbTypeahead]="tagTypeaheadSearch"
-               [resultTemplate]="tagTypeahead"
-               [inputFormatter]="tagTypeaheadFormatter"
-               [disabled]="isSaveInProgress"
-        >
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="read" type="date" let-data="data">
-        <span>{{data | date}}</span>
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="write" type="date" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <input class="form-control form-control-sm editor" type="date" ngbDatepicker [(ngModel)]="property.value" [disabled]="isSaveInProgress">
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="read" type="custom-date" let-data="data">
-        <span>{{data.date | date}}</span>
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="write" type="custom-date" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <input class="form-control form-control-sm editor"
-               type="date"
-               ngbDatepicker
-               [ngModel]="property.value?.date"
-               (ngModelChange)="property.value = { date: $event }"
-               [disabled]="isSaveInProgress"
-        >
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="read" type="custom-user" let-data="data">
-        <app-inline-member class="small" [profileUid]="data"></app-inline-member>
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="write" type="custom-user" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <ng-template #userTypeahead let-profile="result">
-            <app-inline-member [profile]="profile"></app-inline-member>
-        </ng-template>
-
-        <app-inline-member #member class="d-none" [profileUid]="property.value"></app-inline-member>
-
-        <input type="text"
-               class="form-control form-control-sm editor"
-               [placeholder]="'Type user name'"
-               [ngModel]="member.profile"
-               (ngModelChange)="property.value = $event?.uid"
-               [ngbTypeahead]="allUsersTypeaheadSearch"
-               [resultTemplate]="userTypeahead"
-               [inputFormatter]="userTypeaheadFormatter"
-               [editable]="false"
-               [disabled]="isSaveInProgress"
-        >
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="read" type="custom-select" let-data="data" let-property="property">
-        {{ findSelectValue(property.extra.values, data).value }}
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="write" type="custom-select" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <select class="form-select form-select-sm editor" [(ngModel)]="property.value" [disabled]="isSaveInProgress">
-            <option [ngValue]="null">Not Set</option>
-            <option *ngFor="let item of property.extra.values" [ngValue]="item.id">{{ item.value }}</option>
-        </select>
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="read" type="custom-checkbox" let-data="data">
-        <input class="form-check-inpu" type="checkbox" [ngModel]="data" [disabled]="true">
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="write" type="custom-checkbox" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <input class="form-check-input editor" type="checkbox" [(ngModel)]="property.value" [disabled]="isSaveInProgress">
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="write" type="custom-string" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <input class="form-control form-control-sm editor" type="text" [(ngModel)]="property.value" [disabled]="isSaveInProgress">
-    </ng-template>
-
-    <ng-template [app-editor-property-template] mode="write" type="custom-number" let-property="property" let-isSaveInProgress="isSaveInProgress">
-        <input class="form-control form-control-sm editor"
-               type="number"
-               [ngModel]="property.value"
-               (ngModelChange)="property.value = $event"
-               [min]="property.extra.property.data?.restrictions?.min ?? NumberMin"
-               [max]="property.extra.property.data?.restrictions?.max ?? NumberMax"
-               [disabled]="isSaveInProgress"
-        >
-    </ng-template>
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="write"
+    type="custom-number"
+    let-property="property"
+    let-isSaveInProgress="isSaveInProgress"
+  >
+    <input
+      class="form-control form-control-sm editor"
+      type="number"
+      [ngModel]="property.value"
+      (ngModelChange)="property.value = $event"
+      [min]="property.extra.property.data?.restrictions?.min ?? NumberMin"
+      [max]="property.extra.property.data?.restrictions?.max ?? NumberMax"
+      [disabled]="isSaveInProgress"
+    >
+  </ng-template>
 </app-properties-editor>

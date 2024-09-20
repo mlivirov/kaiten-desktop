@@ -6,11 +6,9 @@ import { CurrentUserComponent } from '../../components/current-user/current-user
 import { NgIf, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
-import { Board } from '../../models/board';
 import { CurrentBoardService } from '../../services/current-board.service';
 import { DialogService } from '../../services/dialog.service';
 import { CARD_EDITOR_SERVICE, CardEditorService } from '../../services/card-editor.service';
-import { filter, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-card-page',
@@ -29,9 +27,9 @@ import { filter, switchMap } from 'rxjs';
   styleUrl: './card-page.component.scss'
 })
 export class CardPageComponent {
-  card: CardEx;
+  protected card: CardEx;
 
-  constructor(
+  public constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private currentBoardService: CurrentBoardService,
@@ -45,13 +43,9 @@ export class CardPageComponent {
     });
   }
 
-  switchBoard(spaceId: number, boardId: number, cardId?: number) {
+  protected openBoard(boardId: number, cardId?: number): void {
     this.router.navigate(['board', boardId], {
-      fragment: cardId?.toString(),
+      fragment: cardId ? cardId?.toString() : undefined,
     });
-  }
-
-  openBoard() {
-    this.router.navigate(['board', this.card.board_id]);
   }
 }
