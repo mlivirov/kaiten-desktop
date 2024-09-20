@@ -20,7 +20,7 @@ export interface ActivityData {
 
 export interface CardActivity {
   type_id: number;
-  id?: string,
+  id?: number,
   created: Date,
   action: string,
   block_id: number,

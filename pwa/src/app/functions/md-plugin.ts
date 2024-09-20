@@ -100,14 +100,19 @@ export function mdPlugin(): PluginInfo {
         let destination = node['destination'] as string;
         node['processed'] = true;
 
-        const cardLinkRegExp = new RegExp('^\\/\\d+$');
-        if (cardLinkRegExp.test(destination)) {
-          destination = '/card' + destination;
+        const cardLinkRegExp = new RegExp('^\\/(?<cardId>\\d+)$').exec(destination);
+        const cardLongLinkMatch = new RegExp('space\\/\\d+\\/card\\/(?<cardId>\\d+)(\\?focus=(?<focusType>\\w+)&focusId=(?<focusId>\\d+))?').exec(destination);
+
+        const cardId = cardLinkRegExp?.groups['cardId'] || cardLongLinkMatch?.groups['cardId'];
+        const cardFocusType = cardLongLinkMatch?.groups['focusType'];
+        const cardFocusId = cardLongLinkMatch?.groups['focusId'];
+
+        if (cardId) {
+          destination = `/card/${cardId}`;
         }
 
-        const cardLongLinkMatch = new RegExp('space\\/\\d+\\/card\\/(?<cardId>\\d+)').exec(destination);
-        if (cardLongLinkMatch) {
-          destination = '/card/' + cardLongLinkMatch.groups['cardId'];
+        if (cardId && cardFocusType && cardFocusId) {
+          destination += `#${cardFocusType}_${cardFocusId}`;
         }
 
         return <OpenTagToken>{

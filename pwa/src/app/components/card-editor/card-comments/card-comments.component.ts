@@ -1,4 +1,4 @@
-import { Component, Inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, Inject, Input, OnChanges, Self, SimpleChanges, ViewChild } from '@angular/core';
 import { CardComment, CardCommentType } from '../../../models/card-comment';
 import { MdEditorComponent } from '../../md-editor/md-editor.component';
 import { DatePipe, DecimalPipe, NgForOf, NgIf, NgStyle, PercentPipe } from '@angular/common';
@@ -7,7 +7,7 @@ import { InlineMemberComponent } from '../../inline-member/inline-member.compone
 import { MdViewerComponent } from '../../md-viewer/md-viewer.component';
 import { TimeagoModule } from 'ngx-timeago';
 import { User } from '../../../models/user';
-import { finalize, forkJoin } from 'rxjs';
+import { finalize, forkJoin, map, Observable, take } from 'rxjs';
 import { TextEditorComponent, TextEditorSaveEvent } from '../../text-editor/text-editor.component';
 import { CARD_EDITOR_SERVICE, CardEditorService } from '../../../services/card-editor.service';
 import { AuthService } from '../../../services/auth.service';
@@ -20,9 +20,17 @@ import { ThroughputReport, ThroughputReportService } from '../../../services/thr
 import { CardState } from '../../../models/card-state';
 import { Column } from '../../../models/column';
 import { TimespanPipe } from '../../../pipes/timespan.pipe';
+import { CopyToClipboardButtonComponent } from '../../copy-to-clipboard-button/copy-to-clipboard-button.component';
+import { SettingService } from '../../../services/setting.service';
+import { Setting } from '../../../models/setting';
+import { formatCardLinkForClipboard } from '../../../functions/format-card-link-for-clipboard';
+import { Card } from '../../../models/card';
+import { nameof } from '../../../functions/name-of';
+import { ActivatedRoute } from '@angular/router';
 
 export interface CardCommentViewModel {
-  comment_id?: number,
+  type: 'comment'|'activity',
+  id: number,
   author_id: number,
   author: User,
   created: Date,
@@ -50,7 +58,8 @@ export interface CardCommentViewModel {
     NgStyle,
     DecimalPipe,
     PercentPipe,
-    TimespanPipe
+    TimespanPipe,
+    CopyToClipboardButtonComponent
   ],
   templateUrl: './card-comments.component.html',
   styleUrl: './card-comments.component.scss'
@@ -58,7 +67,7 @@ export interface CardCommentViewModel {
 export class CardCommentsComponent implements OnChanges {
   protected readonly CardCommentType = CardCommentType;
   protected readonly CardState = CardState;
-  @Input() public cardId: number;
+  @Input({ required: true }) public card: Card;
   private cardTypes: CardType[] = [];
   protected entries: CardCommentViewModel[] = [];
   private comments: CardCommentViewModel[] = [];
@@ -70,6 +79,7 @@ export class CardCommentsComponent implements OnChanges {
   protected areCommentsVisible: boolean = true;
   protected areActivitiesVisible: boolean = true;
   protected throughputReport?: ThroughputReport;
+  @ViewChild('textEditor', { read: MdEditorComponent }) protected textEditor: MdEditorComponent;
 
   public get countOfAllEntries(): number {
     return this.activities.length + this.comments.length;
@@ -79,7 +89,10 @@ export class CardCommentsComponent implements OnChanges {
     private authService: AuthService,
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
     private boardService: BoardService,
-    private throughputReportService: ThroughputReportService
+    private throughputReportService: ThroughputReportService,
+    private settingService: SettingService,
+    @Self() private elementRef: ElementRef,
+    private activatedRoute: ActivatedRoute
   ) {
     this.authService
       .getCurrentUser()
@@ -97,7 +110,7 @@ export class CardCommentsComponent implements OnChanges {
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['cardId'] && this.cardId) {
+    if (changes[nameof<CardCommentsComponent>('card')] && this.card) {
       this.throughputReport = null;
       this.loadActivities();
     }
@@ -110,7 +123,7 @@ export class CardCommentsComponent implements OnChanges {
 
     this.isSavingInProgress = true;
     this.cardEditorService
-      .addComment(this.cardId, this.text)
+      .addComment(this.card.id, this.text)
       .pipe(
         finalize(() => this.isSavingInProgress = false),
       )
@@ -148,8 +161,8 @@ export class CardCommentsComponent implements OnChanges {
     this.isLoading = true;
     forkJoin({
       cardTypes: this.boardService.getCardTypes(),
-      comments: this.cardEditorService.getCardComments(this.cardId),
-      activities: this.cardEditorService.getCardActivity(this.cardId),
+      comments: this.cardEditorService.getCardComments(this.card.id),
+      activities: this.cardEditorService.getCardActivity(this.card.id),
     })
       .pipe(
         finalize(() => this.isLoading = false)
@@ -164,12 +177,27 @@ export class CardCommentsComponent implements OnChanges {
           .map(t => this.mapActivityToModel(t));
 
         this.makeEntries();
+
+        setTimeout(() => {
+          this.activatedRoute.fragment
+            .pipe(
+              take(1)
+            )
+            .subscribe(fragment => {
+              const commentElement = <HTMLElement>this.elementRef.nativeElement.querySelector(`[id="${fragment}"]`);
+              commentElement?.scrollIntoView({
+                block: 'start',
+                behavior: 'instant',
+              });
+            });
+        }, 1);
       });
   }
 
   private mapCommentToModel(comment: CardComment): CardCommentViewModel {
     return <CardCommentViewModel>{
-      comment_id: comment.id,
+      id: comment.id,
+      type: 'comment',
       action: 'commented',
       author_id: comment.author_id,
       author: comment.author,
@@ -321,7 +349,9 @@ export class CardCommentsComponent implements OnChanges {
     }
 
     return <CardCommentViewModel>{
+      id: activity.id,
       action: action,
+      type: 'activity',
       author: {
         full_name: activity.author.full_name,
         id: -1
@@ -339,7 +369,7 @@ export class CardCommentsComponent implements OnChanges {
 
     this.isSavingInProgress = true;
     this.cardEditorService
-      .updateComment(this.cardId, comment.comment_id, event.value)
+      .updateComment(this.card.id, comment.id, event.value)
       .pipe(
         finalize(() => this.isSavingInProgress = false),
       )
@@ -358,5 +388,27 @@ export class CardCommentsComponent implements OnChanges {
   protected toggleCommentsVisible(): void {
     this.areCommentsVisible = !this.areCommentsVisible;
     this.makeEntries();
+  }
+
+  protected getEntryLink(entry: CardCommentViewModel): Observable<string> {
+    return this.settingService
+      .getSetting(Setting.ApiUrl)
+      .pipe(
+        map(baseUrl => {
+          return formatCardLinkForClipboard(baseUrl, this.card, entry.type, entry.id);
+        })
+      );
+  }
+
+  protected reply(entry: CardCommentViewModel): void {
+    if (entry.type === 'comment') {
+      this.text = '@' + entry.author.username + ', wrote\n';
+    } else {
+      this.text = `update by ${entry.author.full_name}\n`;
+    }
+
+    this.text += '> ' + entry.text.replace(/\n/g, '\n> ');
+
+    this.textEditor.focus();
   }
 }

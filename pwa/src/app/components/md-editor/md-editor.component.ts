@@ -288,4 +288,14 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
       this.wysiwygEditor.focus();
     }, 1);
   }
+
+  public focus(): void {
+    if (this.wysiwygEditor) {
+      this.wysiwygEditor.focus();
+    }
+
+    if (this.markdownEditor) {
+      this.markdownEditor.codemirror.focus();
+    }
+  }
 }

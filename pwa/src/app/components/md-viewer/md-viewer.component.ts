@@ -69,7 +69,9 @@ export class MdViewerComponent implements AfterViewInit, OnDestroy, ControlValue
       event.preventDefault();
       event.stopPropagation();
 
-      this.router.navigateByUrl(href);
+      this.router.navigateByUrl(href, {
+        onSameUrlNavigation: 'reload'
+      });
     }
   }
 
