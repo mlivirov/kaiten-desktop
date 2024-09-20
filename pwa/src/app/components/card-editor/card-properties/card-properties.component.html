@@ -32,7 +32,7 @@
         [ngValue]="null"
         selected
         class="opacity-50"
-      >Select a lane</option>
+      >&lt;Select a lane&gt;</option>
       <option
         *ngFor="let lane of lanes"
         [ngValue]="lane.id"
@@ -54,7 +54,7 @@
         [ngValue]="null"
         selected
         class="opacity-50"
-      >Select a column</option>
+      >&lt;Select a column&gt;</option>
       <option
         *ngFor="let column of newBoardColumns"
         [ngValue]="column.id"
@@ -91,6 +91,7 @@
   #propertiesEditor
   *ngIf="!isLoading"
   [properties]="properties"
+  [keepEditingOnFocusLost]="isEditingComplexProperty"
   (saveRequested)="confirmSave($event)"
   (propertyClick)="handlePropertyClick($event)"
 >
@@ -425,10 +426,15 @@
   >
     <select
       class="form-select form-select-sm editor"
-      [(ngModel)]="property.value"
+      [ngModel]="property.value"
+      (ngModelChange)="handleSelectValueChange(property, $event)"
       [disabled]="isSaveInProgress"
     >
-      <option [ngValue]="null">Not Set</option>
+      <option [ngValue]="null">&lt;Not set&gt;</option>
+      <option
+        [ngValue]="0"
+        *ngIf="property.extra.property.values_creatable_by_users"
+      >&lt;New value&gt;</option>
       <option
         *ngFor="let item of property.extra.values"
         [ngValue]="item.id"

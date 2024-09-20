@@ -37,6 +37,7 @@ import {
 } from '../dialogs/confirmation-dialog/confirmation-dialog.component';
 import { BlockBlocker } from '../models/block-blocker.model';
 import { CardBlockDialogComponent } from '../dialogs/card-block-dialog/card-block-dialog.component';
+import { PromptAction, PromptDialogComponent } from '../dialogs/prompt-dialog/prompt-dialog.component';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
@@ -308,6 +309,30 @@ export class DialogService {
             self.removeActiveModal(instance);
           }
         })
+      );
+  }
+
+  public prompt<T = string>(title: string, label: string = 'Please enter value', action: PromptAction<T>): Observable<T> {
+    const instance = this.modal.open(PromptDialogComponent<T>);
+    this.activeModals.push(instance);
+
+    instance.componentInstance.title = title;
+    instance.componentInstance.label = label;
+    instance.componentInstance.action = action;
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        }),
+        map(returnValue => <T>returnValue)
       );
   }
 
