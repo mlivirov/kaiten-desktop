@@ -8,6 +8,7 @@ import { Tag } from '../models/tag';
 import { Injectable, InjectionToken } from '@angular/core';
 import { CardActivity } from '../models/card-activity';
 import { BlockBlocker } from '../models/block-blocker.model';
+import { MemberType } from '../models/member-type';
 
 export const CARD_EDITOR_SERVICE: InjectionToken<CardEditorService> = new InjectionToken('CardEditorService');
 
@@ -23,7 +24,7 @@ export abstract class CardEditorService {
 
   public abstract removeMemberFromCard(cardId: number, userId: number): Observable<void>;
 
-  public abstract makeMemberResponsible(cardId: number, userId: number): Observable<void>;
+  public abstract updatedMemberType(cardId: number, userId: number, memberType: MemberType): Observable<void>;
 
   public abstract getCardComments(cardId: number): Observable<CardComment[]>;
 

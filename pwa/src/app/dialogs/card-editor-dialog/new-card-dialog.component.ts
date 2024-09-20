@@ -58,7 +58,7 @@ export class NewCardDialogComponent {
           ? zip(this.card.members.map(m => this.serverCardEditorService.addMemberToCard(this.card.id, m.id)))
           : of(null)),
         switchMap(() => this.card.members?.length && this.card.members.some(t => t.type === MemberType.Responsible)
-          ? this.serverCardEditorService.makeMemberResponsible(this.card.id, this.card.members.find(t => t.type === MemberType.Responsible).id)
+          ? this.serverCardEditorService.updatedMemberType(this.card.id, this.card.members.find(t => t.type === MemberType.Responsible).id, MemberType.Responsible)
           : of(null)
         ),
         switchMap(() => this.card.checklists?.length

@@ -54,9 +54,9 @@ export class ServerCardEditorService implements CardEditorService {
       );
   }
 
-  public makeMemberResponsible(cardId: number, userId: number): Observable<void> {
+  public updatedMemberType(cardId: number, userId: number, memberType: MemberType): Observable<void> {
     return this.httpClient.patch(`http://server/api/latest/cards/${cardId}/members/${userId}`, {
-      type: MemberType.Responsible,
+      type: memberType,
     })
       .pipe(
         map(() => {})

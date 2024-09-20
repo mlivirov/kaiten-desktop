@@ -133,11 +133,14 @@ export class DraftCardEditorService implements CardEditorService {
       );
   }
 
-  public makeMemberResponsible(cardId: number, userId: number): Observable<void> {
+  public updatedMemberType(cardId: number, userId: number, memberType: MemberType): Observable<void> {
     return from(Database.cardDrafts.get(cardId))
       .pipe(
         switchMap(card => {
-          card.members?.forEach(m => m.type = m.id === userId ? MemberType.Responsible : MemberType.Member);
+          card.members?.forEach(m => m.type = MemberType.Member);
+
+          const member = card.members?.find(m => m.id === userId);
+          member.type = memberType;
           return from(Database.cardDrafts.put(card));
         }),
         map(() => {})

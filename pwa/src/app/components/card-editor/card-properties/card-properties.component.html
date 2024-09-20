@@ -203,7 +203,7 @@
         [profile]="data"
         class="small"
         [class.text-primary-balanced]="data.type === MemberType.Responsible"
-        (dblclick)="makeMemberResponsible(data)"
+        (dblclick)="toggleMemberResponsible(data)"
         [ngbTooltip]="property.value.type === MemberType.Responsible ? 'This member is responsible' : 'Double click on the member to make it responsible'"
       ></app-inline-member>
       <button

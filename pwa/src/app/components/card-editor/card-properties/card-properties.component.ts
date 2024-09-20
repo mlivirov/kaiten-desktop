@@ -423,11 +423,11 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  protected makeMemberResponsible(member: Owner): void {
+  private makeMemberResponsible(member: Owner): void {
     this.isSaveInProgress = true;
     const previousResponsible = this.card.members.find(t => t.type === MemberType.Responsible);
     this.cardEditorService
-      .makeMemberResponsible(this.card.id, member.id)
+      .updatedMemberType(this.card.id, member.id, MemberType.Responsible)
       .pipe(
         finalize(() => this.isSaveInProgress = false),
       )
@@ -438,6 +438,26 @@ export class CardPropertiesComponent implements OnChanges {
 
         member.type = MemberType.Responsible;
       });
+  }
+
+  private makeMemberNotResponsible(member: Owner): void {
+    this.isSaveInProgress = true;
+    this.cardEditorService
+      .updatedMemberType(this.card.id, member.id, MemberType.Responsible)
+      .pipe(
+        finalize(() => this.isSaveInProgress = false),
+      )
+      .subscribe(() => {
+        member.type = MemberType.Member;
+      });
+  }
+
+  protected toggleMemberResponsible(member: Owner): void {
+    if (member.type === MemberType.Responsible) {
+      this.makeMemberNotResponsible(member);
+    } else {
+      this.makeMemberResponsible(member);
+    }
   }
 
   private addMember(): void {
