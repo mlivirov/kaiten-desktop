@@ -15,6 +15,7 @@ export interface CustomProperty {
   multiline: boolean;
   multi_select: boolean;
   condition: string;
+  values_creatable_by_users: boolean;
 }
 
 export interface CustomPropertySelectValue {

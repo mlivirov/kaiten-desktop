@@ -71,6 +71,7 @@ export class PropertiesEditorComponent {
   @Output() private editingStarted: EventEmitter<EditorProperty> = new EventEmitter();
   @Output() private propertyClick: EventEmitter<EditorPropertyClickedEvent> = new EventEmitter();
   protected isSaveInProgress: boolean = false;
+  @Input() public keepEditingOnFocusLost: boolean = false;
 
   protected getEnumerablePropertyValues(value: unknown): unknown[] {
     if (!value) {
@@ -165,7 +166,7 @@ export class PropertiesEditorComponent {
 
     const clickedInsideDropdown = (event.target as Element).closest('ngb-typeahead-window');
     const clickedInside = this.editorContainer.nativeElement.contains(event.target);
-    if (!(clickedInside || clickedInsideDropdown)) {
+    if (!(clickedInside || clickedInsideDropdown || this.keepEditingOnFocusLost)) {
       this.stopEditing();
     }
   }

@@ -16,7 +16,7 @@ import {
 } from '../../properties-editor/properties-editor.component';
 import { CardEx } from '../../../models/card-ex';
 import { Column, ColumnBase } from '../../../models/column';
-import { catchError, EMPTY, finalize, forkJoin, of, switchMap } from 'rxjs';
+import { catchError, EMPTY, finalize, forkJoin, Observable, of, switchMap, tap } from 'rxjs';
 import { User } from '../../../models/user';
 import { Tag } from '../../../models/tag';
 import { CustomProperty, CustomPropertyAndValues, CustomPropertySelectValue } from '../../../models/custom-property';
@@ -44,6 +44,7 @@ import { CustomPropertyService } from '../../../services/custom-property.service
 import { CardState } from '../../../models/card-state';
 import { getLaneColor } from '../../../functions/get-lane-color';
 import { nameof } from '../../../functions/name-of';
+import { DialogService } from '../../../services/dialog.service';
 
 interface CustomDatePropertyValue {
   date: string;
@@ -102,11 +103,13 @@ export class CardPropertiesComponent implements OnChanges {
   protected isLoading: boolean = false;
   protected isLoadingBoardAndLanes: boolean = false;
   private customProperties: CustomPropertyAndValues[] = [];
+  protected isEditingComplexProperty: boolean = false;
 
   public constructor(
     private boardService: BoardService,
     private customPropertyService: CustomPropertyService,
-    @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService
+    @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
+    private dialogService: DialogService
   ) {
     this.isLoadingBoardAndLanes = true;
     this.boardService
@@ -592,6 +595,37 @@ export class CardPropertiesComponent implements OnChanges {
       this.updateBoardAndLane();
       event.preventDefault();
       event.stopPropagation();
+    }
+  }
+
+  protected createNewSelectValue(property: EditorProperty<number, CustomPropertyAndValues>, value: string): Observable<CustomPropertySelectValue> {
+    const existingValue = property.extra.values.find(v => v.value === value);
+    if (!existingValue) {
+      return this.customPropertyService
+        .addCustomPropertyValue(property.extra.property.id, value)
+        .pipe(
+          tap(newValue => {
+            property.extra.values.push(newValue);
+          })
+        );
+    }
+
+    return of(existingValue);
+  }
+
+  protected handleSelectValueChange(property: EditorProperty<number, CustomPropertyAndValues>, value: number): void {
+    if (value === 0) {
+      this.isEditingComplexProperty = true;
+      this.dialogService
+        .prompt<CustomPropertySelectValue>('New value', 'Enter new value', value => this.createNewSelectValue(property, value))
+        .pipe(
+          finalize(() => this.isEditingComplexProperty = false)
+        )
+        .subscribe(value => {
+          property.value = value.id;
+        });
+    } else {
+      property.value = value;
     }
   }
 }

@@ -1,4 +1,4 @@
-import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
 import { CustomProperty, CustomPropertyAndValues, CustomPropertySelectValue } from '../models/custom-property';
 import { Database, getManyWithCache } from './db';
 import { Injectable } from '@angular/core';
@@ -17,6 +17,19 @@ export class CustomPropertyService {
   public getCustomPropertyValues(id: number): Observable<CustomPropertySelectValue[]> {
     const request$ = this.httpClient.get<CustomPropertySelectValue[]>(`http://server/api/latest/company/custom-properties/${id}/select-values`);
     return getManyWithCache(request$, Database.customPropertySelectValues, t => t.where({ custom_property_id: id }));
+  }
+
+  public addCustomPropertyValue(id: number, value: string): Observable<CustomPropertySelectValue> {
+    const request$ = this.httpClient.post<CustomPropertySelectValue>(`http://server/api/latest/company/custom-properties/${id}/select-values`, {
+      value
+    })
+      .pipe(
+        tap(value => {
+          Database.customPropertySelectValues.put({ ...value, created_at: new Date() });
+        })
+      );
+
+    return request$;
   }
 
   public getCustomPropertiesWithValues(): Observable<CustomPropertyAndValues[]> {
