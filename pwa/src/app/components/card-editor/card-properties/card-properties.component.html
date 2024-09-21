@@ -338,6 +338,78 @@
   <ng-template
     [appEditorPropertyTemplate]
     mode="read"
+    type="custom-url"
+    let-data="data"
+  >
+    <a [href]="data" target="_blank" class="text-break">{{data}}</a>
+  </ng-template>
+
+  <ng-template
+      [appEditorPropertyTemplate]
+      mode="write"
+      type="custom-url"
+      let-property="property"
+      let-isSaveInProgress="isSaveInProgress"
+  >
+    <input
+        class="form-control form-control-sm editor"
+        type="url"
+        [(ngModel)]="property.value"
+        [disabled]="isSaveInProgress"
+    >
+  </ng-template>
+
+  <ng-template
+      [appEditorPropertyTemplate]
+      mode="read"
+      type="custom-email"
+      let-data="data"
+  >
+    <a href="mailto:{{data}}" target="_blank" class="text-break">{{data}}</a>
+  </ng-template>
+
+  <ng-template
+      [appEditorPropertyTemplate]
+      mode="write"
+      type="custom-email"
+      let-property="property"
+      let-isSaveInProgress="isSaveInProgress"
+  >
+    <input
+        class="form-control form-control-sm editor"
+        type="email"
+        [(ngModel)]="property.value"
+        [disabled]="isSaveInProgress"
+    >
+  </ng-template>
+
+  <ng-template
+      [appEditorPropertyTemplate]
+      mode="read"
+      type="custom-phone"
+      let-data="data"
+  >
+    <a href="tel:{{data}}" target="_blank" class="text-break">{{data}}</a>
+  </ng-template>
+
+  <ng-template
+      [appEditorPropertyTemplate]
+      mode="write"
+      type="custom-phone"
+      let-property="property"
+      let-isSaveInProgress="isSaveInProgress"
+  >
+    <input
+        class="form-control form-control-sm editor"
+        type="tel"
+        [(ngModel)]="property.value"
+        [disabled]="isSaveInProgress"
+    >
+  </ng-template>
+
+  <ng-template
+    [appEditorPropertyTemplate]
+    mode="read"
     type="custom-date"
     let-data="data"
   >

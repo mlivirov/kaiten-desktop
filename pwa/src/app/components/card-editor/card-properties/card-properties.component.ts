@@ -223,8 +223,14 @@ export class CardPropertiesComponent implements OnChanges {
       this.addMember();
     } else if (property.type === 'custom-date') {
       this.updateCustomDate(<EditorProperty<CustomDatePropertyValue, CustomPropertyAndValues>>property);
-    } else if (property.type === 'custom-string') {
-      this.updateCustomString(<EditorProperty<string, CustomPropertyAndValues>>property);
+    } else if ([
+      'custom-string',
+      'custom-url',
+      'custom-phone',
+      'custom-email',
+      'custom-number',
+    ].includes(property.type)) {
+      this.updateCustomSimple(<EditorProperty<string, CustomPropertyAndValues>>property);
     } else if (property.type === 'custom-select') {
       this.updateCustomSelect(<EditorProperty<number, CustomPropertyAndValues>>property);
     } else if (property.type === 'custom-checkbox') {
@@ -380,7 +386,7 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  private updateCustomString(property: EditorProperty<string, CustomPropertyAndValues>): void {
+  private updateCustomSimple(property: EditorProperty<string|number, CustomPropertyAndValues>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
         properties: {
