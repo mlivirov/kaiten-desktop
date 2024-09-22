@@ -23,6 +23,72 @@ This implementation leverages the latest technologies to deliver a modern and re
 #### Global search
 ![image](https://github.com/user-attachments/assets/6b00d656-cd78-405f-8b7b-0d1e6d100821)
 
+## Feature comparison tables
+
+### General
+| Feature            | Official Kaiten UI | This project   |
+|--------------------|--------------------|----------------|
+| Spaces             | +                  | -              |
+| Boards             | -                  | +              |
+| Lanes              | +                  | +/-            |
+| Card               | +                  | +              |
+| Global card search | -                  | +              |
+| Board search       | -                  | +              |
+| WIP limits         | +                  | +              |
+| Responsive UI      | -                  | +              |
+| Live boards        | + (instant)        | - (timeout)    |
+| Mass updates       | +                  | in development |
+
+### Card
+| Feature                           | Official Kaiten UI | This Project    |
+|-----------------------------------|--------------------|-----------------|
+| Create card in modal dialog       | -                  | +               |
+| View/Edit card in a separate page | -                  | +               |
+| Comments                          | +                  | +               |
+| Card activity history             | +/-                | +               |
+| Throughput report                 | +                  | +               |
+| Checklists                        | +                  | +               |
+| Markdown editor                   | +/-                | +               |
+| Links                             | +                  | -               |
+| Relative cards                    | +/-                | in development  |
+| Attachments                       | +                  | in development  |
+
+### Checklist
+| Feature                     | Official Kaiten UI | This Project |
+|-----------------------------|--------------------|--------------|
+| Checks                      | +                  | +            |
+| Due date                    | +                  | +            |
+| Responsible                 | +                  | +            |
+| Markdown                    | +/-                | +            |
+
+### Custom properties
+| Feature              | Official Kaiten UI | This Project |
+|----------------------|--------------------|--------------|
+| Checkbox             | +                  | +            |
+| Date                 | +                  | +            |
+| Line                 | +                  | +            |
+| Email                | +                  | +            |
+| Link                 | +                  | +            |
+| Phone                | +                  | +            |
+| Number               | +                  | +            |
+| Single User          | +                  | +            |
+| Multi User           | +                  | -            |
+| Select (predefined)  | +                  | +            |
+| Select (user values) | +                  | +            |
+| Multiselect          | +                  | -            |
+| File                 | +                  | -            |
+| Formula              | +                  | -            |
+| Votes                | +                  | -            |
+| Group assessment     | +                  | -            |
+
+### Makrdown Features
+| Feature             | Official Kaiten UI | This Project |
+|---------------------|--------------------|--------------|
+| Mentions            | +                  | +            |
+| Links to cards      | +/-                | +            |
+| Visual editor       | +                  | +            |
+| Raw markdown editor | +/-                | +            |
+
 
 ## Getting Started
 
