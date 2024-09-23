@@ -62,7 +62,6 @@ export class BoardPageComponent {
       .subscribe(data => {
         const params = new HttpParams({ fromString: data });
         this.filterValue = this.deserializeCardFilterFromUrlParams(params);
-        console.log(this.filterValue);
         setTimeout(() => {
           this.boardComponent.applyFilter(this.filterValue);
 

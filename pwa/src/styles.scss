@@ -397,3 +397,7 @@ app-list-of-related-cards .list .item:last-child {
     min-width: fit-content !important;
   }
 }
+
+.ptr--ptr *{
+  color: $secondary !important;
+}
