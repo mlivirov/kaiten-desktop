@@ -43,16 +43,6 @@ export class PageHeaderComponent {
       .subscribe(r => this.switchBoard.emit(r));
   }
 
-  @HostListener('window:keydown', ['$event'])
-  private handleKey(event: KeyboardEvent): void {
-    if (event.code === 'KeyK' && event.ctrlKey) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      this.searchBoard();
-    }
-  }
-
   protected searchCard(): void {
     this.dialogService.searchCard().subscribe();
   }
@@ -62,4 +52,15 @@ export class PageHeaderComponent {
       .createCard(this.currentBoardService.boardId, this.currentBoardService.laneId)
       .subscribe(id => this.router.navigate(['card', id]));
   }
+
+  @HostListener('window:keydown', ['$event'])
+  private handleKey(event: KeyboardEvent): void {
+    if (event.code === 'KeyK' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.searchBoard();
+    }
+  }
+  
 }

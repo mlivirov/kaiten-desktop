@@ -64,21 +64,6 @@ export class AppComponent implements AfterViewInit {
     });
   }
 
-  @HostListener('window:keydown', ['$event'])
-  private handleKey(event: KeyboardEvent): void {
-    if (event.code === 'KeyG' && event.ctrlKey) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      this.dialogService
-        .searchCard()
-        .pipe(
-          filter(card => !!card)
-        )
-        .subscribe();
-    }
-  }
-
   public ngAfterViewInit(): void {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
@@ -94,4 +79,20 @@ export class AppComponent implements AfterViewInit {
       }
     });
   }
+
+  @HostListener('window:keydown', ['$event'])
+  private handleKey(event: KeyboardEvent): void {
+    if (event.code === 'KeyG' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.dialogService
+        .searchCard()
+        .pipe(
+          filter(card => !!card)
+        )
+        .subscribe();
+    }
+  }
+  
 }

@@ -44,18 +44,18 @@ export type CardSearchSelectMode = 'single'|'multiple'|'none';
   styleUrl: './card-global-search.component.scss'
 })
 export class CardGlobalSearchComponent {
+  @Input() public title: string;
+  @Input() public selectMode: CardSearchSelectMode = 'none';
   protected readonly getTextOrDefault = getTextOrDefault;
   protected selected: Record<number, CardEx> = {};
   protected showSelected: boolean = false;
   protected cards: CardEx[] = [];
   protected isLoading = false;
-  private offset = 0;
-  private readonly limit = 25;
   protected filter: CardFilter;
   protected hasMore = false;
-  @Input() public title: string;
-  @Input() public selectMode: CardSearchSelectMode = 'none';
   @ViewChild('cardSearchInput', { read: CardSearchInputComponent }) protected cardSearchInput: CardSearchInputComponent;
+  private offset = 0;
+  private readonly limit = 25;
 
   public constructor(
     public modal: NgbActiveModal,
@@ -123,16 +123,6 @@ export class CardGlobalSearchComponent {
     }
   }
 
-  @HostListener('window:keydown', ['$event'])
-  private handleKey(event: KeyboardEvent): void {
-    if (event.code === 'KeyF' && event.ctrlKey) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      this.cardSearchInput?.focus();
-    }
-  }
-
   protected getResponsible(card: CardEx): Owner {
     const responsible = card.members?.filter(t => t.type === MemberType.Responsible) || [];
     return responsible.length > 0 ? responsible[0] : null;
@@ -167,4 +157,15 @@ export class CardGlobalSearchComponent {
   protected getSelectedCount(): number {
     return Object.keys(this.selected).length;
   }
+
+  @HostListener('window:keydown', ['$event'])
+  private handleKey(event: KeyboardEvent): void {
+    if (event.code === 'KeyF' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.cardSearchInput?.focus();
+    }
+  }
+  
 }

@@ -8,14 +8,6 @@ import { HttpClient } from '@angular/common/http';
 export class UserService {
   private users$: Observable<User[]> = EMPTY;
 
-  private loadUsers(): void {
-    const serverUsers$ = this.httpClient.get<User[]>('http://server/api/latest/users');
-    this.users$ = serverUsers$
-      .pipe(
-        shareReplay(),
-      );
-  }
-
   public constructor(private httpClient: HttpClient) {
     this.loadUsers();
   }
@@ -39,23 +31,6 @@ export class UserService {
       );
   }
 
-  private filterUsers(users: User[], offset: number, limit: number, query?: string): User[] {
-    const filtered = users.filter(u => {
-      if (!query || query === '') {
-        return true;
-      }
-
-      return u.full_name.indexOf(query) !== -1
-        || u.username.indexOf(query) != -1;
-    });
-
-    if (filtered.length > offset + limit + 1) {
-      return filtered.slice(offset, offset + limit);
-    }
-
-    return filtered;
-  }
-
   public getUserById(id: number): Observable<User> {
     const user$ = this.users$
       .pipe(
@@ -75,4 +50,30 @@ export class UserService {
 
     return getSingleWithCache(user$, Database.users, { uid });
   }
+
+  private loadUsers(): void {
+    const serverUsers$ = this.httpClient.get<User[]>('http://server/api/latest/users');
+    this.users$ = serverUsers$
+      .pipe(
+        shareReplay(),
+      );
+  }
+
+  private filterUsers(users: User[], offset: number, limit: number, query?: string): User[] {
+    const filtered = users.filter(u => {
+      if (!query || query === '') {
+        return true;
+      }
+
+      return u.full_name.indexOf(query) !== -1
+        || u.username.indexOf(query) != -1;
+    });
+
+    if (filtered.length > offset + limit + 1) {
+      return filtered.slice(offset, offset + limit);
+    }
+
+    return filtered;
+  }
+  
 }

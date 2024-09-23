@@ -59,18 +59,17 @@ export class TextEditorComponent implements ControlValueAccessor {
   @Input() public placeholder: string;
   @Input() public minHeight?: number;
   @Input() public alwaysEditable = false;
-  @Output() protected save: EventEmitter<TextEditorSaveEvent> = new EventEmitter();
-  @Output() protected editingChange = new EventEmitter<boolean>();
+  @Input() public additionalControls: TemplateRef<unknown>;
 
   public get isEditing(): boolean {
     return this.service.activeEditor === this;
   }
-
+  @Output() protected save: EventEmitter<TextEditorSaveEvent> = new EventEmitter();
+  @Output() protected editingChange = new EventEmitter<boolean>();
   protected newValue?: string;
   protected originalValue?: string;
   @ViewChild('mdEditor', { read: ElementRef }) protected mdEditorElementRef: ElementRef;
   @ViewChild('textEditor', { read: ElementRef }) protected textEditorElementRef: ElementRef;
-  @Input() public additionalControls: TemplateRef<unknown>;
   private touchedCallback: TouchedCallback;
   private changeCallback: ChangeCallback<string>;
 
@@ -112,47 +111,6 @@ export class TextEditorComponent implements ControlValueAccessor {
       .subscribe(() => this.doOpenEditor(scroll));
   }
 
-  private ensureNotChanged(): Observable<boolean> {
-    if (this.service.activeEditor && !checkTextEquals(this.service.activeEditor.originalValue, this.service.activeEditor.newValue)) {
-      return this.dialogService.confirmation('There are unsaved changes. What would you like to do?', null, [
-        { title: 'Discard', resultCode: 'discard', style: 'btn-danger' },
-        { title: 'Continue editing', resultCode: undefined, style: 'btn-primary' },
-      ]).pipe(
-        map(res => {
-          if (res === 'discard') {
-            return true;
-          }
-
-          return false;
-        }),
-      );
-    }
-
-    return of(true);
-  }
-
-  private doOpenEditor(scroll: boolean = false): void {
-    this.service.activeEditor?.discardChanges();
-    this.service.activeEditor = this;
-    this.editingChange.emit(true);
-    this.newValue = this.originalValue;
-
-    if (scroll) {
-      setTimeout(() => {
-        const editorElement =
-          this.type === 'markdown'
-            ? ((this.mdEditorElementRef?.nativeElement as HTMLElement).querySelector('[contenteditable]')
-                || (this.mdEditorElementRef?.nativeElement as HTMLElement).querySelector('textarea')) as HTMLElement
-            : (this.textEditorElementRef.nativeElement as HTMLElement);
-
-        editorElement.scrollIntoView({
-          block: 'center'
-        });
-        editorElement.focus({ preventScroll: true });
-      }, 1);
-    }
-  }
-
   public discardChangesWithConfirmation(event?: Event): Observable<boolean> {
     event?.stopPropagation();
     event?.preventDefault();
@@ -191,6 +149,55 @@ export class TextEditorComponent implements ControlValueAccessor {
     event?.preventDefault();
   }
 
+  protected updateNewValue(value: string): void {
+    if (this.alwaysEditable) {
+      this.changeCallback?.call(this, value);
+    } else {
+      this.newValue = value;
+    }
+  }
+
+  private ensureNotChanged(): Observable<boolean> {
+    if (this.service.activeEditor && !checkTextEquals(this.service.activeEditor.originalValue, this.service.activeEditor.newValue)) {
+      return this.dialogService.confirmation('There are unsaved changes. What would you like to do?', null, [
+        { title: 'Discard', resultCode: 'discard', style: 'btn-danger' },
+        { title: 'Continue editing', resultCode: undefined, style: 'btn-primary' },
+      ]).pipe(
+        map(res => {
+          if (res === 'discard') {
+            return true;
+          }
+
+          return false;
+        }),
+      );
+    }
+
+    return of(true);
+  }
+  
+  private doOpenEditor(scroll: boolean = false): void {
+    this.service.activeEditor?.discardChanges();
+    this.service.activeEditor = this;
+    this.editingChange.emit(true);
+    this.newValue = this.originalValue;
+
+    if (scroll) {
+      setTimeout(() => {
+        const editorElement =
+          this.type === 'markdown'
+            ? ((this.mdEditorElementRef?.nativeElement as HTMLElement).querySelector('[contenteditable]')
+                || (this.mdEditorElementRef?.nativeElement as HTMLElement).querySelector('textarea')) as HTMLElement
+            : (this.textEditorElementRef.nativeElement as HTMLElement);
+
+        editorElement.scrollIntoView({
+          block: 'center'
+        });
+        editorElement.focus({ preventScroll: true });
+      }, 1);
+    }
+  }
+
   @HostListener('keydown', ['$event'])
   private handleKeyDown(event: KeyboardEvent): void {
     if (event.code === 'Escape' && this.isEditing) {
@@ -199,12 +206,5 @@ export class TextEditorComponent implements ControlValueAccessor {
       this.notifySave(event);
     }
   }
-
-  protected updateNewValue(value: string): void {
-    if (this.alwaysEditable) {
-      this.changeCallback?.call(this, value);
-    } else {
-      this.newValue = value;
-    }
-  }
+  
 }

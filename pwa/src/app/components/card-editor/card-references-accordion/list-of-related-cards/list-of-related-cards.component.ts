@@ -32,12 +32,12 @@ export interface CardReference {
   styleUrl: './list-of-related-cards.component.scss'
 })
 export class ListOfRelatedCardsComponent {
-  protected readonly CardState = CardState;
   @Input() public title: string;
   @Input() public completedLabel: string;
   @Input() public items: CardReference[];
-  @Output() protected delete: EventEmitter<CardReference> = new EventEmitter();
   @Input() public disabled: boolean = false;
+  protected readonly CardState = CardState;
+  @Output() protected delete: EventEmitter<CardReference> = new EventEmitter();
 
   public constructor(private router: Router) {
   }

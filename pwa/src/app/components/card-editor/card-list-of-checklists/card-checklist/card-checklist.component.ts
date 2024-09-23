@@ -89,15 +89,14 @@ export class CardChecklistComponent implements OnChanges {
   ) {
   }
 
-  // TODO: extract into standalone function
-  private sortItems(): void {
-    this.checklist.items?.sort((a, b) => a.sort_order - b.sort_order);
-  }
-
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes[nameof<CardChecklistComponent>('checklist')]) {
       this.sortItems();
     }
+  }
+
+  public openTextEditor(): void {
+    this.textEditorComponent.openEditor(null, true);
   }
 
   protected deleteItem(item: CheckListItem): void {
@@ -159,6 +158,28 @@ export class CardChecklistComponent implements OnChanges {
     this.insertItem(position);
   }
 
+  protected saveText(event: TextEditorSaveEvent): void {
+    this.isSaving = true;
+    this.cardEditorService
+      .updateCardCheckList(this.cardId, this.checklist.id, {
+        name: event.value
+      })
+      .pipe(
+        finalize(() => {
+          this.isSaving = false;
+        }),
+      )
+      .subscribe(updated => {
+        Object.assign(this.checklist, updated);
+        event.commit();
+      });
+  }
+
+  // TODO: extract into standalone function
+  private sortItems(): void {
+    this.checklist.items?.sort((a, b) => a.sort_order - b.sort_order);
+  }
+
   private insertItem(offset: number): void {
     this.isSaving = true;
     this.cardEditorService
@@ -176,25 +197,5 @@ export class CardChecklistComponent implements OnChanges {
         }, 1);
       });
   }
-
-  public openTextEditor(): void {
-    this.textEditorComponent.openEditor(null, true);
-  }
-
-  protected saveText(event: TextEditorSaveEvent): void {
-    this.isSaving = true;
-    this.cardEditorService
-      .updateCardCheckList(this.cardId, this.checklist.id, {
-        name: event.value
-      })
-      .pipe(
-        finalize(() => {
-          this.isSaving = false;
-        }),
-      )
-      .subscribe(updated => {
-        Object.assign(this.checklist, updated);
-        event.commit();
-      });
-  }
+  
 }

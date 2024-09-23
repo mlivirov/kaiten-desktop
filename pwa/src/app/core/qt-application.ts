@@ -76,6 +76,42 @@ export class QtApplication {
     return applicationProxy._readySubject;
   }
 
+  public sendHttpRequest(request: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
+    const serializedRequestBody = request.serializeBody();
+    if (!(serializedRequestBody === null || typeof serializedRequestBody === 'string')) {
+      throw('not supported body type');
+    }
+
+    return new Observable(subscriber => {
+      QtApplication
+        .instance()
+        .sendHttpRequestInner(
+          request.method,
+          request.url,
+          serializedRequestBody as string
+        )
+        .then(response => {
+          try {
+            const httpResponse = this.processQtApplicationResponse(request, response);
+
+            if (httpResponse.status !== 200) {
+              subscriber.error(new HttpErrorResponse(httpResponse));
+            } else {
+              subscriber.next(httpResponse);
+            }
+          } catch (e) {
+            subscriber.error(new HttpErrorResponse({
+              status: 0,
+              statusText: 'Middleware error',
+              error: e
+            }));
+          }
+
+          subscriber.complete();
+        });
+    });
+  }
+
   private initialize(channel: QChannel): void {
     this._proxy = <ApplicationObject>channel.objects.proxy;
 
@@ -116,42 +152,6 @@ export class QtApplication {
       body: parsedBody,
       url: request.url,
       headers: new HttpHeaders(response.headers),
-    });
-  }
-
-  public sendHttpRequest(request: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
-    const serializedRequestBody = request.serializeBody();
-    if (!(serializedRequestBody === null || typeof serializedRequestBody === 'string')) {
-      throw('not supported body type');
-    }
-
-    return new Observable(subscriber => {
-      QtApplication
-        .instance()
-        .sendHttpRequestInner(
-          request.method,
-          request.url,
-          serializedRequestBody as string
-        )
-        .then(response => {
-          try {
-            const httpResponse = this.processQtApplicationResponse(request, response);
-
-            if (httpResponse.status !== 200) {
-              subscriber.error(new HttpErrorResponse(httpResponse));
-            } else {
-              subscriber.next(httpResponse);
-            }
-          } catch (e) {
-            subscriber.error(new HttpErrorResponse({
-              status: 0,
-              statusText: 'Middleware error',
-              error: e
-            }));
-          }
-
-          subscriber.complete();
-        });
     });
   }
 

@@ -29,6 +29,17 @@ export class CardListOfChecklistsComponent implements OnChanges {
   ) {
   }
 
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<CardListOfChecklistsComponent>('card')]) {
+      this.card.checklists?.sort((a: CheckList, b: CheckList) => a.sort_order - b.sort_order);
+    }
+  }
+
+  public openTextEditor(checklistId: number): void {
+    const checklist = this.checklists.find(t => t.checklist.id == checklistId);
+    checklist?.openTextEditor();
+  }
+
   protected deleteList(checklist: CheckList): void {
     this.dialogService
       .confirmation('Are you sure you want to delete the checklist and all it\'s content?')
@@ -37,7 +48,7 @@ export class CardListOfChecklistsComponent implements OnChanges {
       )
       .subscribe(this.doDelete.bind(this, checklist));
   }
-
+  
   private doDelete(checklist: CheckList): void {
     this.isSaving = true;
     this.cardEditorService
@@ -50,15 +61,5 @@ export class CardListOfChecklistsComponent implements OnChanges {
         this.card.checklists.splice(indexToDelete, 1);
       });
   }
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes[nameof<CardListOfChecklistsComponent>('card')]) {
-      this.card.checklists?.sort((a: CheckList, b: CheckList) => a.sort_order - b.sort_order);
-    }
-  }
-
-  public openTextEditor(checklistId: number): void {
-    const checklist = this.checklists.find(t => t.checklist.id == checklistId);
-    checklist?.openTextEditor();
-  }
+  
 }

@@ -62,16 +62,27 @@ export class EditorPropertyTemplateDirective {
 })
 export class PropertiesEditorComponent {
   @Input() public properties: GroupOfEditorProperties[] = [];
+  @Input() public keepEditingOnFocusLost: boolean = false;
   @ContentChildren(EditorPropertyTemplateDirective, {read: EditorPropertyTemplateDirective}) protected templates: QueryList<EditorPropertyTemplateDirective> = new QueryList();
   protected editingProperty?: EditorProperty;
   protected editingPropertyGroup?: GroupOfEditorProperties;
   protected editingPropertyValue?: unknown;
+  protected isSaveInProgress: boolean = false;
   @ViewChild('editor') private editorContainer: ElementRef;
   @Output() private saveRequested: EventEmitter<EditorProperty> = new EventEmitter();
   @Output() private editingStarted: EventEmitter<EditorProperty> = new EventEmitter();
   @Output() private propertyClick: EventEmitter<EditorPropertyClickedEvent> = new EventEmitter();
-  protected isSaveInProgress: boolean = false;
-  @Input() public keepEditingOnFocusLost: boolean = false;
+
+  public commitChanges<T>(newValue: T): void {
+    this.editingProperty.value = newValue;
+    this.editingProperty = null;
+    this.editingPropertyGroup = null;
+    this.isSaveInProgress = false;
+  }
+
+  public abortSave(): void {
+    this.isSaveInProgress = false;
+  }
 
   protected getEnumerablePropertyValues(value: unknown): unknown[] {
     if (!value) {
@@ -84,7 +95,7 @@ export class PropertiesEditorComponent {
 
     return <unknown[]>value;
   }
-
+  
   protected checkPropertyHasValue(property: EditorProperty): boolean {
     return Array.isArray(property.value) && property.value.length > 0;
   }
@@ -123,12 +134,6 @@ export class PropertiesEditorComponent {
     event.stopPropagation();
   }
 
-  private stopEditing(): void {
-    this.editingProperty.value = this.editingPropertyValue;
-    this.editingProperty = null;
-    this.editingPropertyGroup = null;
-  }
-
   protected saveProperty(event?: Event): void {
     this.isSaveInProgress = true;
     this.saveRequested.emit(this.editingProperty);
@@ -136,15 +141,10 @@ export class PropertiesEditorComponent {
     event?.preventDefault();
   }
 
-  public commitChanges<T>(newValue: T): void {
-    this.editingProperty.value = newValue;
+  private stopEditing(): void {
+    this.editingProperty.value = this.editingPropertyValue;
     this.editingProperty = null;
     this.editingPropertyGroup = null;
-    this.isSaveInProgress = false;
-  }
-
-  public abortSave(): void {
-    this.isSaveInProgress = false;
   }
 
   @HostListener('keydown', ['$event'])

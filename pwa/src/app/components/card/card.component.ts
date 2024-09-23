@@ -86,6 +86,16 @@ export class CardComponent {
       );
   }
 
+  public focus(): void {
+    this.elementRef.nativeElement.scrollIntoView({
+      block: 'center',
+      behavior: 'instant',
+    });
+
+    this.highlight = true;
+    setTimeout(() => this.highlight = false, 1000);
+  }
+
   protected getBackgroundColor(): string {
     return getLaneColor(this.card.lane);
   }
@@ -128,16 +138,6 @@ export class CardComponent {
       .subscribe(card => {
         Object.assign(this.card, card);
       });
-  }
-
-  public focus(): void {
-    this.elementRef.nativeElement.scrollIntoView({
-      block: 'center',
-      behavior: 'instant',
-    });
-
-    this.highlight = true;
-    setTimeout(() => this.highlight = false, 1000);
   }
 
   protected handleGoalsTooltipShown(): void {

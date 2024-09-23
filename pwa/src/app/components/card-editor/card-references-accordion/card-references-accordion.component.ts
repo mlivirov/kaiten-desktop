@@ -38,21 +38,38 @@ export interface GroupOfReferences {
 })
 export class CardReferencesAccordionComponent implements OnChanges {
   @Input({ required: true }) public card: CardEx;
+  @Input() public disabled: boolean = false;
   protected references: GroupOfReferences[] = [];
   @ViewChildren('group', { read: ElementRef }) protected groups: QueryList<ElementRef>;
   protected countOfAllReferences: number = 0;
   @Output() protected deleteParent: EventEmitter<number> = new EventEmitter();
   @Output() protected deleteChild: EventEmitter<number> = new EventEmitter();
   @Output() protected deleteBlocker: EventEmitter<number> = new EventEmitter();
-  @Input() public disabled: boolean = false;
+
+  public focusByType(type: ReferenceType): void {
+    const index = this.references.findIndex(t => t.type === type);
+    this.focus(index);
+  }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<CardReferencesAccordionComponent>('card')]) {
+      this.references = this.extractReferences();
+      this.countOfAllReferences = this.references.reduce((agg, i) => [...agg, ...i.references], []).length;
+    }
+  }
 
   protected focus(index: number): void {
     (this.groups.get(index).nativeElement as HTMLElement).scrollIntoView({ block: 'start' });
   }
 
-  public focusByType(type: ReferenceType): void {
-    const index = this.references.findIndex(t => t.type === type);
-    this.focus(index);
+  protected deleteReference(group: GroupOfReferences, item: CardReference): void {
+    if (group.type === 'BLOCKER') {
+      this.deleteBlocker.emit(item.id);
+    } else if (group.type === 'CHILDREN') {
+      this.deleteChild.emit(item.id);
+    } else if (group.type === 'PARENT') {
+      this.deleteParent.emit(item.id);
+    }
   }
 
   private extractReferences(): GroupOfReferences[] {
@@ -99,21 +116,5 @@ export class CardReferencesAccordionComponent implements OnChanges {
       }
     ].filter(t => t.references.length);
   }
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes[nameof<CardReferencesAccordionComponent>('card')]) {
-      this.references = this.extractReferences();
-      this.countOfAllReferences = this.references.reduce((agg, i) => [...agg, ...i.references], []).length;
-    }
-  }
-
-  protected deleteReference(group: GroupOfReferences, item: CardReference): void {
-    if (group.type === 'BLOCKER') {
-      this.deleteBlocker.emit(item.id);
-    } else if (group.type === 'CHILDREN') {
-      this.deleteChild.emit(item.id);
-    } else if (group.type === 'PARENT') {
-      this.deleteParent.emit(item.id);
-    }
-  }
+  
 }

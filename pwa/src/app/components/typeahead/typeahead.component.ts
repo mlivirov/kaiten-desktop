@@ -74,20 +74,20 @@ export class TypeaheadBadgeItemTemplateDirective {
   ]
 })
 export class TypeaheadComponent implements ControlValueAccessor {
-  protected value: string = '';
-  protected popoverItems: Array<unknown> = [];
-  protected popoverItemsLoading: boolean = false;
-  protected currentPopoverItemIndex = 0;
-  @ViewChild('input', { read: NgbPopover }) private popover: NgbPopover;
-  @ViewChild('input', { read: ElementRef }) private input: ElementRef;
   @Input() public title: string;
   @Input() public titleClass: string;
   @Input() public badgeTypes: BadgeType[] = [];
   @Input() public inputClass: string = '';
   @Input() public placeholder: string;
+  protected value: string = '';
+  protected popoverItems: Array<unknown> = [];
+  protected popoverItemsLoading: boolean = false;
+  protected currentPopoverItemIndex = 0;
   @ContentChildren(TypeaheadBadgeItemTemplateDirective) protected itemTemplates: QueryList<TypeaheadBadgeItemTemplateDirective> = new QueryList();
   protected badges: Badge[] = [];
   protected currentBadgeType: BadgeType = null;
+  @ViewChild('input', { read: NgbPopover }) private popover: NgbPopover;
+  @ViewChild('input', { read: ElementRef }) private input: ElementRef;
   private onChangeCallback?: ChangeCallback<TypeaheadComponentValue>;
   private onTouchedCallback?: TouchedCallback;
   private changeSubject = new Subject<void>();
@@ -106,49 +106,25 @@ export class TypeaheadComponent implements ControlValueAccessor {
     this.input?.nativeElement.focus();
   }
 
+  public registerOnChange(fn: ChangeCallback<TypeaheadComponentValue>): void {
+    this.onChangeCallback = fn;
+  }
+
+  public registerOnTouched(fn: TouchedCallback): void {
+    this.onTouchedCallback = fn;
+  }
+
+  public writeValue(obj: TypeaheadComponentValue): void {
+    this.value = obj?.text;
+    this.badges = obj?.badges ?? [];
+  }
+
   protected updateValue(value: string): void {
     this.value = value;
     this.notifyChange();
     this.changeSubject.next();
   }
-
-  private openPopoverIfAvailable(): void {
-    for (const badgeType of this.badgeTypes) {
-      const badgeTypeKeyword = `@${badgeType.name}`;
-      if (this.value?.startsWith(badgeTypeKeyword)) {
-        this.currentBadgeType = badgeType;
-        this.currentPopoverItemIndex = 0;
-        this.popoverItemsLoading = true;
-
-        const indexOfSpace = this.value.indexOf(' ');
-        const query = this.value.substring(badgeTypeKeyword.length + 1, indexOfSpace === -1 ? undefined : indexOfSpace);
-        this.popoverItems = [];
-
-        this.badgeService.getOptions(badgeType, 0, 5, query)
-          .pipe(
-            finalize(() => this.popoverItemsLoading = false)
-          )
-          .subscribe(options => {
-            if (badgeType.multi) {
-              this.popoverItems = options;
-              this.popover.open();
-            } else {
-              this.selectPopoverItem(options[0]);
-            }
-          });
-
-        return;
-      }
-    }
-
-    if (this.value?.startsWith('@')) {
-      this.currentPopoverItemIndex = 0;
-      this.currentBadgeType = null;
-      this.popoverItems = this.badgeTypes;
-      this.popover.open();
-    }
-  }
-
+  
   protected removeBadge(badge: Badge): void {
     const index = this.badges.indexOf(badge);
     this.badges.splice(index, 1);
@@ -188,6 +164,58 @@ export class TypeaheadComponent implements ControlValueAccessor {
     this.notifyChange();
   }
 
+  protected notifyChange(): void {
+    if (this.popover.isOpen()) {
+      return;
+    }
+
+    this.onChangeCallback?.call(this, {
+      text: this.value,
+      badges: this.badges
+    });
+  }
+
+  protected notifyTouched(): void {
+    this.onTouchedCallback?.call(this);
+  }
+
+  private openPopoverIfAvailable(): void {
+    for (const badgeType of this.badgeTypes) {
+      const badgeTypeKeyword = `@${badgeType.name}`;
+      if (this.value?.startsWith(badgeTypeKeyword)) {
+        this.currentBadgeType = badgeType;
+        this.currentPopoverItemIndex = 0;
+        this.popoverItemsLoading = true;
+
+        const indexOfSpace = this.value.indexOf(' ');
+        const query = this.value.substring(badgeTypeKeyword.length + 1, indexOfSpace === -1 ? undefined : indexOfSpace);
+        this.popoverItems = [];
+
+        this.badgeService.getOptions(badgeType, 0, 5, query)
+          .pipe(
+            finalize(() => this.popoverItemsLoading = false)
+          )
+          .subscribe(options => {
+            if (badgeType.multi) {
+              this.popoverItems = options;
+              this.popover.open();
+            } else {
+              this.selectPopoverItem(options[0]);
+            }
+          });
+
+        return;
+      }
+    }
+
+    if (this.value?.startsWith('@')) {
+      this.currentPopoverItemIndex = 0;
+      this.currentBadgeType = null;
+      this.popoverItems = this.badgeTypes;
+      this.popover.open();
+    }
+  }
+
   @HostListener('keydown', ['$event'])
   private handleInput(event: KeyboardEvent): void {
     if (this.popoverItemsLoading) {
@@ -222,32 +250,5 @@ export class TypeaheadComponent implements ControlValueAccessor {
       event.stopPropagation();
     }
   }
-
-  public registerOnChange(fn: ChangeCallback<TypeaheadComponentValue>): void {
-    this.onChangeCallback = fn;
-  }
-
-  public registerOnTouched(fn: TouchedCallback): void {
-    this.onTouchedCallback = fn;
-  }
-
-  public writeValue(obj: TypeaheadComponentValue): void {
-    this.value = obj?.text;
-    this.badges = obj?.badges ?? [];
-  }
-
-  protected notifyChange(): void {
-    if (this.popover.isOpen()) {
-      return;
-    }
-
-    this.onChangeCallback?.call(this, {
-      text: this.value,
-      badges: this.badges
-    });
-  }
-
-  protected notifyTouched(): void {
-    this.onTouchedCallback?.call(this);
-  }
+  
 }

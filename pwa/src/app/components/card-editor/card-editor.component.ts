@@ -101,18 +101,18 @@ import { MdViewerComponent } from '../md-viewer/md-viewer.component';
   styleUrl: './card-editor.component.scss',
 })
 export class CardEditorComponent implements OnInit {
-  protected readonly CardState = CardState;
   @Input() public showHeader: boolean = true;
   @Input() public card: CardEx;
   @Input() public showComments: boolean = true;
   @Input() public showReferences: boolean = true;
   @Input() public alwaysEditable: boolean = false;
+  @Input() public collapsableProperties: boolean = false;
+  protected readonly CardState = CardState;
   protected isSaving: boolean = false;
   @ViewChild(CardListOfChecklistsComponent) protected cardListOfChecklists: CardListOfChecklistsComponent;
   @ViewChild(CardReferencesAccordionComponent) protected cardReferencesAccordionComponent: CardReferencesAccordionComponent;
   @Output() protected delete: EventEmitter<number> = new EventEmitter();
   @Output() protected update: EventEmitter<number> = new EventEmitter();
-  @Input() public collapsableProperties: boolean = false;
   protected isCollapsedProperties: boolean = false;
   protected cardTypes: CardType[] = [];
   protected clipboardLink$: Observable<string>;
@@ -134,6 +134,12 @@ export class CardEditorComponent implements OnInit {
       .pipe(
         map(baseUrl => formatCardLinkForClipboard(baseUrl, this.card))
       );
+  }
+
+  public ngOnInit(): void {
+    if (this.collapsableProperties) {
+      this.isCollapsedProperties = window.innerWidth < 768;
+    }
   }
 
   protected updateAsap(value: boolean): void {
@@ -178,19 +184,6 @@ export class CardEditorComponent implements OnInit {
       .subscribe(saveEvent.commit.bind(saveEvent));
   }
 
-  private updateCard(data: Partial<CardEx>): Observable<void> {
-    this.isSaving = true;
-    return this.cardEditorService
-      .updateCard(this.card.id, data)
-      .pipe(
-        finalize(() => this.isSaving = false),
-        tap((card) => {
-          Object.assign(this.card, card);
-        }),
-        map(() => {})
-      );
-  }
-
   protected instantUpdateTitle(value: string): void {
     this.card.title = value;
     this.cardEditorService
@@ -207,12 +200,6 @@ export class CardEditorComponent implements OnInit {
         description: this.card.description,
       })
       .subscribe();
-  }
-
-  public ngOnInit(): void {
-    if (this.collapsableProperties) {
-      this.isCollapsedProperties = window.innerWidth < 768;
-    }
   }
 
   protected focusBlocker(): void {
@@ -337,4 +324,18 @@ export class CardEditorComponent implements OnInit {
     const mainBlocker = this.card.blockers.find(b => b.blocker_id === this.card.blocker_id);
     this.deleteBlockerById(mainBlocker.id);
   }
+
+  private updateCard(data: Partial<CardEx>): Observable<void> {
+    this.isSaving = true;
+    return this.cardEditorService
+      .updateCard(this.card.id, data)
+      .pipe(
+        finalize(() => this.isSaving = false),
+        tap((card) => {
+          Object.assign(this.card, card);
+        }),
+        map(() => {})
+      );
+  }
+  
 }

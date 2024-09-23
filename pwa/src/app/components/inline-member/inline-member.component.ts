@@ -38,18 +38,6 @@ export class InlineMemberComponent implements OnChanges {
   ) {
   }
 
-  private loadAvatarUrl(): void {
-    this.isLoading = true;
-    this.avatarService
-      .getUrl(this.profile)
-      .pipe(
-        finalize(() => this.isLoading = false),
-      )
-      .subscribe(url => {
-        this.avatarUrl = url;
-      });
-  }
-
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes[nameof<InlineMemberComponent>('profileUid')] && this.profileUid) {
       this.isLoading = true;
@@ -81,4 +69,17 @@ export class InlineMemberComponent implements OnChanges {
       this.loadAvatarUrl();
     }
   }
+
+  private loadAvatarUrl(): void {
+    this.isLoading = true;
+    this.avatarService
+      .getUrl(this.profile)
+      .pipe(
+        finalize(() => this.isLoading = false),
+      )
+      .subscribe(url => {
+        this.avatarUrl = url;
+      });
+  }
+  
 }

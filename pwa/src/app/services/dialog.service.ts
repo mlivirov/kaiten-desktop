@@ -49,10 +49,6 @@ export class DialogService {
   ) {
   }
 
-  private removeActiveModal(modal: NgbModalRef): void {
-    this.activeModals.splice(this.activeModals.indexOf(modal), 1);
-  }
-
   public cardTransition(card: CardEx, from: Column, to: Column): Observable<CardEx> {
     const instance = this.modal.open(
       CardTransitionConfirmationDialogComponent
@@ -347,4 +343,9 @@ export class DialogService {
   public showNotImplementedDialog(): Observable<boolean> {
     return this.alert('We are sorry, this feature is not implemented yet. Stay tuned!');
   }
+
+  private removeActiveModal(modal: NgbModalRef): void {
+    this.activeModals.splice(this.activeModals.indexOf(modal), 1);
+  }
+  
 }

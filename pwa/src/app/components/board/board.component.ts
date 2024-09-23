@@ -57,20 +57,20 @@ interface BoardViewColumn {
   styleUrl: './board.component.scss'
 })
 export class BoardComponent implements OnInit, OnDestroy, OnChanges {
-  @ViewChildren(CardComponent) protected cardComponents: QueryList<CardComponent> = new QueryList();
   @Input() public columns: ColumnEx[];
   @Input() public cards: CardEx[];
   @Input() public board: BoardBase;
+  @ViewChildren(CardComponent) protected cardComponents: QueryList<CardComponent> = new QueryList();
   @Output() protected openCard: EventEmitter<number> = new EventEmitter();
   @Output() protected loaded: EventEmitter<void> = new EventEmitter();
   protected readonly getTextOrDefault = getTextOrDefault;
   protected currentUser?: User;
   protected cardsByColumnId: { [key: number]: CardEx[] } = {};
-  private filterValue?: CardFilter;
   protected viewColumns: BoardViewColumn[];
-  private isBoardLoading: boolean = false;
   protected hideEmpty: boolean = false;
   protected cardsCountByRootColumnId: Record<number, number> = {};
+  private filterValue?: CardFilter;
+  private isBoardLoading: boolean = false;
   private cardsSizeByRootColumnId: Record<number, number> = {};
   private customColumns: number[][] = [];
   private unsubscribe$: Subject<void> = new Subject();
@@ -169,6 +169,60 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     this.mapCardsByColumnId(this.cards);
   }
 
+  public focusCard(cardId: number): void {
+    const card = this.cardComponents.find(t => t.card.id == cardId);
+    card.focus();
+  }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['cards'].currentValue && changes['columns']?.currentValue) {
+      this.refresh(false);
+    } else if (changes['boardId']) {
+      this.refresh(true);
+    }
+  }
+
+  public ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+  }
+
+  protected refresh(pullData: boolean = false): void {
+    if (this.isBoardLoading) {
+      return;
+    }
+
+    this.isBoardLoading = true;
+    zip(
+      pullData ? this.boardService.getColumns(this.board.id) : of(this.columns),
+      pullData ? this.cardSearchService.searchCards({ boardId: this.board.id }) : of(this.cards),
+      this.boardService.getCustomColumns(this.board.id),
+    )
+      .pipe(
+        finalize(() => this.isBoardLoading = false)
+      )
+      .subscribe(([columns, cards, customColumns]) => {
+        this.columns = columns;
+        this.cards = cards?.filter(c => !c.archived);
+        this.customColumns = customColumns;
+
+        this.mapCardsByColumnId(this.cards);
+        this.sortColumns();
+        this.rearrangeColumns();
+        this.countCards();
+
+        this.loaded.emit();
+      });
+  }
+  
+  protected getColumnLimitFulfillment(columnId: number, limitType: WipLimitType): number {
+    if (limitType === WipLimitType.Size) {
+      return this.cardsSizeByRootColumnId[columnId];
+    }
+
+    return this.cardsCountByRootColumnId[columnId];
+  }
+
   private moveCardToColumn(cardId: number, fromId: number, toId: number): Observable<void> {
     const card = this.cards.find(t => t.id === cardId);
     const from = findColumnRecursive(this.columns, fromId);
@@ -182,7 +236,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         map(() => {})
       );
   }
-
+  
   private updateColumnsArrangement(targetIndex: number|null, sourceIndex: number, colIndex: number): Observable<void> {
     const column: ColumnEx = this.viewColumns[sourceIndex].columns[colIndex];
     const currentCustomGroup = this.customColumns.find(g => g.indexOf(column.id) !== -1);
@@ -214,7 +268,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
 
     return this.boardService.setCustomColumns(this.board.id, this.customColumns);
   }
-
+  
   private rearrangeColumns(): void {
     this.viewColumns = [];
 
@@ -238,7 +292,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
   }
-
+  
   private sortColumns(): void {
     for (const col of this.columns) {
       if (!col.subcolumns?.length) {
@@ -289,47 +343,6 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     this.cardsByColumnId = cardsByColumnId;
   }
 
-  protected refresh(pullData: boolean = false): void {
-    if (this.isBoardLoading) {
-      return;
-    }
-
-    this.isBoardLoading = true;
-    zip(
-      pullData ? this.boardService.getColumns(this.board.id) : of(this.columns),
-      pullData ? this.cardSearchService.searchCards({ boardId: this.board.id }) : of(this.cards),
-      this.boardService.getCustomColumns(this.board.id),
-    )
-      .pipe(
-        finalize(() => this.isBoardLoading = false)
-      )
-      .subscribe(([columns, cards, customColumns]) => {
-        this.columns = columns;
-        this.cards = cards?.filter(c => !c.archived);
-        this.customColumns = customColumns;
-
-        this.mapCardsByColumnId(this.cards);
-        this.sortColumns();
-        this.rearrangeColumns();
-        this.countCards();
-
-        this.loaded.emit();
-      });
-  }
-
-  public focusCard(cardId: number): void {
-    const card = this.cardComponents.find(t => t.card.id == cardId);
-    card.focus();
-  }
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['cards'].currentValue && changes['columns']?.currentValue) {
-      this.refresh(false);
-    } else if (changes['boardId']) {
-      this.refresh(true);
-    }
-  }
-
   @HostListener('window:keydown', ['$event'])
   private handleKey(event: KeyboardEvent): void {
     if (event.code === 'KeyH' && event.ctrlKey) {
@@ -339,15 +352,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       this.hideEmpty = !this.hideEmpty;
     }
   }
-
-  protected getColumnLimitFulfillment(columnId: number, limitType: WipLimitType): number {
-    if (limitType === WipLimitType.Size) {
-      return this.cardsSizeByRootColumnId[columnId];
-    }
-
-    return this.cardsCountByRootColumnId[columnId];
-  }
-
+  
   private countCards(): void {
     this.cardsCountByRootColumnId = {};
     this.cardsSizeByRootColumnId = {};
@@ -374,9 +379,5 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
   }
-
-  public ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
-  }
+  
 }

@@ -6,12 +6,11 @@ export type Theme = 'light' | 'dark' | 'auto';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeManagerService {
-  private currentTheme$: BehaviorSubject<Theme> = new BehaviorSubject('light');
-  private autoThemeTimeout?: number;
-
   public get currentTheme(): Observable<Theme> {
     return this.currentTheme$.asObservable();
   }
+  private currentTheme$: BehaviorSubject<Theme> = new BehaviorSubject('light');
+  private autoThemeTimeout?: number;
 
   public constructor(private settingsService: SettingService) {
     this.settingsService

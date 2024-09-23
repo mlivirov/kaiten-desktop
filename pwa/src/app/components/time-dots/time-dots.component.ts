@@ -17,6 +17,10 @@ import { TimeagoModule } from 'ngx-timeago';
 export class TimeDotsComponent {
   @Input() public since: Date|string|null = null;
 
+  protected get daysPassed(): number {
+    return  Math.round((Date.now() - this.sinceDate.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
   private get sinceDate(): Date {
     if (!this.since) {
       return new Date();
@@ -28,8 +32,5 @@ export class TimeDotsComponent {
 
     return this.since;
   }
-
-  protected get daysPassed(): number {
-    return  Math.round((Date.now() - this.sinceDate.getTime()) / (1000 * 60 * 60 * 24));
-  }
+  
 }

@@ -30,11 +30,11 @@ export interface CardBlockDialogResult {
   styleUrl: './card-block-dialog.component.scss'
 })
 export class CardBlockDialogComponent {
+  @Input() public cardId: number;
+  @Input() public blockerId?: number;
   protected readonly cardsTypeaheadSearch = CardsTypeaheadOperator();
   protected readonly cardTypeaheadFormatter = (item: Card): string => item ? `${item.id} - ${item.title}` : '';
   protected isLoading: boolean = false;
-  @Input() public cardId: number;
-  @Input() public blockerId?: number;
   protected blockerCard: CardEx;
   protected description: string;
 

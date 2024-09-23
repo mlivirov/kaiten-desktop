@@ -38,22 +38,22 @@ import { ChangeCallback, TouchedCallback } from '../../core/types/change-callbac
   ]
 })
 export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValueAccessor {
-  @ViewChild('wysiwygEditorContainer') protected wysiwygEditorContainer: ElementRef;
-  private wysiwygEditor: Editor;
-  @ViewChild('markdownEditorTextarea') protected markdownEditorTextarea: ElementRef<HTMLTextAreaElement>;
-  private markdownEditor: SimpleMDE;
   @Input() public hideToolbar: boolean = false;
   @Input() public hideBorder: boolean = false;
   @Input() public placeholder: string;
   @Input() public minHeight: number = 35;
+  @Input() public mode: 'markdown' | 'wysiwyg' = 'wysiwyg';
+  @ViewChild('wysiwygEditorContainer') protected wysiwygEditorContainer: ElementRef;
+  @ViewChild('markdownEditorTextarea') protected markdownEditorTextarea: ElementRef<HTMLTextAreaElement>;
   @ViewChild('usersPopover', { read: NgbPopover }) protected usersPopover: NgbPopover;
   @ViewChild('cardsPopover', { read: NgbPopover }) protected cardsPopover: NgbPopover;
-  @Input() public mode: 'markdown' | 'wysiwyg' = 'wysiwyg';
-  private value: string;
   protected readonly allUsersTypeaheadSearch = UsersTypeaheadOperator();
   protected readonly cardsTypeaheadSearch = CardsTypeaheadOperator();
   protected readonly userTypeaheadFormatter = (item: User): string => item.full_name;
   protected readonly cardTypeaheadFormatter = (item: Card): string => item ? `${item.id} - ${item.title}` : '';
+  private wysiwygEditor: Editor;
+  private markdownEditor: SimpleMDE;
+  private value: string;
   private changeCallback: ChangeCallback<string>;
   private touchedCallback: TouchedCallback;
 
@@ -68,44 +68,43 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     }
   }
 
-  private destroyMarkdownEditor(): void {
-    if (!this.markdownEditor) {
-      return;
-    }
-
-    this.markdownEditor.toTextArea();
-    delete this.markdownEditor;
-  }
-
-  private initMarkdownEditor(): void {
-    this.mode = 'markdown';
+  public ngOnDestroy(): void {
+    this.destroyMarkdownEditor();
     this.destroyWysiwygEditor();
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    this.markdownEditor = new SimpleMDE({
-      element: this.markdownEditorTextarea.nativeElement,
-      spellChecker: false,
-      toolbar: false,
-      placeholder: this.placeholder,
-      initialValue: this.value,
-      autofocus: true,
-      forceSync: true,
-      status: false
-    });
-
-    this.markdownEditor.codemirror.on('change', () => {
-      self.value = this.markdownEditor.value();
-      self.changeCallback?.call(self, self.value);
-    });
   }
 
-  private destroyWysiwygEditor(): void {
-    if (!this.wysiwygEditor) {
-      return;
+  public registerOnChange(fn: ChangeCallback<string>): void {
+    this.changeCallback = fn;
+  }
+
+  public registerOnTouched(fn: TouchedCallback): void {
+    this.touchedCallback = fn;
+  }
+
+  public setDisabledState(isDisabled: boolean): void {
+    setTimeout(() => {
+      if (isDisabled) {
+        this.wysiwygEditor?.getUI().getToolbar().disableAllButton();
+      } else {
+        this.wysiwygEditor?.getUI().getToolbar().enableAllButton();
+      }
+    }, 1);
+  }
+
+  public writeValue(obj: string): void {
+    this.value = obj;
+    this.wysiwygEditor?.setMarkdown(this.value);
+    this.markdownEditor?.value(this.value || '');
+  }
+
+  public focus(): void {
+    if (this.wysiwygEditor) {
+      this.wysiwygEditor.focus();
     }
 
-    this.wysiwygEditor.remove();
-    delete this.wysiwygEditor;
+    if (this.markdownEditor) {
+      this.markdownEditor.codemirror.focus();
+    }
   }
 
   protected initWysiwygEditor(): void {
@@ -194,36 +193,7 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
       }
     });
   }
-
-  public ngOnDestroy(): void {
-    this.destroyMarkdownEditor();
-    this.destroyWysiwygEditor();
-  }
-
-  public registerOnChange(fn: ChangeCallback<string>): void {
-    this.changeCallback = fn;
-  }
-
-  public registerOnTouched(fn: TouchedCallback): void {
-    this.touchedCallback = fn;
-  }
-
-  public setDisabledState(isDisabled: boolean): void {
-    setTimeout(() => {
-      if (isDisabled) {
-        this.wysiwygEditor?.getUI().getToolbar().disableAllButton();
-      } else {
-        this.wysiwygEditor?.getUI().getToolbar().enableAllButton();
-      }
-    }, 1);
-  }
-
-  public writeValue(obj: string): void {
-    this.value = obj;
-    this.wysiwygEditor?.setMarkdown(this.value);
-    this.markdownEditor?.value(this.value || '');
-  }
-
+  
   protected cancelMention(): void {
     this.usersPopover.close();
     this.cardsPopover.close();
@@ -289,13 +259,44 @@ export class MdEditorComponent implements AfterViewInit, OnDestroy, ControlValue
     }, 1);
   }
 
-  public focus(): void {
-    if (this.wysiwygEditor) {
-      this.wysiwygEditor.focus();
+  private destroyMarkdownEditor(): void {
+    if (!this.markdownEditor) {
+      return;
     }
 
-    if (this.markdownEditor) {
-      this.markdownEditor.codemirror.focus();
-    }
+    this.markdownEditor.toTextArea();
+    delete this.markdownEditor;
   }
+  
+  private initMarkdownEditor(): void {
+    this.mode = 'markdown';
+    this.destroyWysiwygEditor();
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    this.markdownEditor = new SimpleMDE({
+      element: this.markdownEditorTextarea.nativeElement,
+      spellChecker: false,
+      toolbar: false,
+      placeholder: this.placeholder,
+      initialValue: this.value,
+      autofocus: true,
+      forceSync: true,
+      status: false
+    });
+
+    this.markdownEditor.codemirror.on('change', () => {
+      self.value = this.markdownEditor.value();
+      self.changeCallback?.call(self, self.value);
+    });
+  }
+  
+  private destroyWysiwygEditor(): void {
+    if (!this.wysiwygEditor) {
+      return;
+    }
+
+    this.wysiwygEditor.remove();
+    delete this.wysiwygEditor;
+  }
+  
 }

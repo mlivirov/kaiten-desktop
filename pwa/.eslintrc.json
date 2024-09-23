@@ -4,7 +4,8 @@
     "projects/**/*"
   ],
   "plugins": [
-    "@html-eslint"
+    "@html-eslint",
+    "sort-class-members"
   ],
   "parser": "@typescript-eslint/parser",
   "overrides": [
@@ -48,6 +49,39 @@
             "type": "element",
             "prefix": "app",
             "style": "kebab-case"
+          }
+        ],
+        "sort-class-members/sort-class-members": [
+          "error",
+          {
+            "groups": {
+              "public-properties":  [{ "type": "property", "accessibility": "public" }],
+              "protected-properties":  [{ "type": "property", "accessibility": "protected" }],
+              "private-properties":  [{ "type": "property", "accessibility": "private" }],
+              "public-methods":  [{ "type": "method", "accessibility": "public", "kind": "nonAccessor" }],
+              "protected-methods":  [{ "type": "method", "accessibility": "protected", "kind": "nonAccessor" }],
+              "private-methods":  [{ "type": "method", "accessibility": "private", "kind": "nonAccessor" }],
+              "public-accessor":  [{ "type": "method", "accessibility": "public", "kind": "accessor" }],
+              "protected-accessor":  [{ "type": "method", "accessibility": "protected", "kind": "accessor" }],
+              "private-accessor":  [{ "type": "method", "accessibility": "private", "kind": "accessor" }]
+            },
+            "order": [
+              "[static-properties]",
+              "[static-methods]",
+              "[public-properties]",
+              "[public-accessor]",
+              "[protected-properties]",
+              "[protected-accessor]",
+              "[private-properties]",
+              "[private-accessor]",
+              "[conventional-private-properties]",
+              "constructor",
+              "[public-methods]",
+              "[protected-methods]",
+              "[private-methods]",
+              "[conventional-private-methods]"
+            ],
+            "accessorPairPositioning": "getThenSet"
           }
         ]
       }

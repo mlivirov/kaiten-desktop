@@ -31,10 +31,10 @@ class SearchBoardDialogService {
 })
 export class SearchBoardDialogComponent {
   protected readonly InputFromEventFunction = inputFromEvent;
-  private allBoards: SpaceBoardPermissionsViewModel[] = [];
   protected filteredBoard: SpaceBoardPermissionsViewModel[] = [];
   protected isLoading: boolean = false;
   protected filterTerm?: string;
+  private allBoards: SpaceBoardPermissionsViewModel[] = [];
 
   public constructor(
     private boardService: BoardService,

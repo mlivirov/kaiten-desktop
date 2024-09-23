@@ -33,12 +33,12 @@ import { ChangeCallback, TouchedCallback } from '../../core/types/change-callbac
   ]
 })
 export class MdViewerComponent implements AfterViewInit, OnDestroy, ControlValueAccessor {
-  @ViewChild('viewer') protected editorRef: ElementRef;
-  private viewer: Viewer;
   @Input() public hideBorder: boolean = false;
   @Input() public inlineIcon?: string;
   @Input() public placeholder?: string;
+  @ViewChild('viewer') protected editorRef: ElementRef;
   protected value: string;
+  private viewer: Viewer;
   private changeCallback: ChangeCallback<string>;
   private touchedCallback: TouchedCallback;
 
@@ -58,6 +58,19 @@ export class MdViewerComponent implements AfterViewInit, OnDestroy, ControlValue
     this.viewer?.remove();
   }
 
+  public registerOnChange(fn: ChangeCallback<string>): void {
+    this.changeCallback = fn;
+  }
+
+  public registerOnTouched(fn: TouchedCallback): void {
+    this.touchedCallback = fn;
+  }
+
+  public writeValue(obj: string): void {
+    this.value = obj;
+    this.viewer?.setMarkdown(this.value);
+  }
+
   @HostListener('click', ['$event'])
   private handleClick(event: Event): void {
     if (!(event.target instanceof HTMLAnchorElement)) {
@@ -74,17 +87,5 @@ export class MdViewerComponent implements AfterViewInit, OnDestroy, ControlValue
       });
     }
   }
-
-  public registerOnChange(fn: ChangeCallback<string>): void {
-    this.changeCallback = fn;
-  }
-
-  public registerOnTouched(fn: TouchedCallback): void {
-    this.touchedCallback = fn;
-  }
-
-  public writeValue(obj: string): void {
-    this.value = obj;
-    this.viewer?.setMarkdown(this.value);
-  }
+  
 }

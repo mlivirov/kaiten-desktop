@@ -34,11 +34,6 @@ export class CordovaApplication {
     return applicationProxy._readySubject;
   }
 
-  private initialize(): void {
-    this._readySubject.next(this);
-    this._readySubject.complete();
-  }
-
   public sendHttpRequest(request: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
     return new Observable(subscriber => {
       const http = window['cordova']['plugin']['http'];
@@ -83,4 +78,10 @@ export class CordovaApplication {
       });
     });
   }
+
+  private initialize(): void {
+    this._readySubject.next(this);
+    this._readySubject.complete();
+  }
+  
 }

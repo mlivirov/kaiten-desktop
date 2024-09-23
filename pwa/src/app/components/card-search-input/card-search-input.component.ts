@@ -29,14 +29,6 @@ class CardBadgeService implements BadgeService {
   public constructor(private tagService: TagService, private userService: UserService) {
   }
 
-  private getUsers(offset: number, limit: number, query: string): Observable<User[]> {
-    return this.userService.getUsers(offset, limit, query);
-  }
-
-  private getTags(offset: number, limit: number, query: string): Observable<Tag[]> {
-    return this.tagService.getTags(offset, limit, query);
-  }
-
   public getOptions(type: BadgeType, offset: number, limit: number, query: string): Observable<unknown[]> {
     switch (type) {
       case CardBadgeService.BadgeTypeMember:
@@ -50,6 +42,15 @@ class CardBadgeService implements BadgeService {
         throw 'not implemented';
     }
   }
+
+  private getUsers(offset: number, limit: number, query: string): Observable<User[]> {
+    return this.userService.getUsers(offset, limit, query);
+  }
+
+  private getTags(offset: number, limit: number, query: string): Observable<Tag[]> {
+    return this.tagService.getTags(offset, limit, query);
+  }
+  
 }
 
 export type CardSearchInputBadgeTypes = 'member'|'owner'|'tag'|'archived';
@@ -79,17 +80,17 @@ export type CardSearchInputBadgeTypes = 'member'|'owner'|'tag'|'archived';
   ]
 })
 export class CardSearchInputComponent implements ControlValueAccessor, OnInit {
+  @Input() public badges: CardSearchInputBadgeTypes[] = ['member', 'owner', 'tag'];
+  @Input() public inputClass: string = '';
+  @Input() public placeholder?: string = '';
+  @Input() public title: string;
+  @Input() public titleClass: string;
   protected readonly BadgeTypeMember = CardBadgeService.BadgeTypeMember;
   protected readonly BadgeTypeOwner = CardBadgeService.BadgeTypeOwner;
   protected readonly BadgeTypeTag = CardBadgeService.BadgeTypeTag;
   protected readonly BadgeTypeArchived = CardBadgeService.BadgeTypeArchived;
   protected badgeTypes: Array<BadgeType> = [];
   protected value: TypeaheadComponentValue = null;
-  @Input() public badges: CardSearchInputBadgeTypes[] = ['member', 'owner', 'tag'];
-  @Input() public inputClass: string = '';
-  @Input() public placeholder?: string = '';
-  @Input() public title: string;
-  @Input() public titleClass: string;
   @ViewChild('typeahead', { read: TypeaheadComponent }) private typeahead: TypeaheadComponent;
   private onChangeCallback?: ChangeCallback<TypeaheadComponentValue>;
   private onTouchedCallback?: TouchedCallback;
@@ -129,17 +130,6 @@ export class CardSearchInputComponent implements ControlValueAccessor, OnInit {
     };
   }
 
-  protected changeAndNotify(value: TypeaheadComponentValue): void {
-    this.value = value;
-    this.onChangeCallback?.call(this, <CardFilter>{
-      text: this.value.text,
-      members: this.value.badges?.filter(t => t.type == this.BadgeTypeMember).map(t => t.value),
-      owners: this.value.badges?.filter(t => t.type == this.BadgeTypeOwner).map(t => t.value),
-      tags: this.value.badges?.filter(t => t.type == this.BadgeTypeTag).map(t => t.value),
-      includeArchived: this.value.badges?.find(t => t.type == this.BadgeTypeArchived)?.value,
-    });
-  }
-
   public ngOnInit(): void {
     if (this.badges.includes('member')) {
       this.badgeTypes.push(this.BadgeTypeMember);
@@ -157,4 +147,16 @@ export class CardSearchInputComponent implements ControlValueAccessor, OnInit {
       this.badgeTypes.push(this.BadgeTypeArchived);
     }
   }
+
+  protected changeAndNotify(value: TypeaheadComponentValue): void {
+    this.value = value;
+    this.onChangeCallback?.call(this, <CardFilter>{
+      text: this.value.text,
+      members: this.value.badges?.filter(t => t.type == this.BadgeTypeMember).map(t => t.value),
+      owners: this.value.badges?.filter(t => t.type == this.BadgeTypeOwner).map(t => t.value),
+      tags: this.value.badges?.filter(t => t.type == this.BadgeTypeTag).map(t => t.value),
+      includeArchived: this.value.badges?.find(t => t.type == this.BadgeTypeArchived)?.value,
+    });
+  }
+  
 }

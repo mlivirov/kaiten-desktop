@@ -78,6 +78,8 @@ interface CustomDatePropertyValue {
   ]
 })
 export class CardPropertiesComponent implements OnChanges {
+  @Input({ required: true }) public card: CardEx;
+  @ViewChild('locationPopover') public locationPopover: NgbPopover;
   protected readonly NumberMin = Number.MIN_VALUE;
   protected readonly NumberMax = Number.MAX_VALUE;
   protected readonly findColumnRecursive = findColumnRecursive;
@@ -88,8 +90,6 @@ export class CardPropertiesComponent implements OnChanges {
   protected readonly userTypeaheadFormatter = (item: User): string => item.full_name;
   protected readonly tagTypeaheadFormatter = (item: Tag): string => item.name;
   @ViewChild('propertiesEditor') protected propertiesEditor: PropertiesEditorComponent;
-  @Input({ required: true }) public card: CardEx;
-  @ViewChild('locationPopover') public locationPopover: NgbPopover;
   protected newMember: Owner = null;
   protected newBoardId?: number;
   protected newLaneId?: number;
@@ -102,8 +102,8 @@ export class CardPropertiesComponent implements OnChanges {
   protected isSaveInProgress: boolean = false;
   protected isLoading: boolean = false;
   protected isLoadingBoardAndLanes: boolean = false;
-  private customProperties: CustomPropertyAndValues[] = [];
   protected isEditingComplexProperty: boolean = false;
+  private customProperties: CustomPropertyAndValues[] = [];
 
   public constructor(
     private boardService: BoardService,
@@ -120,12 +120,196 @@ export class CardPropertiesComponent implements OnChanges {
       .subscribe(spaces => this.spaceBoardPermissions = spaces.flatMap(s => s.boards));
   }
 
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<CardPropertiesComponent>('card')]) {
+      this.loadProperties();
+    }
+  }
+
   protected findSelectValue(values: CustomPropertySelectValue[], id: number): CustomPropertySelectValue {
     return values.find(value => value.id === id);
   }
 
   protected getLaneColor(lane: Lane): string {
     return getLaneColor(lane);
+  }
+
+  protected confirmSave(property: EditorProperty): void {
+    if (property.type === 'tag') {
+      this.addTag(<EditorProperty<string|Tag>>property);
+    } else if (property.type === 'member') {
+      this.addMember();
+    } else if (property.type === 'custom-date') {
+      this.updateCustomDate(<EditorProperty<CustomDatePropertyValue, CustomPropertyAndValues>>property);
+    } else if ([
+      'custom-string',
+      'custom-url',
+      'custom-phone',
+      'custom-email',
+      'custom-number',
+    ].includes(property.type)) {
+      this.updateCustomSimple(<EditorProperty<string, CustomPropertyAndValues>>property);
+    } else if (property.type === 'custom-select') {
+      this.updateCustomSelect(<EditorProperty<number, CustomPropertyAndValues>>property);
+    } else if (property.type === 'custom-checkbox') {
+      this.updateCustomCheckbox(<EditorProperty<boolean, CustomPropertyAndValues>>property);
+    } else if (property.type === 'custom-user') {
+      this.updateCustomUser(<EditorProperty<string, CustomPropertyAndValues>>property);
+    } else if (property.type === 'size') {
+      this.updateSize(<EditorProperty<number>>property);
+    } else if (property.type === 'column') {
+      this.updateColumn(<EditorProperty<Column<ColumnBase>>>property);
+    } else if (property.type === 'date') {
+      this.updateDateProperty(<EditorProperty<string>>property);
+    }
+  }
+
+  protected updateBoardAndLane(): void {
+    this.isLoadingBoardAndLanes = true;
+    this.isSaveInProgress = true;
+
+    this.cardEditorService
+      .updateCard(this.card.id, {
+        board_id: this.newBoardId,
+        lane_id: this.newLaneId,
+        column_id: this.newColumnId
+      })
+      .pipe(
+        finalize(() => this.isSaveInProgress = this.isLoadingBoardAndLanes = false),
+        switchMap(card => {
+          return forkJoin({
+            card: of(card),
+            board: this.boardService.getBoard(card.board_id),
+          });
+        })
+      )
+      .subscribe(({card, board}) => {
+        const flatProperties = this.properties.flatMap(t => t.properties);
+
+        Object.assign(this.card, card);
+        this.card.board = board;
+        this.card.lane = this.lanes.find(t => t.id === card.lane_id);
+        this.card.column = this.newBoardColumns.find(t => t.id === card.column_id);
+        this.columns = this.newBoardColumns;
+
+        flatProperties.find(t => t.name == 'column').value = this.card.column;
+        flatProperties.find(t => t.name == 'board').value = this.card.board;
+        flatProperties.find(t => t.name == 'lane').value = this.card.lane;
+
+        this.locationPopover.close();
+      });
+  }
+
+  protected toggleMemberResponsible(member: Owner): void {
+    if (member.type === MemberType.Responsible) {
+      this.makeMemberNotResponsible(member);
+    } else {
+      this.makeMemberResponsible(member);
+    }
+  }
+
+  protected removeMember(member: User): void {
+    this.isSaveInProgress = true;
+    this.cardEditorService
+      .removeMemberFromCard(this.card.id, member.id)
+      .pipe(
+        finalize(() => this.isSaveInProgress = false)
+      )
+      .subscribe(() => {
+        const indexOfElement = this.card.members.indexOf(member);
+        this.card.members.splice(indexOfElement, 1);
+      });
+  }
+
+  protected removeTag(tag: Tag): void {
+    this.isSaveInProgress = true;
+    this.cardEditorService
+      .removeTag(this.card.id, tag.id)
+      .pipe(
+        finalize(() => this.isSaveInProgress = false)
+      )
+      .subscribe(() => {
+        const indexOfTag = this.card.tags.indexOf(tag);
+        this.card.tags.splice(indexOfTag, 1);
+      });
+  }
+
+  protected handlePropertyClick(event: EditorPropertyClickedEvent): void {
+    if (event.property.name === 'board' || event.property.name === 'lane') {
+      this.locationPopover.positionTarget = event.event.target as HTMLElement;
+      this.newBoardId = this.card.board_id;
+      this.newLaneId = this.card.lane_id;
+      this.newColumnId = this.card.column_id;
+
+      this.handleNewBoardSelected(this.newBoardId);
+      this.locationPopover.open();
+    }
+  }
+
+  protected handleNewBoardSelected(boardId: number): void {
+    this.isLoadingBoardAndLanes = true;
+
+    forkJoin({
+      lanes: this.boardService.getLanes(boardId),
+      columns: this.boardService.getColumns(boardId)
+    })
+      .pipe(
+        finalize(() => this.isLoadingBoardAndLanes = false)
+      )
+      .subscribe(({lanes, columns}) => {
+        this.newBoardId = boardId;
+        this.lanes = lanes;
+
+        if (lanes.length === 1) {
+          this.newLaneId = lanes[0].id;
+        } else {
+          this.newLaneId = null;
+        }
+
+        this.newBoardColumns = flattenColumns(columns);
+        this.newBoardColumns.sort((a, b) => a.sort_order - b.sort_order);
+
+        if (this.newBoardColumns.length === 1) {
+          this.newColumnId = this.newBoardColumns[0].id;
+        } else {
+          this.newColumnId = null;
+        }
+      });
+  }
+
+  protected checkNewLocationCanBeSaved(): boolean {
+    return !this.isLoadingBoardAndLanes && !!this.newLaneId && !!this.newBoardId && !!this.newColumnId;
+  }
+
+  protected createNewSelectValue(property: EditorProperty<number, CustomPropertyAndValues>, value: string): Observable<CustomPropertySelectValue> {
+    const existingValue = property.extra.values.find(v => v.value === value);
+    if (!existingValue) {
+      return this.customPropertyService
+        .addCustomPropertyValue(property.extra.property.id, value)
+        .pipe(
+          tap(newValue => {
+            property.extra.values.push(newValue);
+          })
+        );
+    }
+
+    return of(existingValue);
+  }
+
+  protected handleSelectValueChange(property: EditorProperty<number, CustomPropertyAndValues>, value: number): void {
+    if (value === 0) {
+      this.isEditingComplexProperty = true;
+      this.dialogService
+        .prompt<CustomPropertySelectValue>('New value', 'Enter new value', value => this.createNewSelectValue(property, value))
+        .pipe(
+          finalize(() => this.isEditingComplexProperty = false)
+        )
+        .subscribe(value => {
+          property.value = value.id;
+        });
+    } else {
+      property.value = value;
+    }
   }
 
   private getCustomPropertyValue(values: CardProperties, property: CustomProperty): unknown {
@@ -143,7 +327,7 @@ export class CardPropertiesComponent implements OnChanges {
       return value;
     }
   }
-
+  
   private extractProperties(): void {
     this.properties = [];
 
@@ -216,72 +400,6 @@ export class CardPropertiesComponent implements OnChanges {
     this.properties.push(tagsGroup);
   }
 
-  protected confirmSave(property: EditorProperty): void {
-    if (property.type === 'tag') {
-      this.addTag(<EditorProperty<string|Tag>>property);
-    } else if (property.type === 'member') {
-      this.addMember();
-    } else if (property.type === 'custom-date') {
-      this.updateCustomDate(<EditorProperty<CustomDatePropertyValue, CustomPropertyAndValues>>property);
-    } else if ([
-      'custom-string',
-      'custom-url',
-      'custom-phone',
-      'custom-email',
-      'custom-number',
-    ].includes(property.type)) {
-      this.updateCustomSimple(<EditorProperty<string, CustomPropertyAndValues>>property);
-    } else if (property.type === 'custom-select') {
-      this.updateCustomSelect(<EditorProperty<number, CustomPropertyAndValues>>property);
-    } else if (property.type === 'custom-checkbox') {
-      this.updateCustomCheckbox(<EditorProperty<boolean, CustomPropertyAndValues>>property);
-    } else if (property.type === 'custom-user') {
-      this.updateCustomUser(<EditorProperty<string, CustomPropertyAndValues>>property);
-    } else if (property.type === 'size') {
-      this.updateSize(<EditorProperty<number>>property);
-    } else if (property.type === 'column') {
-      this.updateColumn(<EditorProperty<Column<ColumnBase>>>property);
-    } else if (property.type === 'date') {
-      this.updateDateProperty(<EditorProperty<string>>property);
-    }
-  }
-
-  protected updateBoardAndLane(): void {
-    this.isLoadingBoardAndLanes = true;
-    this.isSaveInProgress = true;
-
-    this.cardEditorService
-      .updateCard(this.card.id, {
-        board_id: this.newBoardId,
-        lane_id: this.newLaneId,
-        column_id: this.newColumnId
-      })
-      .pipe(
-        finalize(() => this.isSaveInProgress = this.isLoadingBoardAndLanes = false),
-        switchMap(card => {
-          return forkJoin({
-            card: of(card),
-            board: this.boardService.getBoard(card.board_id),
-          });
-        })
-      )
-      .subscribe(({card, board}) => {
-        const flatProperties = this.properties.flatMap(t => t.properties);
-
-        Object.assign(this.card, card);
-        this.card.board = board;
-        this.card.lane = this.lanes.find(t => t.id === card.lane_id);
-        this.card.column = this.newBoardColumns.find(t => t.id === card.column_id);
-        this.columns = this.newBoardColumns;
-
-        flatProperties.find(t => t.name == 'column').value = this.card.column;
-        flatProperties.find(t => t.name == 'board').value = this.card.board;
-        flatProperties.find(t => t.name == 'lane').value = this.card.lane;
-
-        this.locationPopover.close();
-      });
-  }
-
   private updateDateProperty(property: EditorProperty<string>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
@@ -297,7 +415,7 @@ export class CardPropertiesComponent implements OnChanges {
         this.propertiesEditor.commitChanges(property.value);
       });
   }
-
+  
   private updateColumn(property: EditorProperty<Column>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
@@ -315,7 +433,7 @@ export class CardPropertiesComponent implements OnChanges {
         this.propertiesEditor.commitChanges(property.value);
       });
   }
-
+  
   private updateSize(property: EditorProperty<number>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
@@ -331,7 +449,7 @@ export class CardPropertiesComponent implements OnChanges {
         this.propertiesEditor.commitChanges(property.value);
       });
   }
-
+  
   private updateCustomUser(property: EditorProperty<string, CustomPropertyAndValues>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
@@ -349,7 +467,7 @@ export class CardPropertiesComponent implements OnChanges {
         this.propertiesEditor.commitChanges(property.value);
       });
   }
-
+  
   private updateCustomCheckbox(property: EditorProperty<boolean, CustomPropertyAndValues>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
@@ -367,7 +485,7 @@ export class CardPropertiesComponent implements OnChanges {
         this.propertiesEditor.commitChanges(property.value);
       });
   }
-
+  
   private updateCustomSelect(property: EditorProperty<number, CustomPropertyAndValues>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
@@ -385,7 +503,7 @@ export class CardPropertiesComponent implements OnChanges {
         this.propertiesEditor.commitChanges(property.value);
       });
   }
-
+  
   private updateCustomSimple(property: EditorProperty<string|number, CustomPropertyAndValues>): void {
     this.cardEditorService
       .updateCard(this.card.id, {
@@ -403,7 +521,7 @@ export class CardPropertiesComponent implements OnChanges {
         this.propertiesEditor.commitChanges(property.value);
       });
   }
-
+  
   private updateCustomDate(property: EditorProperty<CustomDatePropertyValue, CustomPropertyAndValues>): void {
     let newValue = null;
     const date = stringToDate(property.value.date);
@@ -460,15 +578,7 @@ export class CardPropertiesComponent implements OnChanges {
         member.type = MemberType.Member;
       });
   }
-
-  protected toggleMemberResponsible(member: Owner): void {
-    if (member.type === MemberType.Responsible) {
-      this.makeMemberNotResponsible(member);
-    } else {
-      this.makeMemberResponsible(member);
-    }
-  }
-
+  
   private addMember(): void {
     this.cardEditorService
       .addMemberToCard(this.card.id, this.newMember.id)
@@ -483,20 +593,7 @@ export class CardPropertiesComponent implements OnChanges {
         this.propertiesEditor.commitChanges(this.card.members);
       });
   }
-
-  protected removeMember(member: User): void {
-    this.isSaveInProgress = true;
-    this.cardEditorService
-      .removeMemberFromCard(this.card.id, member.id)
-      .pipe(
-        finalize(() => this.isSaveInProgress = false)
-      )
-      .subscribe(() => {
-        const indexOfElement = this.card.members.indexOf(member);
-        this.card.members.splice(indexOfElement, 1);
-      });
-  }
-
+  
   private addTag(property: EditorProperty<string|Tag>): void {
     const name = typeof property.value === 'string' ? property.value : property.value.name;
     this.cardEditorService
@@ -512,26 +609,7 @@ export class CardPropertiesComponent implements OnChanges {
         this.propertiesEditor.commitChanges(this.card.tags);
       });
   }
-
-  protected removeTag(tag: Tag): void {
-    this.isSaveInProgress = true;
-    this.cardEditorService
-      .removeTag(this.card.id, tag.id)
-      .pipe(
-        finalize(() => this.isSaveInProgress = false)
-      )
-      .subscribe(() => {
-        const indexOfTag = this.card.tags.indexOf(tag);
-        this.card.tags.splice(indexOfTag, 1);
-      });
-  }
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes[nameof<CardPropertiesComponent>('card')]) {
-      this.loadProperties();
-    }
-  }
-
+  
   private loadProperties(): void {
     this.isLoading = true;
     forkJoin({
@@ -548,53 +626,6 @@ export class CardPropertiesComponent implements OnChanges {
       });
   }
 
-  protected handlePropertyClick(event: EditorPropertyClickedEvent): void {
-    if (event.property.name === 'board' || event.property.name === 'lane') {
-      this.locationPopover.positionTarget = event.event.target as HTMLElement;
-      this.newBoardId = this.card.board_id;
-      this.newLaneId = this.card.lane_id;
-      this.newColumnId = this.card.column_id;
-
-      this.handleNewBoardSelected(this.newBoardId);
-      this.locationPopover.open();
-    }
-  }
-
-  protected handleNewBoardSelected(boardId: number): void {
-    this.isLoadingBoardAndLanes = true;
-
-    forkJoin({
-      lanes: this.boardService.getLanes(boardId),
-      columns: this.boardService.getColumns(boardId)
-    })
-      .pipe(
-        finalize(() => this.isLoadingBoardAndLanes = false)
-      )
-      .subscribe(({lanes, columns}) => {
-        this.newBoardId = boardId;
-        this.lanes = lanes;
-
-        if (lanes.length === 1) {
-          this.newLaneId = lanes[0].id;
-        } else {
-          this.newLaneId = null;
-        }
-
-        this.newBoardColumns = flattenColumns(columns);
-        this.newBoardColumns.sort((a, b) => a.sort_order - b.sort_order);
-
-        if (this.newBoardColumns.length === 1) {
-          this.newColumnId = this.newBoardColumns[0].id;
-        } else {
-          this.newColumnId = null;
-        }
-      });
-  }
-
-  protected checkNewLocationCanBeSaved(): boolean {
-    return !this.isLoadingBoardAndLanes && !!this.newLaneId && !!this.newBoardId && !!this.newColumnId;
-  }
-
   @HostListener('keydown', ['$event'])
   private handleKeyDown(event: KeyboardEvent): void {
     if (this.locationPopover.isOpen() && event.code === 'Enter' && event.ctrlKey && this.checkNewLocationCanBeSaved()) {
@@ -603,35 +634,5 @@ export class CardPropertiesComponent implements OnChanges {
       event.stopPropagation();
     }
   }
-
-  protected createNewSelectValue(property: EditorProperty<number, CustomPropertyAndValues>, value: string): Observable<CustomPropertySelectValue> {
-    const existingValue = property.extra.values.find(v => v.value === value);
-    if (!existingValue) {
-      return this.customPropertyService
-        .addCustomPropertyValue(property.extra.property.id, value)
-        .pipe(
-          tap(newValue => {
-            property.extra.values.push(newValue);
-          })
-        );
-    }
-
-    return of(existingValue);
-  }
-
-  protected handleSelectValueChange(property: EditorProperty<number, CustomPropertyAndValues>, value: number): void {
-    if (value === 0) {
-      this.isEditingComplexProperty = true;
-      this.dialogService
-        .prompt<CustomPropertySelectValue>('New value', 'Enter new value', value => this.createNewSelectValue(property, value))
-        .pipe(
-          finalize(() => this.isEditingComplexProperty = false)
-        )
-        .subscribe(value => {
-          property.value = value.id;
-        });
-    } else {
-      property.value = value;
-    }
-  }
+  
 }

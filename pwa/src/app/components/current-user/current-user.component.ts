@@ -28,10 +28,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   styleUrl: './current-user.component.scss'
 })
 export class CurrentUserComponent {
+  @Input() public showText: boolean = true;
   protected profile?: User;
   protected avatarUrl?: string;
   protected currentTheme: Theme;
-  @Input() public showText: boolean = true;
 
   public constructor(
     private authService: AuthService,
@@ -61,14 +61,6 @@ export class CurrentUserComponent {
     );
   }
 
-  private loadAvatarUrl(): void {
-    this.avatarService
-      .getUrl(this.profile)
-      .subscribe(url => {
-        this.avatarUrl = url;
-      });
-  }
-
   protected searchCard(): void {
     this.dialogService.searchCard().subscribe();
   }
@@ -76,4 +68,13 @@ export class CurrentUserComponent {
   protected setTheme(theme: Theme): void {
     this.themeManagerService.setTheme(theme).subscribe();
   }
+
+  private loadAvatarUrl(): void {
+    this.avatarService
+      .getUrl(this.profile)
+      .subscribe(url => {
+        this.avatarUrl = url;
+      });
+  }
+  
 }

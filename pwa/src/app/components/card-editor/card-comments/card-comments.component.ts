@@ -65,13 +65,14 @@ export interface CardCommentViewModel {
   styleUrl: './card-comments.component.scss'
 })
 export class CardCommentsComponent implements OnChanges {
+  @Input({ required: true }) public card: Card;
+
+  public get countOfAllEntries(): number {
+    return this.activities.length + this.comments.length;
+  }
   protected readonly CardCommentType = CardCommentType;
   protected readonly CardState = CardState;
-  @Input({ required: true }) public card: Card;
-  private cardTypes: CardType[] = [];
   protected entries: CardCommentViewModel[] = [];
-  private comments: CardCommentViewModel[] = [];
-  private activities: CardCommentViewModel[] = [];
   protected currentUser: User;
   protected text: string;
   protected isSavingInProgress: boolean = false;
@@ -80,10 +81,9 @@ export class CardCommentsComponent implements OnChanges {
   protected areActivitiesVisible: boolean = true;
   protected throughputReport?: ThroughputReport;
   @ViewChild('textEditor', { read: MdEditorComponent }) protected textEditor: MdEditorComponent;
-
-  public get countOfAllEntries(): number {
-    return this.activities.length + this.comments.length;
-  }
+  private cardTypes: CardType[] = [];
+  private comments: CardCommentViewModel[] = [];
+  private activities: CardCommentViewModel[] = [];
 
   public constructor(
     private authService: AuthService,
@@ -99,6 +99,13 @@ export class CardCommentsComponent implements OnChanges {
       .subscribe(currentUser => this.currentUser = currentUser );
   }
 
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<CardCommentsComponent>('card')] && this.card) {
+      this.throughputReport = null;
+      this.loadActivities();
+    }
+  }
+
   protected getThroughputColumnTitle(column: Column, subcolumn?: Column): string {
     let title = getTextOrDefault(column.title);
 
@@ -107,13 +114,6 @@ export class CardCommentsComponent implements OnChanges {
     }
 
     return title;
-  }
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes[nameof<CardCommentsComponent>('card')] && this.card) {
-      this.throughputReport = null;
-      this.loadActivities();
-    }
   }
 
   protected submit(): void {
@@ -133,6 +133,56 @@ export class CardCommentsComponent implements OnChanges {
         this.makeEntries();
         this.text = null;
       });
+  }
+
+  protected update(comment: CardCommentViewModel, event: TextEditorSaveEvent): void {
+    if (this.isSavingInProgress) {
+      return;
+    }
+
+    this.isSavingInProgress = true;
+    this.cardEditorService
+      .updateComment(this.card.id, comment.id, event.value)
+      .pipe(
+        finalize(() => this.isSavingInProgress = false),
+      )
+      .subscribe(updated => {
+        event.commit();
+        Object.assign(comment, updated);
+        comment.author = this.currentUser;
+      });
+  }
+
+  protected toggleActivitiesVisible(): void {
+    this.areActivitiesVisible = !this.areActivitiesVisible;
+    this.makeEntries();
+  }
+
+  protected toggleCommentsVisible(): void {
+    this.areCommentsVisible = !this.areCommentsVisible;
+    this.makeEntries();
+  }
+
+  protected getEntryLink(entry: CardCommentViewModel): Observable<string> {
+    return this.settingService
+      .getSetting(Setting.ApiUrl)
+      .pipe(
+        map(baseUrl => {
+          return formatCardLinkForClipboard(baseUrl, this.card, entry.type, entry.id);
+        })
+      );
+  }
+
+  protected reply(entry: CardCommentViewModel): void {
+    if (entry.type === 'comment') {
+      this.text = '@' + entry.author.username + ', wrote\n';
+    } else {
+      this.text = `update by ${entry.author.full_name}\n`;
+    }
+
+    this.text += '> ' + entry.text.replace(/\n/g, '\n> ');
+
+    this.textEditor.focus();
   }
 
   private makeEntries(): void {
@@ -156,7 +206,7 @@ export class CardCommentsComponent implements OnChanges {
               : 0
       );
   }
-
+  
   private loadActivities(): void {
     this.isLoading = true;
     forkJoin({
@@ -193,7 +243,7 @@ export class CardCommentsComponent implements OnChanges {
         }, 1);
       });
   }
-
+  
   private mapCommentToModel(comment: CardComment): CardCommentViewModel {
     return <CardCommentViewModel>{
       id: comment.id,
@@ -207,7 +257,7 @@ export class CardCommentsComponent implements OnChanges {
       comment_type: comment.type
     };
   }
-
+  
   // TODO: extract into function cuz this seems to be required elsewhere
   private getPropertyValue(val: unknown, mapper: (v) => string = (v) => v): unknown {
     if (val === null || val === undefined) {
@@ -224,7 +274,7 @@ export class CardCommentsComponent implements OnChanges {
 
     return val;
   }
-
+  
   private getBlockerTextFromActivity(activity: CardActivity): string {
     let text = '';
     if (activity.data?.dump?.block?.blocker_card_id) {
@@ -361,54 +411,5 @@ export class CardCommentsComponent implements OnChanges {
       text: text,
     };
   }
-
-  protected update(comment: CardCommentViewModel, event: TextEditorSaveEvent): void {
-    if (this.isSavingInProgress) {
-      return;
-    }
-
-    this.isSavingInProgress = true;
-    this.cardEditorService
-      .updateComment(this.card.id, comment.id, event.value)
-      .pipe(
-        finalize(() => this.isSavingInProgress = false),
-      )
-      .subscribe(updated => {
-        event.commit();
-        Object.assign(comment, updated);
-        comment.author = this.currentUser;
-      });
-  }
-
-  protected toggleActivitiesVisible(): void {
-    this.areActivitiesVisible = !this.areActivitiesVisible;
-    this.makeEntries();
-  }
-
-  protected toggleCommentsVisible(): void {
-    this.areCommentsVisible = !this.areCommentsVisible;
-    this.makeEntries();
-  }
-
-  protected getEntryLink(entry: CardCommentViewModel): Observable<string> {
-    return this.settingService
-      .getSetting(Setting.ApiUrl)
-      .pipe(
-        map(baseUrl => {
-          return formatCardLinkForClipboard(baseUrl, this.card, entry.type, entry.id);
-        })
-      );
-  }
-
-  protected reply(entry: CardCommentViewModel): void {
-    if (entry.type === 'comment') {
-      this.text = '@' + entry.author.username + ', wrote\n';
-    } else {
-      this.text = `update by ${entry.author.full_name}\n`;
-    }
-
-    this.text += '> ' + entry.text.replace(/\n/g, '\n> ');
-
-    this.textEditor.focus();
-  }
+  
 }

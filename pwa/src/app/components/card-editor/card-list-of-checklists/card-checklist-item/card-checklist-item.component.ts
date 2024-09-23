@@ -72,12 +72,13 @@ enum ExpirationStatus {
   styleUrl: './card-checklist-item.component.scss',
 })
 export class CardChecklistItemComponent {
-  protected readonly ExpirationStatus = ExpirationStatus;
-  protected readonly allUsersTypeaheadOperator = CardUsersTypeaheadOperator(() => this.cardId);
-  protected readonly userTypeaheadFormatter = (item: User): string => item.full_name;
   @Input({required: true}) public cardId: number;
   @Input({required: true}) public checklistId: number;
   @Input({required: true}) public item: CheckListItem;
+  @Input() public disabled: boolean = false;
+  protected readonly ExpirationStatus = ExpirationStatus;
+  protected readonly allUsersTypeaheadOperator = CardUsersTypeaheadOperator(() => this.cardId);
+  protected readonly userTypeaheadFormatter = (item: User): string => item.full_name;
   protected isSaving: boolean = false;
   protected editing?: CheckListItem;
   @ViewChild('editDatePopover', { read: NgbPopover }) protected editDatePopover: NgbPopover;
@@ -86,13 +87,16 @@ export class CardChecklistItemComponent {
   @Output() protected insertAfter: EventEmitter<CheckListItem> = new EventEmitter();
   @Output() protected delete: EventEmitter<CheckListItem> = new EventEmitter();
   @Output() protected createCard: EventEmitter<CheckListItem> = new EventEmitter();
-  @Input() public disabled: boolean = false;
   @ViewChild(TextEditorComponent) protected textEditorComponent: TextEditorComponent;
 
   public constructor(
     public editorSyncService: CardChecklistItemEditorSyncService,
     @Inject(CARD_EDITOR_SERVICE) private editorService: CardEditorService
   ) {
+  }
+
+  public openTextEditor(): void {
+    this.textEditorComponent.openEditor(null, true);
   }
 
   protected getExpirationStatus(): ExpirationStatus {
@@ -117,19 +121,6 @@ export class CardChecklistItemComponent {
   protected updateChecklistItemState(value: boolean): void {
     this.editorSyncService.openedPopover?.close();
     this.updateCheckListItem(this.item.id, { checked: value }).subscribe();
-  }
-
-  private updateCheckListItem(id: number, data: Partial<CheckListItem>): Observable<void> {
-    this.isSaving = true;
-    return this.editorService
-      .updateCardCheckListItem(this.cardId, this.checklistId, id, data)
-      .pipe(
-        tap(res => {
-          Object.assign(this.item, res);
-        }),
-        finalize(() => this.isSaving = false),
-        map(() => {})
-      );
   }
 
   protected saveText(event: TextEditorSaveEvent): void {
@@ -209,8 +200,17 @@ export class CardChecklistItemComponent {
     this.editorSyncService.editing = null;
   }
 
-  public openTextEditor(): void {
-    this.textEditorComponent.openEditor(null, true);
+  private updateCheckListItem(id: number, data: Partial<CheckListItem>): Observable<void> {
+    this.isSaving = true;
+    return this.editorService
+      .updateCardCheckListItem(this.cardId, this.checklistId, id, data)
+      .pipe(
+        tap(res => {
+          Object.assign(this.item, res);
+        }),
+        finalize(() => this.isSaving = false),
+        map(() => {})
+      );
   }
 
   @HostListener('window:keydown', ['$event'])

@@ -36,6 +36,12 @@ export class LoginPageComponent implements OnInit {
   ) {
   }
 
+  public ngOnInit(): void {
+    this.authService
+      .getCredentials()
+      .subscribe(creds => this.initializeForm(creds));
+  }
+
   protected getApiKeyUrl(): string {
     const apiEndpoint = this.form.value.apiEndpoint ?? '';
     const pathStartIndex = apiEndpoint.lastIndexOf('/api');
@@ -44,20 +50,6 @@ export class LoginPageComponent implements OnInit {
     }
 
     return this.form.value.apiEndpoint.substring(0, pathStartIndex) + '/profile/api-key';
-  }
-
-  public ngOnInit(): void {
-    this.authService
-      .getCredentials()
-      .subscribe(creds => this.initializeForm(creds));
-  }
-
-  private initializeForm(creds: Credentials): void {
-    this.form = this.fb.group({
-      apiEndpoint: [creds.apiEndpoint, [Validators.required]],
-      resourcesEndpoint: [creds.resourcesEndpoint, [Validators.required]],
-      apiToken: [creds.apiToken, [Validators.required]]
-    });
   }
 
   protected submit(): void {
@@ -73,4 +65,13 @@ export class LoginPageComponent implements OnInit {
         this.router.navigate(['board', spaces[0].boards[0].id]);
       });
   }
+
+  private initializeForm(creds: Credentials): void {
+    this.form = this.fb.group({
+      apiEndpoint: [creds.apiEndpoint, [Validators.required]],
+      resourcesEndpoint: [creds.resourcesEndpoint, [Validators.required]],
+      apiToken: [creds.apiToken, [Validators.required]]
+    });
+  }
+  
 }

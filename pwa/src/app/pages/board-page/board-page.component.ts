@@ -34,9 +34,9 @@ export class BoardPageComponent {
   protected board: BoardBase;
   protected boardCards: CardEx[] = [];
   protected boardColumns: ColumnEx[] = [];
+  protected filterValue?: CardFilter;
   @ViewChild('cardSearchInput', { read: CardSearchInputComponent }) private cardSearchInput: CardSearchInputComponent;
   @ViewChild('boardComponent', { read: BoardComponent }) private boardComponent: BoardComponent;
-  protected filterValue?: CardFilter;
   private boardLoaded$: Subject<void> = new Subject();
 
   public constructor(
@@ -100,16 +100,6 @@ export class BoardPageComponent {
     this.router.navigate(['board', boardId]);
   }
 
-  @HostListener('window:keydown', ['$event'])
-  private handleKey(event: KeyboardEvent): void {
-    if (event.code === 'KeyF' && event.ctrlKey) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      this.cardSearchInput.focus();
-    }
-  }
-
   protected applyFilter(value?: CardFilter): void {
     this.filterValue = value;
     this.router.navigate(['board', this.board.id], {
@@ -119,6 +109,20 @@ export class BoardPageComponent {
     });
 
     this.boardComponent.applyFilter(this.filterValue);
+  }
+
+  protected handleBoardLoaded(): void {
+    this.boardLoaded$.next();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  private handleKey(event: KeyboardEvent): void {
+    if (event.code === 'KeyF' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.cardSearchInput.focus();
+    }
   }
 
   private deserializeCardFilterFromUrlParams(params: HttpParams): CardFilter {
@@ -193,8 +197,5 @@ export class BoardPageComponent {
 
     return result;
   }
-
-  protected handleBoardLoaded(): void {
-    this.boardLoaded$.next();
-  }
+  
 }
