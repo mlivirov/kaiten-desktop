@@ -62,7 +62,8 @@
     >
       <div class="d-flex align-items-center justify-content-between strong small border border-1 p-1 column-title cursor-move sticky-top z-1 column-header bg-light-subtle">
         <span
-          class="user-select-none"
+          class="user-select-none text-truncate"
+          style="max-width: 300px"
           [ngbTooltip]="getTextOrDefault(column.title, board.title)"
           container="body"
         >{{getTextOrDefault(column.title, board.title)}}</span>
