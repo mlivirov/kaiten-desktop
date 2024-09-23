@@ -271,12 +271,12 @@ export class DialogService {
         ),
         switchMap(card => zip(of(card.id), this.editCard(card))),
         switchMap(([draftId, newCardId]) => {
-          if (newCardId !== undefined) {
-            this.draftCardEditorService.deleteCard(draftId).pipe(map(() => newCardId));
+          if (newCardId) {
+            return this.draftCardEditorService.deleteCard(draftId).pipe(map(() => newCardId));
           }
 
           return EMPTY;
-        })
+        }),
       );
   }
 

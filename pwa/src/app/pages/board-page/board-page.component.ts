@@ -14,7 +14,7 @@ import { CardFilter } from '../../services/card-search.service';
 import { HttpParams } from '@angular/common/http';
 import { User } from '../../models/user';
 import { Tag } from '../../models/tag';
-import { filter } from 'rxjs';
+import { filter, Subject, switchMap, take } from 'rxjs';
 
 @Component({
   selector: 'app-board-page',
@@ -37,6 +37,7 @@ export class BoardPageComponent {
   @ViewChild('cardSearchInput', { read: CardSearchInputComponent }) private cardSearchInput: CardSearchInputComponent;
   @ViewChild('boardComponent', { read: BoardComponent }) private boardComponent: BoardComponent;
   protected filterValue?: CardFilter;
+  private boardLoaded$: Subject<void> = new Subject();
 
   public constructor(
     private activatedRoute: ActivatedRoute,
@@ -64,12 +65,22 @@ export class BoardPageComponent {
         this.filterValue = this.deserializeCardFilterFromUrlParams(params);
         setTimeout(() => {
           this.boardComponent.applyFilter(this.filterValue);
-
-          if (params.has('card')) {
-            const cardId = Number.parseInt(params.get('card'));
-            this.boardComponent.focusCard(cardId);
-          }
         }, 1);
+      });
+
+    this.boardLoaded$
+      .pipe(
+        switchMap(() => activatedRoute.fragment),
+        filter(f => !!f),
+        take(1)
+      )
+      .subscribe(data => {
+        console.log('test');
+        const params = new HttpParams({ fromString: data });
+        if (params.has('card')) {
+          const cardId = Number.parseInt(params.get('card'));
+          setTimeout(() => this.boardComponent.focusCard(cardId), 1);
+        }
       });
   }
 
@@ -181,5 +192,9 @@ export class BoardPageComponent {
     }
 
     return result;
+  }
+
+  protected handleBoardLoaded(): void {
+    this.boardLoaded$.next();
   }
 }
