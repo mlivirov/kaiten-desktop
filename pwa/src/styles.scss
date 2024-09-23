@@ -210,10 +210,6 @@ body {
   margin-bottom: .5rem;
 }
 
-body:has(app-board-page) {
-  min-width: fit-content !important;
-}
-
 $bg-gray: #F7F9FA;
 
 .bg-grad-0 {
@@ -395,5 +391,9 @@ app-list-of-related-cards .list .item:last-child {
 @media only screen and (min-width: 768px) {
   .modal-90-prc {
     min-width: 90% !important;
+  }
+
+  body:has(app-board-page) {
+    min-width: fit-content !important;
   }
 }

@@ -1,5 +1,5 @@
 <div
-  class="p-2 mb-2 shadow border border-1 border-opacity-25 rounded position-relative"
+  class="p-2 mb-2 shadow border border-1 border-opacity-25 rounded position-relative overflow-hidden"
   style="{{getBackgroundColor()}}"
   [class.bg-light-subtle]="getBackgroundColor() === ''"
   (mouseover)="active = true"
@@ -20,9 +20,10 @@
       <span>asap</span>
     </div>
     <div
-      class="smaller"
-      style="cursor: pointer"
-      (click)="openCard(card.id)"
+      class="smaller cursor-pointer text-truncate"
+      [ngbTooltip]="card.type.name"
+      container="body"
+      triggers="hover"
     >{{card.type.name}}</div>
     <div class="mx-2 d-md-none d-xl-block">
       <app-time-dots [since]="card.column_changed_at"></app-time-dots>
