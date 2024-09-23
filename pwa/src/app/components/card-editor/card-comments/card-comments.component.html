@@ -110,10 +110,13 @@
       [profile]="entry.author"
     ></app-inline-member>
     <div
-      class="opacity-75 small"
+      class="opacity-75 small text-nowrap"
       [ngbTooltip]="entry.created | date: 'short'"
     >
-      <i class="pi pi-circle-on"></i> {{entry.action}} {{entry.created | timeago}} {{ entry.edited ? ' (edited)' : ''}}
+      <i class="pi pi-circle-on"></i>
+      <span class="d-none d-md-inline-block">&nbsp;{{entry.action}}</span>
+      <span>&nbsp;{{entry.created | timeago}}</span>
+      <span>&nbsp;{{ entry.edited ? ' (edited)' : ''}}</span>
     </div>
     <div class="ms-auto"></div>
     <div>
