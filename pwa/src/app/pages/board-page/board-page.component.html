@@ -7,14 +7,10 @@
       #cardSearchInput
       class="mt-2 w-100 flex-grow-1"
       style="min-width: 15rem;"
-      [ngModel]="boardComponent.filterValue"
-      (ngModelChange)="boardComponent.applyFilter($event)"
+      [ngModel]="filterValue"
+      (ngModelChange)="applyFilter($event)"
       placeholder="Type your search query here or press (CTRL+F)"
     ></app-card-search-input>
-
-    <!--        <div >-->
-
-    <!--        </div>-->
   </ng-template>
 </app-page-header>
 <app-board

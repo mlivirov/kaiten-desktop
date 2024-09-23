@@ -106,10 +106,6 @@ export class TypeaheadComponent implements ControlValueAccessor {
     this.input?.nativeElement.focus();
   }
 
-  protected getPopoverItemName(item: BadgeType): string {
-    return item.name;
-  }
-
   protected updateValue(value: string): void {
     this.value = value;
     this.notifyChange();
@@ -119,17 +115,15 @@ export class TypeaheadComponent implements ControlValueAccessor {
   private openPopoverIfAvailable(): void {
     for (const badgeType of this.badgeTypes) {
       const badgeTypeKeyword = `@${badgeType.name}`;
-      if (this.value.startsWith(badgeTypeKeyword)) {
+      if (this.value?.startsWith(badgeTypeKeyword)) {
         this.currentBadgeType = badgeType;
         this.currentPopoverItemIndex = 0;
         this.popoverItemsLoading = true;
-        // this.popover.close();
 
         const indexOfSpace = this.value.indexOf(' ');
         const query = this.value.substring(badgeTypeKeyword.length + 1, indexOfSpace === -1 ? undefined : indexOfSpace);
         this.popoverItems = [];
 
-        console.log(this.currentBadgeType);
         this.badgeService.getOptions(badgeType, 0, 5, query)
           .pipe(
             finalize(() => this.popoverItemsLoading = false)
@@ -147,7 +141,7 @@ export class TypeaheadComponent implements ControlValueAccessor {
       }
     }
 
-    if (this.value.startsWith('@')) {
+    if (this.value?.startsWith('@')) {
       this.currentPopoverItemIndex = 0;
       this.currentBadgeType = null;
       this.popoverItems = this.badgeTypes;

@@ -45,7 +45,7 @@ export class CardPageComponent {
 
   protected openBoard(boardId: number, cardId?: number): void {
     this.router.navigate(['board', boardId], {
-      fragment: cardId ? cardId?.toString() : undefined,
+      fragment: cardId ? `card=${cardId}` : undefined,
     });
   }
 }

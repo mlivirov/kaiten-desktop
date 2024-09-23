@@ -62,10 +62,11 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   @Input() public cards: CardEx[];
   @Input() public board: BoardBase;
   @Output() protected openCard: EventEmitter<number> = new EventEmitter();
+  @Output() protected loaded: EventEmitter<void> = new EventEmitter();
   protected readonly getTextOrDefault = getTextOrDefault;
   protected currentUser?: User;
   protected cardsByColumnId: { [key: number]: CardEx[] } = {};
-  public filterValue?: CardFilter;
+  private filterValue?: CardFilter;
   protected viewColumns: BoardViewColumn[];
   private isBoardLoading: boolean = false;
   protected hideEmpty: boolean = false;
@@ -260,7 +261,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       }
 
       const hasMembers = this.filterValue?.members?.length
-        ? this.filterValue.members.some(member => card.members.map(t => t.id).includes(member.id))
+        ? this.filterValue.members.some(member => card.members?.map(t => t.id).includes(member.id))
         : null;
 
       const hasOwners = this.filterValue?.owners?.length
@@ -268,7 +269,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         : null;
 
       const hasTags = this.filterValue?.tags?.length
-        ? this.filterValue?.tags?.some(tag => card.tag_ids.includes(tag.id))
+        ? this.filterValue?.tags?.some(tag => card.tag_ids?.includes(tag.id))
         : null;
 
       const hasText = this.filterValue?.text
@@ -298,12 +299,11 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       pullData ? this.boardService.getColumns(this.board.id) : of(this.columns),
       pullData ? this.cardSearchService.searchCards({ boardId: this.board.id }) : of(this.cards),
       this.boardService.getCustomColumns(this.board.id),
-      this.activatedRoute.fragment,
     )
       .pipe(
         finalize(() => this.isBoardLoading = false)
       )
-      .subscribe(([columns, cards, customColumns, activeCardId]) => {
+      .subscribe(([columns, cards, customColumns]) => {
         this.columns = columns;
         this.cards = cards?.filter(c => !c.archived);
         this.customColumns = customColumns;
@@ -313,13 +313,13 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         this.rearrangeColumns();
         this.countCards();
 
-        if (activeCardId) {
-          setTimeout(() => {
-            const card = this.cardComponents.find(t => t.card.id == Number.parseInt(activeCardId));
-            card.focus();
-          }, 1);
-        }
+        this.loaded.emit();
       });
+  }
+
+  public focusCard(cardId: number): void {
+    const card = this.cardComponents.find(t => t.card.id == cardId);
+    card.focus();
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
