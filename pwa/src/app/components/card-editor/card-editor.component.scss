@@ -1,6 +1,7 @@
 
 @media only screen and (min-width: 768px) {
   .properties-width-container {
+    min-width: 350px !important;
     width: 350px !important;
   }
 }
@@ -8,5 +9,10 @@
 @media only screen and (max-width: 768px) {
   .properties-min-height-container {
     height: auto !important;
+  }
+
+  .properties-color-container {
+    border-left: none !important;
+    border-right: none !important;
   }
 }
