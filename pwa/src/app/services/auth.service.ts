@@ -66,8 +66,20 @@ export class AuthService {
   }
 
   private resetCurrentUser(): void {
-    this.currentUser$ = this.httpClient.get<User>('http://server/api/latest/users/current')
+    this.currentUser$ = this.httpClient.get<User>('http://server/api/latest/users/current', {
+      observe: 'response',
+    })
       .pipe(
+        tap(response => {
+          const originalUiHeader = 'x-original-ui';
+          if (response.headers.has(originalUiHeader)) {
+            const originalUiUrl = response.headers.get(originalUiHeader);
+            this.settingsService.setSetting(Setting.ForwardedApiUrl, originalUiUrl).subscribe();
+          } else {
+            this.settingsService.setSetting(Setting.ForwardedApiUrl, '').subscribe();
+          }
+        }),
+        map(response => response.body),
         shareReplay()
       );
   }

@@ -12,6 +12,7 @@ server {
         add_header 'Access-Control-Allow-Origin' '*' always;
         add_header 'Access-Control-Allow-Methods' '*' always;
         add_header 'Access-Control-Expose-Headers' '*' always;
+        add_header 'X-Original-UI' 'https://${KAITEN_HOST}/' always;
     }
 
     location ~ ^/files/(.*) {

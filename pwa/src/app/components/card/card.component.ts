@@ -10,9 +10,14 @@ import { MemberType } from '../../models/member-type';
 import { filter, finalize, map, Observable, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
-import { CopyToClipboardButtonComponent } from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
-import { Setting } from '../../models/setting';
-import { formatCardLinkForClipboard } from '../../functions/format-card-link-for-clipboard';
+import {
+  CopyToClipboardButtonComponent,
+  CopyToClipboardLinks
+} from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
+import {
+  formatClientCardLinkForClipboard,
+  formatKaitenCardLinkForClipboard
+} from '../../functions/format-kaiten-card-link-for-clipboard';
 import { SettingService } from '../../services/setting.service';
 import { getLaneColor } from '../../functions/get-lane-color';
 import { ServerCardEditorService } from '../../services/implementations/server-card-editor.service';
@@ -48,7 +53,7 @@ export class CardComponent {
   @Output() protected openRequest: EventEmitter<number> = new EventEmitter();
   protected active: boolean = false;
   protected focused: boolean = false;
-  protected clipboardLink$: Observable<string>;
+  protected clipboardLink$: Observable<CopyToClipboardLinks>;
   protected isSaving: boolean = false;
   protected isExtendedDataLoaded: boolean = false;
   protected isExtendedDataLoading: boolean = false;
@@ -80,9 +85,12 @@ export class CardComponent {
     private settingService: SettingService,
   ) {
     this.clipboardLink$ = this.settingService
-      .getSetting(Setting.ApiUrl)
+      .getBaseUrl()
       .pipe(
-        map(baseUrl => formatCardLinkForClipboard(baseUrl, this.card))
+        map(baseUrl => (<CopyToClipboardLinks>{
+          kaiten: formatKaitenCardLinkForClipboard(baseUrl, this.card),
+          client: formatClientCardLinkForClipboard(this.card)
+        }))
       );
   }
 

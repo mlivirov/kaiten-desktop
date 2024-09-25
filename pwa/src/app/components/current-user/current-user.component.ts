@@ -8,6 +8,10 @@ import { DialogService } from '../../services/dialog.service';
 import { AuthService } from '../../services/auth.service';
 import { Theme, ThemeManagerService } from '../../services/theme-manager.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SettingService } from '../../services/setting.service';
+import { LinkCopyStyle, Setting } from '../../models/setting';
+import { FormsModule } from '@angular/forms';
+import { finalize, forkJoin, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-current-user',
@@ -22,16 +26,20 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     NgbPopover,
     NgClass,
     JsonPipe,
-    NgbTooltip
+    NgbTooltip,
+    FormsModule
   ],
   templateUrl: './current-user.component.html',
   styleUrl: './current-user.component.scss'
 })
 export class CurrentUserComponent {
   @Input() public showText: boolean = true;
+  protected readonly LinkCopyStyle = LinkCopyStyle;
   protected profile?: User;
   protected avatarUrl?: string;
   protected currentTheme: Theme;
+  protected isLoading: boolean = false;
+  protected linkCopyStyle?: LinkCopyStyle;
 
   public constructor(
     private authService: AuthService,
@@ -39,12 +47,31 @@ export class CurrentUserComponent {
     private router: Router,
     private dialogService: DialogService,
     private themeManagerService: ThemeManagerService,
+    private settingService: SettingService
   ) {
-    authService
-      .getCurrentUser()
-      .subscribe(user => {
-        this.profile = user;
-        this.loadAvatarUrl();
+    this.isLoading = true;
+    forkJoin({
+      profileAndAvatar: authService.getCurrentUser()
+        .pipe(
+          switchMap(profile => forkJoin({
+            profile: of(profile),
+            avatar: avatarService.getUrl(profile)
+          }))),
+      linkCopyStyle: this.settingService.getSetting(Setting.LinkCopyStyle)
+    })
+      .pipe(
+        finalize(() => this.isLoading = false),
+      )
+      .subscribe(({profileAndAvatar, linkCopyStyle}) => {
+        this.profile = profileAndAvatar.profile;
+        this.avatarUrl = profileAndAvatar.avatar;
+
+        if (linkCopyStyle === LinkCopyStyle.CLIENT) {
+          this.linkCopyStyle = LinkCopyStyle.CLIENT;
+        } else {
+        // kaiten style is used when setting is not set
+          this.linkCopyStyle = LinkCopyStyle.KAITEN;
+        }
       });
 
     this.themeManagerService
@@ -69,12 +96,8 @@ export class CurrentUserComponent {
     this.themeManagerService.setTheme(theme).subscribe();
   }
 
-  private loadAvatarUrl(): void {
-    this.avatarService
-      .getUrl(this.profile)
-      .subscribe(url => {
-        this.avatarUrl = url;
-      });
+  protected setLinkCopyStyle(linkCopyStyle: LinkCopyStyle): void {
+    this.linkCopyStyle = linkCopyStyle;
+    this.settingService.setSetting(Setting.LinkCopyStyle, linkCopyStyle).subscribe();
   }
-  
 }

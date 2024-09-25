@@ -20,10 +20,15 @@ import { ThroughputReport, ThroughputReportService } from '../../../services/thr
 import { CardState } from '../../../models/card-state';
 import { Column } from '../../../models/column';
 import { TimespanPipe } from '../../../pipes/timespan.pipe';
-import { CopyToClipboardButtonComponent } from '../../copy-to-clipboard-button/copy-to-clipboard-button.component';
+import {
+  CopyToClipboardButtonComponent,
+  CopyToClipboardLinks
+} from '../../copy-to-clipboard-button/copy-to-clipboard-button.component';
 import { SettingService } from '../../../services/setting.service';
-import { Setting } from '../../../models/setting';
-import { formatCardLinkForClipboard } from '../../../functions/format-card-link-for-clipboard';
+import {
+  formatClientCardLinkForClipboard,
+  formatKaitenCardLinkForClipboard
+} from '../../../functions/format-kaiten-card-link-for-clipboard';
 import { Card } from '../../../models/card';
 import { nameof } from '../../../functions/name-of';
 import { ActivatedRoute } from '@angular/router';
@@ -163,13 +168,14 @@ export class CardCommentsComponent implements OnChanges {
     this.makeEntries();
   }
 
-  protected getEntryLink(entry: CardCommentViewModel): Observable<string> {
+  protected getEntryLink(entry: CardCommentViewModel): Observable<CopyToClipboardLinks> {
     return this.settingService
-      .getSetting(Setting.ApiUrl)
+      .getBaseUrl()
       .pipe(
-        map(baseUrl => {
-          return formatCardLinkForClipboard(baseUrl, this.card, entry.type, entry.id);
-        })
+        map(baseUrl => (<CopyToClipboardLinks>{
+          kaiten: formatKaitenCardLinkForClipboard(baseUrl, this.card, entry.type, entry.id),
+          client: formatClientCardLinkForClipboard(this.card, entry.type, entry.id)
+        }))
       );
   }
 

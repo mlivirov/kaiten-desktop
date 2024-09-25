@@ -46,9 +46,14 @@ import { CardState } from '../../models/card-state';
 import { BoardService } from '../../services/board.service';
 import { CardType } from '../../models/card-type';
 import { SettingService } from '../../services/setting.service';
-import { formatCardLinkForClipboard } from '../../functions/format-card-link-for-clipboard';
-import { Setting } from '../../models/setting';
-import { CopyToClipboardButtonComponent } from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
+import {
+  formatClientCardLinkForClipboard,
+  formatKaitenCardLinkForClipboard
+} from '../../functions/format-kaiten-card-link-for-clipboard';
+import {
+  CopyToClipboardButtonComponent,
+  CopyToClipboardLinks
+} from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
 import { CardAttachmentsComponent } from './card-attachments/card-attachments.component';
 import { DialogService } from '../../services/dialog.service';
 import { MdViewerComponent } from '../md-viewer/md-viewer.component';
@@ -115,7 +120,7 @@ export class CardEditorComponent implements OnInit {
   @Output() protected update: EventEmitter<number> = new EventEmitter();
   protected isCollapsedProperties: boolean = false;
   protected cardTypes: CardType[] = [];
-  protected clipboardLink$: Observable<string>;
+  protected clipboardLink$: Observable<CopyToClipboardLinks>;
 
   protected get propertiesHeight(): number {
     return window.outerHeight * 0.8;
@@ -130,9 +135,12 @@ export class CardEditorComponent implements OnInit {
     boardService.getCardTypes().subscribe(types => this.cardTypes = types);
 
     this.clipboardLink$ = this.settingService
-      .getSetting(Setting.ApiUrl)
+      .getBaseUrl()
       .pipe(
-        map(baseUrl => formatCardLinkForClipboard(baseUrl, this.card))
+        map(baseUrl => (<CopyToClipboardLinks>{
+          kaiten: formatKaitenCardLinkForClipboard(baseUrl, this.card),
+          client: formatClientCardLinkForClipboard(this.card)
+        }))
       );
   }
 
