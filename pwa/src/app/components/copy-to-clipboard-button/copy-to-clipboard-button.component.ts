@@ -3,17 +3,20 @@ import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { map, Observable, of, switchMap, take } from 'rxjs';
 import { SettingService } from '../../services/setting.service';
 import { LinkCopyStyle, Setting } from '../../models/setting';
+import { NgIf } from '@angular/common';
 
 export interface CopyToClipboardLinks {
   kaiten: string,
   client: string,
+  title: string
 }
 
 @Component({
   selector: 'app-copy-to-clipboard-button',
   standalone: true,
   imports: [
-    NgbTooltip
+    NgbTooltip,
+    NgIf
   ],
   templateUrl: './copy-to-clipboard-button.component.html',
   styleUrl: './copy-to-clipboard-button.component.scss'
@@ -28,17 +31,19 @@ export class CopyToClipboardButtonComponent {
   public constructor(private settingService: SettingService) {
   }
 
-  protected copy(): void {
-    const data$ = this.data instanceof Observable ? this.data : of(this.data);
+  protected copy(clickEvent: MouseEvent): void {
+    const data$: Observable<CopyToClipboardLinks> = this.data instanceof Observable ? this.data : of(this.data);
     data$
       .pipe(
         take(1),
         switchMap(data => {
           return this.settingService.getSetting(Setting.LinkCopyStyle).pipe(map(linkCopyStyle => {
-            if (linkCopyStyle === LinkCopyStyle.CLIENT) {
-              return data.client;
+            const url = linkCopyStyle === LinkCopyStyle.CLIENT ? data.client : data.kaiten;
+
+            if (clickEvent.ctrlKey) {
+              return `[${data.title}](${url})`;
             } else {
-              return data.kaiten;
+              return url;
             }
           }));
         })

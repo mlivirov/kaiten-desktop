@@ -47,6 +47,7 @@ import { BoardService } from '../../services/board.service';
 import { CardType } from '../../models/card-type';
 import { SettingService } from '../../services/setting.service';
 import {
+  formatCardLinkTitle,
   formatClientCardLinkForClipboard,
   formatKaitenCardLinkForClipboard
 } from '../../functions/format-kaiten-card-link-for-clipboard';
@@ -139,7 +140,8 @@ export class CardEditorComponent implements OnInit {
       .pipe(
         map(baseUrl => (<CopyToClipboardLinks>{
           kaiten: formatKaitenCardLinkForClipboard(baseUrl, this.card),
-          client: formatClientCardLinkForClipboard(this.card)
+          client: formatClientCardLinkForClipboard(this.card),
+          title: formatCardLinkTitle(this.card)
         }))
       );
   }

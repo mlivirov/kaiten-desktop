@@ -8,10 +8,10 @@ export function formatKaitenCardLinkForClipboard(baseUrl: string, card: Card, el
 
   let url = baseUrl.substring(0, slashIndex) + '/' + card.id.toString();
   if (elementType && elementId) {
-    url += `#focus=${elementType}&focusId=${elementId}`;
+    url += `?focus=${elementType}&focusId=${elementId}`;
   }
 
-  return `[${card.id} - ${card.title}](${url})`;
+  return url;
 }
 
 export function formatClientCardLinkForClipboard(card: Card, elementType?: string, elementId?: number): string {
@@ -21,4 +21,8 @@ export function formatClientCardLinkForClipboard(card: Card, elementType?: strin
   }
 
   return url;
+}
+
+export function formatCardLinkTitle(card: Card): string {
+  return `${card.id} - ${card.title}`;
 }

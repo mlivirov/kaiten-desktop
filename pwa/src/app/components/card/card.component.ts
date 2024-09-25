@@ -15,6 +15,7 @@ import {
   CopyToClipboardLinks
 } from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
 import {
+  formatCardLinkTitle,
   formatClientCardLinkForClipboard,
   formatKaitenCardLinkForClipboard
 } from '../../functions/format-kaiten-card-link-for-clipboard';
@@ -89,7 +90,8 @@ export class CardComponent {
       .pipe(
         map(baseUrl => (<CopyToClipboardLinks>{
           kaiten: formatKaitenCardLinkForClipboard(baseUrl, this.card),
-          client: formatClientCardLinkForClipboard(this.card)
+          client: formatClientCardLinkForClipboard(this.card),
+          title: formatCardLinkTitle(this.card)
         }))
       );
   }
