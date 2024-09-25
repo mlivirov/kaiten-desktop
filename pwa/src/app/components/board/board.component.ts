@@ -74,6 +74,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   private cardsSizeByRootColumnId: Record<number, number> = {};
   private customColumns: number[][] = [];
   private unsubscribe$: Subject<void> = new Subject();
+  private focusedCard?: CardComponent;
 
   public constructor(
     private authService: AuthService,
@@ -170,8 +171,10 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public focusCard(cardId: number): void {
+    this.focusedCard?.unfocus();
     const card = this.cardComponents.find(t => t.card.id == cardId);
     card.focus();
+    this.focusedCard = card;
   }
 
   public ngOnChanges(changes: SimpleChanges): void {

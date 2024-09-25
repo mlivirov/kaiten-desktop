@@ -47,7 +47,7 @@ export class CardComponent {
   @Output() protected updated: EventEmitter<CardEx> = new EventEmitter<CardEx>();
   @Output() protected openRequest: EventEmitter<number> = new EventEmitter();
   protected active: boolean = false;
-  protected highlight: boolean = false;
+  protected focused: boolean = false;
   protected clipboardLink$: Observable<string>;
   protected isSaving: boolean = false;
   protected isExtendedDataLoaded: boolean = false;
@@ -86,14 +86,17 @@ export class CardComponent {
       );
   }
 
+  public unfocus(): void {
+    this.focused = false;
+  }
+
   public focus(): void {
     this.elementRef.nativeElement.scrollIntoView({
       block: 'center',
       behavior: 'instant',
     });
 
-    this.highlight = true;
-    setTimeout(() => this.highlight = false, 1000);
+    this.focused = true;
   }
 
   protected getBackgroundColor(): string {

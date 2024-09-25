@@ -7,6 +7,7 @@ $enable-negative-margins: true;
 @import "../node_modules/simplemde/dist/simplemde.min.css";
 
 $gray-1000: #131e28;
+$kaiten: #8146D3;
 
 .mt-2-next + .mt-2-next {
   margin-top: 0.25rem;
@@ -255,11 +256,11 @@ $bg-gray: #F7F9FA;
 
 .bg-kaiten {
   @extend .text-white;
-  background-color: #8146D3;
+  background-color: $kaiten;
 }
 
 .text-kaiten {
-  color: #8146D3;
+  color: $kaiten;
 }
 
 body {
@@ -342,6 +343,10 @@ app-list-of-related-cards .list .item:last-child {
 
 .btn-icon-sm.dropdown-toggle:after {
   display: none;
+}
+
+.shadow-primary {
+  box-shadow: 0 0 0.5rem rgba($primary, 0.8) !important;
 }
 
 .shake {

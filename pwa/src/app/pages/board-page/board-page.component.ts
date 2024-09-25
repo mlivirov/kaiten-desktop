@@ -14,7 +14,7 @@ import { CardFilter } from '../../services/card-search.service';
 import { HttpParams } from '@angular/common/http';
 import { User } from '../../models/user';
 import { Tag } from '../../models/tag';
-import { filter, Subject, switchMap, take } from 'rxjs';
+import { filter, Subject, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-board-page',
@@ -72,10 +72,8 @@ export class BoardPageComponent {
       .pipe(
         switchMap(() => activatedRoute.fragment),
         filter(f => !!f),
-        take(1)
       )
       .subscribe(data => {
-        console.log('test');
         const params = new HttpParams({ fromString: data });
         if (params.has('card')) {
           const cardId = Number.parseInt(params.get('card'));
@@ -86,8 +84,13 @@ export class BoardPageComponent {
 
   protected openCard(id: number): void {
     let fragment = `card=${id}`;
+    let serializedFilter = null;
     if (this.filterValue) {
-      fragment += '&'+this.serializeCardFilterToUrlParams(this.filterValue);
+      serializedFilter = this.serializeCardFilterToUrlParams(this.filterValue);
+    }
+
+    if (serializedFilter?.length) {
+      fragment += '&' + serializedFilter;
     }
 
     this.router.navigate(['board', this.board.id], {

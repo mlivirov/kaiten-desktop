@@ -5,7 +5,7 @@ import { CardEx } from '../models/card-ex';
 export function getCardState(column: Column, subcolumn?: Column): CardState {
   return subcolumn?.type === CardState.Done && column.type === CardState.InProgress
     ? CardState.Queued
-    : Math.min(subcolumn?.type ?? CardState.Done, column.type)
+    : Math.min(subcolumn?.type ?? CardState.Done, column.type);
 }
 
 export function getCardStateByCard(card: CardEx): CardState {

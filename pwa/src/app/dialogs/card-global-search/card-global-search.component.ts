@@ -57,6 +57,7 @@ export class CardGlobalSearchComponent {
   protected filter: CardFilter;
   protected hasMore = false;
   @ViewChild('cardSearchInput', { read: CardSearchInputComponent }) protected cardSearchInput: CardSearchInputComponent;
+  protected readonly getCardColumnTitle = getCardColumnTitle;
   private offset = 0;
   private readonly limit = 25;
 
@@ -170,6 +171,5 @@ export class CardGlobalSearchComponent {
       this.cardSearchInput?.focus();
     }
   }
-
-  protected readonly getCardColumnTitle = getCardColumnTitle;
+  
 }

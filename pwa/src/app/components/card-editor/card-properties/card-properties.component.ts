@@ -45,7 +45,7 @@ import { CardState } from '../../../models/card-state';
 import { getLaneColor } from '../../../functions/get-lane-color';
 import { nameof } from '../../../functions/name-of';
 import { DialogService } from '../../../services/dialog.service';
-import { getCardState, getCardStateByCard } from '../../../functions/get-card-state';
+import { getCardStateByCard } from '../../../functions/get-card-state';
 
 interface CustomDatePropertyValue {
   date: string;

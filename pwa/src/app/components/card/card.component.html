@@ -1,5 +1,5 @@
 <div
-  class="p-2 mb-2 shadow border border-1 border-opacity-25 rounded position-relative overflow-hidden"
+  class="p-2 mb-2 border border-1 border-opacity-25 rounded position-relative overflow-hidden"
   style="{{getBackgroundColor()}}"
   [class.bg-light-subtle]="getBackgroundColor() === ''"
   (mouseover)="active = true"
@@ -7,7 +7,9 @@
   (focusin)="active = true"
   (focusout)="active = false"
   *ngIf="card"
-  [class.shake]="highlight"
+  [class.border-primary]="focused"
+  [class.shadow-primary]="focused"
+  [class.shadow]="!focused"
 >
   <div
     class="d-flex align-items-center mb-2"
