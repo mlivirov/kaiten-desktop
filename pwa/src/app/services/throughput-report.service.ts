@@ -5,6 +5,7 @@ import { Lane } from '../models/lane';
 import { Column } from '../models/column';
 import { CardActivity } from '../models/card-activity';
 import { CardState } from '../models/card-state';
+import { getCardState } from '../functions/get-card-state';
 
 export interface ThroughputReportEntry {
   board?: Board;
@@ -59,9 +60,7 @@ export class ThroughputReportService {
           lane: prevVal.lane,
           column: prevVal.column,
           subcolumn: prevVal.subcolumn,
-          type: prevVal.subcolumn?.type === CardState.Done && prevVal.column.type === CardState.InProgress
-            ? CardState.Queued
-            : Math.min(prevVal.subcolumn?.type ?? CardState.Done, prevVal.column.type),
+          type: getCardState(prevVal.column, prevVal.subcolumn),
           startedAt: prevVal.created
         };
       })

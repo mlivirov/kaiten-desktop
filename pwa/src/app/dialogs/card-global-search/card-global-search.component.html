@@ -39,7 +39,7 @@
           <a
             href="javascript:void(0)"
             (click)="openBoard(card.board_id); $event.stopPropagation()"
-          >{{card.board.title}} / {{ getTextOrDefault(card.column.title) }} </a>
+          >{{card.board.title}} / {{ getCardColumnTitle(card) }} </a>
         </div>
         <div class="font-size-medium d-flex justify-content-between align-items-start">
           <div class="flex-grow-1 d-flex align-items-center">
@@ -67,7 +67,7 @@
             </a>
           </div>
           <div class="small text-nowrap d-flex flex-wrap justify-content-center align-items-center">
-            <app-card-state-label [state]="card.state"></app-card-state-label>
+            <app-card-state-label [state]="getCardStateByCard(card)"></app-card-state-label>
             <span
               *ngIf="card.archived"
               class="text-kaiten ms-2"
@@ -98,7 +98,7 @@
           <th *ngIf="selectMode !== 'none'">
             <i class="pi pi-ellipsis-h"></i>
           </th>
-          <th [class.ps-2]="selectMode === 'none'">Board</th>
+          <th [class.ps-2]="selectMode === 'none'">Location</th>
           <th>Id</th>
           <th>Title</th>
           <th>Responsible</th>
@@ -145,7 +145,7 @@
               href="javascript:void(0)"
               (click)="openBoard(card.board_id); $event.stopPropagation()"
             >
-              {{card.board.title}}
+              {{card.board.title}} / {{getCardColumnTitle(card)}}
             </a>
           </td>
           <td>
@@ -166,7 +166,7 @@
           <td class="text-nowrap text-center">
             <app-card-state-label
               class="d-block"
-              [state]="card.state"
+              [state]="getCardStateByCard(card)"
             ></app-card-state-label>
           </td>
           <td class="text-center">

@@ -45,6 +45,7 @@ import { CardState } from '../../../models/card-state';
 import { getLaneColor } from '../../../functions/get-lane-color';
 import { nameof } from '../../../functions/name-of';
 import { DialogService } from '../../../services/dialog.service';
+import { getCardState, getCardStateByCard } from '../../../functions/get-card-state';
 
 interface CustomDatePropertyValue {
   date: string;
@@ -335,7 +336,7 @@ export class CardPropertiesComponent implements OnChanges {
       title: 'Common',
       properties: [
         <EditorProperty>{ label: 'Sprint', value: this.card.sprint_id, multi: false, name: 'sprint', type: 'plain' },
-        <EditorProperty>{ label: 'State', value: this.card.state, multi: false, name: 'state', type: 'state' },
+        <EditorProperty>{ label: 'State', value: getCardStateByCard(this.card), multi: false, name: 'state', type: 'state' },
         <EditorProperty>{ label: 'Size', value: this.card.size, multi: false, name: 'size', type: 'size' },
         <EditorProperty>{ label: 'Lane', value: this.card.lane, multi: false, name: 'lane', type: 'lane', clickable: true },
         <EditorProperty>{ label: 'Board', value: this.card.board, multi: false, name: 'board', type: 'title', clickable: true },

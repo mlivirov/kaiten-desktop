@@ -19,6 +19,8 @@ import { finalize } from 'rxjs';
 import { CardFilter, CardSearchService } from '../../services/card-search.service';
 import { getTextOrDefault } from '../../functions/get-text-or-default';
 import { Owner } from '../../models/owner';
+import { getCardStateByCard } from '../../functions/get-card-state';
+import { getCardColumnTitle } from '../../functions/get-card-column-title';
 
 export type CardSearchSelectMode = 'single'|'multiple'|'none';
 
@@ -46,6 +48,7 @@ export type CardSearchSelectMode = 'single'|'multiple'|'none';
 export class CardGlobalSearchComponent {
   @Input() public title: string;
   @Input() public selectMode: CardSearchSelectMode = 'none';
+  protected readonly getCardStateByCard = getCardStateByCard;
   protected readonly getTextOrDefault = getTextOrDefault;
   protected selected: Record<number, CardEx> = {};
   protected showSelected: boolean = false;
@@ -167,5 +170,6 @@ export class CardGlobalSearchComponent {
       this.cardSearchInput?.focus();
     }
   }
-  
+
+  protected readonly getCardColumnTitle = getCardColumnTitle;
 }
