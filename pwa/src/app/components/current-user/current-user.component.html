@@ -48,8 +48,8 @@
         <i class="pi pi-sign-out"></i>
       </button>
     </div>
-    <div class="mt-2">
-      <div>Theme</div>
+    <div class="mt-3">
+      <div class="mb-2">Theme</div>
       <div
         class="btn-group"
         role="group"
@@ -85,7 +85,7 @@
       </div>
     </div>
     <div class="mt-3">
-      <div class="mb-2">Type of links:</div>
+      <div class="mb-2">Type of links</div>
 
       <div class="form-check">
         <input
@@ -119,6 +119,44 @@
           for="linkTypeKaiten"
         >
           Kaiten Original
+        </label>
+      </div>
+    </div>
+    <div class="mt-3 d-none d-md-block">
+      <div class="mb-2">Board style</div>
+
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="boardStyle"
+          id="boardStyleVertical"
+          [value]="BoardStyle.Vertical"
+          [ngModel]="boardStyle"
+          (ngModelChange)="setBoardStyle($event)"
+        >
+        <label
+          class="form-check-label"
+          for="boardStyleVertical"
+        >
+          Vertical
+        </label>
+      </div>
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="bordStyle"
+          id="boardStyleHorizontalCollapsable"
+          [value]="BoardStyle.HorizontalCollapsible"
+          [ngModel]="boardStyle"
+          (ngModelChange)="setBoardStyle($event)"
+        >
+        <label
+          class="form-check-label"
+          for="boardStyleHorizontalCollapsable"
+        >
+          Horizontal Collapsible
         </label>
       </div>
     </div>

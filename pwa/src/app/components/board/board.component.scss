@@ -1,5 +1,7 @@
+@import 'bootstrap/scss/bootstrap';
+
 .column-header {
-  top: 55px;
+  top: 54px;
 }
 
 .subcolumn-header {
@@ -31,4 +33,44 @@
 .column {
   display: flex;
   flex-direction: column;
+}
+
+.grid-column :has(.all-collapsed) {
+  flex-direction: row;
+}
+
+[data-board-style="Vertical"] {
+  .column-content + .column-content {
+    border-top: 1px dashed $border-color !important;
+  }
+}
+
+[data-board-style="HorizontalCollapsible"] {
+  .subcolumn-header-container {
+    top: 31px;
+  }
+
+  .column-header {
+    border-left: none !important;
+    border-right: none !important;
+    min-width: 30px !important;
+  }
+
+  .column-header-content.sticky-top {
+    top: 35px !important;
+    margin-top: 11px !important;
+  }
+
+  .subcolumn-header {
+    top: 35px !important;
+  }
+
+  .grid-column + .grid-column,
+  .column-content + .column-content {
+    border-left: 1px solid $border-color;
+  }
+
+  .column-content {
+    //border-bottom: 1px solid $border-color !important;
+  }
 }

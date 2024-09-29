@@ -13,7 +13,7 @@ import {
   SimpleChanges,
   ViewChildren
 } from '@angular/core';
-import { JsonPipe, NgClass, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
+import { JsonPipe, NgClass, NgForOf, NgIf, NgStyle, NgTemplateOutlet } from '@angular/common';
 import { CardComponent } from '../card/card.component';
 import { CardEx } from '../../models/card-ex';
 import { finalize, map, Observable, of, Subject, switchMap, takeUntil, tap, zip } from 'rxjs';
@@ -30,10 +30,16 @@ import { CardFilter, CardSearchService } from '../../services/card-search.servic
 import { BoardBase } from '../../models/board';
 import { WipLimitType } from '../../models/wip-limit-type';
 import { getTextOrDefault } from '../../functions/get-text-or-default';
+import { nameof } from '../../functions/name-of';
 
 // TODO: extract into separate function
 function colSortPredicate(a, b): number {
   return a.sort_order - b.sort_order;
+}
+
+export enum BoardStyle {
+  Vertical = 'Vertical',
+  HorizontalCollapsible = 'HorizontalCollapsible',
 }
 
 interface BoardViewColumn {
@@ -51,7 +57,8 @@ interface BoardViewColumn {
     NgIf,
     JsonPipe,
     NgbTooltip,
-    DragulaModule
+    DragulaModule,
+    NgStyle
   ],
   templateUrl: './board.component.html',
   styleUrl: './board.component.scss'
@@ -60,21 +67,26 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   @Input() public columns: ColumnEx[];
   @Input() public cards: CardEx[];
   @Input() public board: BoardBase;
+  @Input() public boardStyle?: BoardStyle;
   @ViewChildren(CardComponent) protected cardComponents: QueryList<CardComponent> = new QueryList();
   @Output() protected openCard: EventEmitter<number> = new EventEmitter();
   @Output() protected loaded: EventEmitter<void> = new EventEmitter();
   protected readonly getTextOrDefault = getTextOrDefault;
+  protected readonly BoardStyle = BoardStyle;
+  protected currentBoardStyle: BoardStyle;
   protected currentUser?: User;
   protected cardsByColumnId: { [key: number]: CardEx[] } = {};
   protected viewColumns: BoardViewColumn[];
   protected hideEmpty: boolean = false;
   protected cardsCountByRootColumnId: Record<number, number> = {};
+  protected cardsCountByColumnId: Record<number, number> = {};
+  protected collapsedColumns: Record<number, boolean> = {};
   private filterValue?: CardFilter;
   private isBoardLoading: boolean = false;
   private cardsSizeByRootColumnId: Record<number, number> = {};
   private customColumns: number[][] = [];
   private unsubscribe$: Subject<void> = new Subject();
-  private focusedCard?: CardComponent;
+  private focusedCardComponent?: CardComponent;
 
   public constructor(
     private authService: AuthService,
@@ -119,8 +131,9 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     dragulaService.createGroup('COLUMN', {
       removeOnSpill: true,
       moves: (el, container, handle) => {
-        return (handle.parentElement.classList.contains('column-title') || handle.classList.contains('column-title'))
-                && Math.min(window.outerWidth, window.outerHeight) > 540;
+        return (handle.closest('.column-title'))
+                && Math.min(window.outerWidth, window.outerHeight) > 540
+                && this.currentBoardStyle === BoardStyle.Vertical;
       },
       accepts: (el, target, source) => {
         const targetIndex = Number.parseInt(target.getAttribute('data-view-column-index'));
@@ -159,9 +172,13 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         })
       )
       .subscribe();
+
+    this.updateCurrentBoardStyle();
   }
 
   public ngOnInit(): void {
+    this.updateCurrentBoardStyle();
+    this.rearrangeColumns();
     this.authService.getCurrentUser().subscribe(t => this.currentUser = t);
   }
 
@@ -171,17 +188,27 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public focusCard(cardId: number): void {
-    this.focusedCard?.unfocus();
-    const card = this.cardComponents.find(t => t.card.id == cardId);
-    card.focus();
-    this.focusedCard = card;
+    const card = this.cards.find(t => t.id === cardId);
+    if (!card) {
+      return;
+    }
+
+    if (this.collapsedColumns[card.column_id]) {
+      this.toggleColumnCollapsed(card.column_id);
+      setTimeout(() => {
+        this.doFocusCard(cardId);
+      }, 1);
+    } else {
+      this.doFocusCard(cardId);
+    }
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['cards'].currentValue && changes['columns']?.currentValue) {
+    if (changes[nameof<BoardComponent>('cards')]?.currentValue && changes[nameof<BoardComponent>('columns')]?.currentValue) {
       this.refresh(false);
-    } else if (changes['boardId']) {
-      this.refresh(true);
+    } else if (changes[nameof<BoardComponent>('boardStyle')]) {
+      this.updateCurrentBoardStyle();
+      this.refresh(false);
     }
   }
 
@@ -200,14 +227,16 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       pullData ? this.boardService.getColumns(this.board.id) : of(this.columns),
       pullData ? this.cardSearchService.searchCards({ boardId: this.board.id }) : of(this.cards),
       this.boardService.getCustomColumns(this.board.id),
+      this.boardService.getCollapsedColumns(this.board.id),
     )
       .pipe(
         finalize(() => this.isBoardLoading = false)
       )
-      .subscribe(([columns, cards, customColumns]) => {
+      .subscribe(([columns, cards, customColumns, collapsedColumns]) => {
         this.columns = columns;
         this.cards = cards?.filter(c => !c.archived);
         this.customColumns = customColumns;
+        this.collapsedColumns = collapsedColumns;
 
         this.mapCardsByColumnId(this.cards);
         this.sortColumns();
@@ -217,13 +246,55 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         this.loaded.emit();
       });
   }
-  
+
   protected getColumnLimitFulfillment(columnId: number, limitType: WipLimitType): number {
     if (limitType === WipLimitType.Size) {
       return this.cardsSizeByRootColumnId[columnId];
     }
 
     return this.cardsCountByRootColumnId[columnId];
+  }
+
+  protected toggleRootColumnCollapsed(column: ColumnEx): void {
+    this.collapsedColumns[column.id] = !this.collapsedColumns[column.id];
+
+    column.subcolumns?.forEach((subcolumn) => {
+      this.collapsedColumns[subcolumn.id] = this.collapsedColumns[column.id];
+    });
+
+    this.boardService.setCollapsedColumns(this.board.id, this.collapsedColumns).subscribe();
+  }
+
+  protected toggleColumnCollapsed(columnId: number): void {
+    if (this.currentBoardStyle !== BoardStyle.HorizontalCollapsible) {
+      return;
+    }
+
+    this.collapsedColumns[columnId] = !this.collapsedColumns[columnId];
+    this.boardService.setCollapsedColumns(this.board.id, this.collapsedColumns).subscribe();
+  }
+
+  protected checkViewColumnCollapsed(viewColumnIndex: number): boolean {
+    return this.viewColumns[viewColumnIndex].columns.every(c => this.checkAllSubColumnsCollapsed(c));
+  }
+
+  protected checkAllSubColumnsCollapsed(column: ColumnEx): boolean {
+    return !!column.subcolumns?.map(t => t.id).every(t => this.collapsedColumns[t]) || (!column.subcolumns && this.collapsedColumns[column.id]);
+  }
+
+  private updateCurrentBoardStyle(): void {
+    if (!this.boardStyle || Math.min(window.outerWidth, window.outerHeight) < 768) {
+      this.currentBoardStyle = BoardStyle.Vertical;
+    } else {
+      this.currentBoardStyle = this.boardStyle;
+    }
+  }
+
+  private doFocusCard(cardId: number): void {
+    this.focusedCardComponent?.unfocus();
+    const cardComponent = this.cardComponents.find(t => t.card.id == cardId);
+    cardComponent.focus();
+    this.focusedCardComponent = cardComponent;
   }
 
   private moveCardToColumn(cardId: number, fromId: number, toId: number): Observable<void> {
@@ -277,7 +348,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
 
     for (const col of this.columns) {
       const requiresCustomization = this.customColumns.reduce((a, i) => [...a, ...i], []).some(t => t === col.id);
-      if (requiresCustomization) {
+      if (requiresCustomization && this.currentBoardStyle === BoardStyle.Vertical) {
         const customGroup = this.customColumns.find(t => t.some(c => c === col.id));
 
         const existingViewColumn = this.viewColumns.find(t => t.columns.map(c => c.id).some(c => customGroup.indexOf(c) != -1));
@@ -355,9 +426,19 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       this.hideEmpty = !this.hideEmpty;
     }
   }
+
+  @HostListener('window:resize', ['$event'])
+  private handleWindowResize(event: Event): void {
+    const lastBoardStyle = this.currentBoardStyle;
+    this.updateCurrentBoardStyle();
+    if (lastBoardStyle !== this.currentBoardStyle) {
+      this.rearrangeColumns();
+    }
+  }
   
   private countCards(): void {
     this.cardsCountByRootColumnId = {};
+    this.cardsCountByColumnId = {};
     this.cardsSizeByRootColumnId = {};
     for (const card of this.cards) {
       for (const column of this.columns) {
@@ -366,21 +447,31 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
           this.cardsSizeByRootColumnId[column.id] = 0;
         }
 
+        if (!this.cardsCountByColumnId[column.id]) {
+          this.cardsCountByColumnId[column.id] = 0;
+        }
+
         if (card.column_id === column.id) {
+          this.cardsCountByColumnId[column.id]++;
           this.cardsCountByRootColumnId[column.id]++;
           this.cardsSizeByRootColumnId[column.id] += card.size;
           break;
         }
 
         for (const subcolumn of column.subcolumns || []) {
+          if (!this.cardsCountByColumnId[subcolumn.id]) {
+            this.cardsCountByColumnId[subcolumn.id] = 0;
+          }
+
           if (card.column_id === subcolumn.id) {
             this.cardsCountByRootColumnId[column.id]++;
             this.cardsSizeByRootColumnId[column.id] += card.size;
+            this.cardsCountByColumnId[subcolumn.id]++;
+
             break;
           }
         }
       }
     }
   }
-  
 }

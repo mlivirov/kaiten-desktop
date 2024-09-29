@@ -38,6 +38,8 @@ import {
 import { BlockBlocker } from '../models/block-blocker.model';
 import { CardBlockDialogComponent } from '../dialogs/card-block-dialog/card-block-dialog.component';
 import { PromptAction, PromptDialogComponent } from '../dialogs/prompt-dialog/prompt-dialog.component';
+import { BoardStyle } from '../components/board/board.component';
+import { BoardStyleDialogComponent } from '../dialogs/board-style-dialog/board-style-dialog.component';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
@@ -210,6 +212,35 @@ export class DialogService {
       beforeDismiss() {
         return closable;
       }
+    });
+
+    this.activeModals.push(instance);
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        })
+      );
+  }
+
+  public selectBoardStyle(): Observable<BoardStyle> {
+    if (this.activeModals.some(modal => modal.componentInstance instanceof BoardStyleDialogComponent)) {
+      return EMPTY;
+    }
+
+    const instance = this.modal.open(BoardStyleDialogComponent, {
+      beforeDismiss() {
+        return false;
+      },
+      size: 'lg'
     });
 
     this.activeModals.push(instance);

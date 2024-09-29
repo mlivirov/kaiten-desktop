@@ -314,6 +314,7 @@ app-list-of-related-cards .list .item:last-child {
 }
 
 
+.hidden,
 * .visible-on-hover {
   visibility: hidden;
 }
@@ -322,15 +323,20 @@ app-list-of-related-cards .list .item:last-child {
   visibility: visible;
 }
 
+
 .pi {
   font-size: 0.8em;
 }
 
 .btn-icon-sm {
   padding: 0;
-  width: 1rem;
-  height: 1rem;
+  width: 1rem !important;
+  height: 1rem !important;
+  max-width: 1rem !important;
+  max-height: 1rem !important;
   position: relative;
+  text-orientation: initial;
+  writing-mode: initial;
 }
 
 .btn-icon-sm i.pi {
@@ -406,4 +412,10 @@ app-list-of-related-cards .list .item:last-child {
 
 .ptr--ptr *{
   color: $secondary !important;
+}
+
+
+.text-vertical {
+  text-orientation: mixed;
+  writing-mode: vertical-rl;
 }

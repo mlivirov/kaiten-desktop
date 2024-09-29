@@ -1,0 +1,86 @@
+
+<div class="modal-header">
+  <h1
+    class="modal-title fs-5"
+    id="exampleModalLabel"
+  >Select board style</h1>
+</div>
+<div class="modal-body">
+  <div class="grid">
+    <div class="row">
+      <div class="col-6">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="boardStyle"
+            id="boardStyleVertical"
+            [value]="BoardStyle.Vertical"
+            [(ngModel)]="boardStyle"
+          >
+          <label
+            class="form-check-label"
+            for="boardStyleVertical"
+          >
+            <div>Vertical</div>
+            <div class="small mt-2">This is the default style for small screen resolutions. Subcolumns are placed vertically, one after the other. Columns can be manually stacked for better board visibility.</div>
+          </label>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="bordStyle"
+            id="boardStyleHorizontalCollapsable"
+            [value]="BoardStyle.HorizontalCollapsible"
+            [(ngModel)]="boardStyle"
+          >
+          <label
+            class="form-check-label"
+            for="boardStyleHorizontalCollapsable"
+          >
+            <div>Horizontal Collapsible</div>
+            <div class="small mt-2">This style is better suited for large screen resolutions. Columns and subcolumns are arranged from left to right. You can collapse and expand columns as needed.</div>
+
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="row d-none d-lg-flex">
+      <div class="col-6 text-center">
+        <img
+          class="mt-2 ms-2"
+          alt="demo"
+          src="/assets/verticalDemo.gif"
+          width="320"
+          height="174"
+        >
+      </div>
+      <div class="col-6 text-center">
+        <img
+          class="mt-2 ms-2"
+          alt="demo"
+          src="/assets/horizontalCollapsibleDemo.gif"
+          width="320"
+          height="174"
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="opacity-75 mt-4">
+    <i>Hint: You can change board style at any time later in the settings menu.</i>
+  </div>
+</div>
+<div class="modal-footer">
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="modal.close(boardStyle)"
+    [disabled]="!boardStyle"
+  >
+    Continue
+  </button>
+</div>

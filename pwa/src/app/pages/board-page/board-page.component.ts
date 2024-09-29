@@ -1,7 +1,7 @@
 import { Component, HostListener, ViewChild } from '@angular/core';
 import { CurrentUserComponent } from '../../components/current-user/current-user.component';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
-import { BoardComponent } from '../../components/board/board.component';
+import { BoardComponent, BoardStyle } from '../../components/board/board.component';
 import { BoardBase } from '../../models/board';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgIf } from '@angular/common';
@@ -14,7 +14,11 @@ import { CardFilter } from '../../services/card-search.service';
 import { HttpParams } from '@angular/common/http';
 import { User } from '../../models/user';
 import { Tag } from '../../models/tag';
-import { filter, Subject, switchMap } from 'rxjs';
+import { EMPTY, filter, of, Subject, switchMap, tap } from 'rxjs';
+import { Setting } from '../../models/setting';
+import { SettingService } from '../../services/setting.service';
+import { DialogService } from '../../services/dialog.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-board-page',
@@ -35,6 +39,7 @@ export class BoardPageComponent {
   protected boardCards: CardEx[] = [];
   protected boardColumns: ColumnEx[] = [];
   protected filterValue?: CardFilter;
+  protected boardStyle: BoardStyle = BoardStyle.Vertical;
   @ViewChild('cardSearchInput', { read: CardSearchInputComponent }) private cardSearchInput: CardSearchInputComponent;
   @ViewChild('boardComponent', { read: BoardComponent }) private boardComponent: BoardComponent;
   private boardLoaded$: Subject<void> = new Subject();
@@ -43,6 +48,8 @@ export class BoardPageComponent {
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private currentBoardService: CurrentBoardService,
+    private settingService: SettingService,
+    private dialogService: DialogService
   ) {
     activatedRoute
       .data
@@ -79,6 +86,33 @@ export class BoardPageComponent {
           const cardId = Number.parseInt(params.get('card'));
           setTimeout(() => this.boardComponent.focusCard(cardId), 1);
         }
+      });
+
+    this.settingService
+      .getSetting(Setting.BoardStyle)
+      .pipe(
+        switchMap(t => t
+          ? of(t)
+          : Math.min(window.outerWidth, window.outerHeight) < 768
+          ? of(BoardStyle.Vertical)
+          : this.dialogService
+            .selectBoardStyle()
+            .pipe(
+              tap(boardStyle => this.settingService.setSetting(Setting.BoardStyle, boardStyle).subscribe()),
+              switchMap(() => EMPTY)
+            )),
+      )
+      .subscribe(boardStyle => {
+        this.boardStyle = <BoardStyle>boardStyle;
+      });
+
+    this.settingService.changes$
+      .pipe(
+        takeUntilDestroyed(),
+        filter(t => t.setting === Setting.BoardStyle)
+      )
+      .subscribe(boardStyle => {
+        this.boardStyle = <BoardStyle>boardStyle.value;
       });
   }
 
@@ -200,5 +234,4 @@ export class BoardPageComponent {
 
     return result;
   }
-  
 }

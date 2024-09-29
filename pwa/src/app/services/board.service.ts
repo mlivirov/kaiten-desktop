@@ -15,6 +15,30 @@ export class BoardService {
   public constructor(private httpClient: HttpClient, private settingsService: SettingService) {
   }
 
+  public getCollapsedColumns(boardId: number): Observable<Record<number, boolean>> {
+    return this.settingsService
+      .getSetting(Setting.CollapsedColumns)
+      .pipe(
+        map(data => {
+          const parsed = data ? JSON.parse(data) as Record<number, Record<number, boolean>> : {};
+          return parsed[boardId] ?? {};
+        })
+      );
+  }
+
+  public setCollapsedColumns(boardId: number, columns: Record<number, boolean>): Observable<void> {
+    return this.settingsService
+      .getSetting(Setting.CollapsedColumns)
+      .pipe(
+        switchMap(data => {
+          const parsed = data ? JSON.parse(data) as Record<number, Record<number, boolean>> : {};
+          parsed[boardId] = columns;
+
+          return this.settingsService.setSetting(Setting.CollapsedColumns, JSON.stringify(parsed));
+        })
+      );
+  }
+
   public getCustomColumns(boardId: number): Observable<number[][]> {
     return this.settingsService
       .getSetting(Setting.CustomColumns)
