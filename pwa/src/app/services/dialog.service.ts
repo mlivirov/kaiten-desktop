@@ -374,11 +374,10 @@ export class DialogService {
         return closable;
       },
       size: 'xl',
-      modalDialogClass: 'modal-90-prc'
+      modalDialogClass: 'modal-90-prc',
     });
 
     instance.componentInstance.card = card;
-
     this.activeModals.push(instance);
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias

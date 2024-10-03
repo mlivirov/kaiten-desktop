@@ -1,4 +1,4 @@
-import { Component, HostListener, Inject, Input } from '@angular/core';
+import { Component, HostListener, Inject, Input, ViewChild } from '@angular/core';
 import { CardEditorComponent } from '../../components/card-editor/card-editor.component';
 import { NgIf } from '@angular/common';
 import { CardEx } from '../../models/card-ex';
@@ -23,12 +23,13 @@ import { MemberType } from '../../models/member-type';
 })
 export class NewCardDialogComponent {
   @Input() public card: CardEx;
+  @ViewChild(CardEditorComponent) protected cardEditor: CardEditorComponent;
   protected isSaving = false;
 
   public constructor(
     public modal: NgbActiveModal,
     private serverCardEditorService: ServerCardEditorService,
-    @Inject(CARD_EDITOR_SERVICE) private draftCardEditorService: CardEditorService
+    @Inject(CARD_EDITOR_SERVICE) private draftCardEditorService: CardEditorService,
   ) {
   }
 

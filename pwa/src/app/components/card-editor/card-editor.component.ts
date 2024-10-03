@@ -1,4 +1,13 @@
-import { Component, EventEmitter, Inject, Input, OnInit, Output, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter, HostListener,
+  Inject,
+  Input,
+  Output, Self,
+  ViewChild
+} from '@angular/core';
 import {
   AsyncPipe,
   DatePipe,
@@ -106,30 +115,32 @@ import { MdViewerComponent } from '../md-viewer/md-viewer.component';
   templateUrl: './card-editor.component.html',
   styleUrl: './card-editor.component.scss',
 })
-export class CardEditorComponent implements OnInit {
+export class CardEditorComponent implements AfterViewInit {
   @Input() public showHeader: boolean = true;
   @Input() public card: CardEx;
   @Input() public showComments: boolean = true;
   @Input() public showReferences: boolean = true;
   @Input() public alwaysEditable: boolean = false;
   @Input() public collapsableProperties: boolean = false;
-  @Input() public propertiesPanelSize: 'normal'|'small' = 'normal';
+  @Input() public autoFocus: boolean = false;
   protected readonly CardState = CardState;
   protected isSaving: boolean = false;
   @ViewChild(CardListOfChecklistsComponent) protected cardListOfChecklists: CardListOfChecklistsComponent;
   @ViewChild(CardReferencesAccordionComponent) protected cardReferencesAccordionComponent: CardReferencesAccordionComponent;
+  @ViewChild('title', { read: TextEditorComponent }) protected titleEditor: TextEditorComponent;
   @Output() protected delete: EventEmitter<number> = new EventEmitter();
   @Output() protected update: EventEmitter<number> = new EventEmitter();
   protected isCollapsedProperties: boolean = false;
   protected cardTypes: CardType[] = [];
   protected clipboardLink$: Observable<CopyToClipboardLinks>;
-  protected propertiesHeight: number;
+  protected propertiesHeight: string;
 
   public constructor(
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
     private boardService: BoardService,
     private settingService: SettingService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    @Self() private elementRef: ElementRef<HTMLElement>,
   ) {
     boardService.getCardTypes().subscribe(types => this.cardTypes = types);
 
@@ -144,13 +155,14 @@ export class CardEditorComponent implements OnInit {
       );
   }
 
-  public ngOnInit(): void {
-    if (this.collapsableProperties) {
-      this.isCollapsedProperties = window.innerWidth < 768;
-    }
+  public ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.updatePropertiesHeight();
 
-    // TODO: alright this is garbage but it kinda works, let's leave it here for a while until we get some feedback
-    this.propertiesHeight = window.outerHeight * (this.propertiesPanelSize === 'normal' ? 0.8 : 0.6);
+      if (this.autoFocus) {
+        this.titleEditor.focus();
+      }
+    }, 1);
   }
 
   protected updateAsap(value: boolean): void {
@@ -336,6 +348,11 @@ export class CardEditorComponent implements OnInit {
     this.deleteBlockerById(mainBlocker.id);
   }
 
+  @HostListener('window:resize', ['$event'])
+  private handleWindowResize(): void {
+    setTimeout(() => this.updatePropertiesHeight(), 1);
+  }
+
   private updateCard(data: Partial<CardEx>): Observable<void> {
     this.isSaving = true;
     return this.cardEditorService
@@ -348,5 +365,20 @@ export class CardEditorComponent implements OnInit {
         map(() => {})
       );
   }
-  
+
+  private updatePropertiesHeight(): void {
+    if (this.collapsableProperties) {
+      this.isCollapsedProperties = window.innerWidth < 768;
+    }
+
+    if (Math.min(window.outerWidth, window.outerHeight) < 768) {
+      this.propertiesHeight = 'initial';
+      return;
+    }
+
+    const propertiesColorContainer = <HTMLDivElement>this.elementRef.nativeElement.querySelector('.properties-color-container');
+    const parentModalFooter = <HTMLDivElement>this.elementRef.nativeElement.closest('.modal-content')?.querySelector('.modal-footer');
+    // TODO: alright this is garbage but it kinda works, let's leave it here for a while until we get some feedback
+    this.propertiesHeight = (window.innerHeight - propertiesColorContainer.offsetTop - 10 - (parentModalFooter ? parentModalFooter.offsetHeight + 72 : 0)) + 'px';
+  }
 }

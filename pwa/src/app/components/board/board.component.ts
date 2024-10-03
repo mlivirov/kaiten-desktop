@@ -122,94 +122,6 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     private changesNotificationService: ChangesNotificationService,
     @Self() private elementRef: ElementRef
   ) {
-    const cardDragBag = dragulaService.createGroup('CARD', {
-      moves: (el) => {
-        return !!el.getAttribute('data-card-id') && Math.min(window.outerWidth, window.outerHeight) > 540;
-      },
-      copy: (el, source) => {
-        return !source.hasAttribute('data-column-id');
-      },
-      accepts: (el, target) => {
-        const targetId = Number.parseInt(target.getAttribute('data-column-id'));
-        return !isNaN(targetId);
-      },
-    });
-
-    dragulaService.drop('CARD')
-      .pipe(
-        takeUntil(this.unsubscribe$),
-      )
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      .subscribe(({name, el, target, source, sibling}) => {
-        if (!target)
-        {
-          return;
-        }
-
-        const targetColumnId = Number.parseInt(target.getAttribute('data-column-id'));
-        const sourceColumnId = Number.parseInt(source.getAttribute('data-column-id'));
-        const cardId = Number.parseInt(el.getAttribute('data-card-id'));
-        const siblingCardId = sibling ? Number.parseInt(sibling.getAttribute('data-card-id')) : null;
-
-        cardDragBag.drake.cancel(true);
-        if (sourceColumnId === targetColumnId) {
-          this.updateCardOrder(cardId, targetColumnId, siblingCardId);
-        } else if (sourceColumnId) {
-          this.moveCardToColumn(cardId, sourceColumnId, targetColumnId, siblingCardId);
-        } else {
-          this.createPlaceholderAndShowPopover(targetColumnId, cardId, siblingCardId);
-        }
-      });
-
-    this.unsubscribe$.subscribe(() => {
-      dragulaService.destroy('CARD');
-    });
-
-    dragulaService.createGroup('COLUMN', {
-      removeOnSpill: true,
-      moves: (el, container, handle) => {
-        return (handle.closest('.column-title'))
-                && Math.min(window.outerWidth, window.outerHeight) > 540
-                && this.currentBoardStyle === BoardStyle.Vertical;
-      },
-      accepts: (el, target, source) => {
-        const targetIndex = Number.parseInt(target.getAttribute('data-view-column-index'));
-        const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'));
-
-        return Math.abs(targetIndex - sourceIndex) === 1;
-      },
-    });
-
-    this.unsubscribe$.subscribe(() => {
-      dragulaService.destroy('COLUMN');
-    });
-
-    dragulaService
-      .drop('COLUMN')
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        switchMap(({el, target, source}) => {
-          const targetIndex = Number.parseInt(target.getAttribute('data-view-column-index'));
-          const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'));
-          const elIndex = Number.parseInt(el.getAttribute('data-column-index'));
-
-          return this.updateColumnsArrangement(targetIndex, sourceIndex, elIndex);
-        })
-      )
-      .subscribe();
-
-    dragulaService.remove('COLUMN')
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        switchMap(({el, source}) => {
-          const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'));
-          const elIndex = Number.parseInt(el.getAttribute('data-column-index'));
-
-          return this.updateColumnsArrangement(null, sourceIndex, elIndex);
-        })
-      )
-      .subscribe();
-
     this.changesNotificationService
       .cardUpdated$
       .pipe(
@@ -230,6 +142,8 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public ngOnInit(): void {
+    this.initCardDragBag();
+    this.initColumnDragBag();
     this.updateCurrentBoardStyle();
     this.rearrangeColumns();
     this.authService.getCurrentUser().subscribe(t => this.currentUser = t);
@@ -403,7 +317,99 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
 
     this.refresh(false);
   }
-  
+
+  private initColumnDragBag(): void {
+    this.dragulaService.createGroup('COLUMN', {
+      removeOnSpill: true,
+      moves: (el, container, handle) => {
+        return (handle.closest('.column-title'))
+          && Math.min(window.outerWidth, window.outerHeight) > 540
+          && this.currentBoardStyle === BoardStyle.Vertical;
+      },
+      accepts: (el, target, source) => {
+        const targetIndex = Number.parseInt(target.getAttribute('data-view-column-index'));
+        const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'));
+
+        return Math.abs(targetIndex - sourceIndex) === 1;
+      },
+    });
+
+    this.unsubscribe$.subscribe(() => {
+      this.dragulaService.destroy('COLUMN');
+    });
+
+    this.dragulaService
+      .drop('COLUMN')
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap(({el, target, source}) => {
+          const targetIndex = Number.parseInt(target.getAttribute('data-view-column-index'));
+          const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'));
+          const elIndex = Number.parseInt(el.getAttribute('data-column-index'));
+
+          return this.updateColumnsArrangement(targetIndex, sourceIndex, elIndex);
+        })
+      )
+      .subscribe();
+
+    this.dragulaService.remove('COLUMN')
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap(({el, source}) => {
+          const sourceIndex = Number.parseInt(source.getAttribute('data-view-column-index'));
+          const elIndex = Number.parseInt(el.getAttribute('data-column-index'));
+
+          return this.updateColumnsArrangement(null, sourceIndex, elIndex);
+        })
+      )
+      .subscribe();
+  }
+
+  private initCardDragBag(): void {
+    const cardDragBag = this.dragulaService.createGroup('CARD', {
+      moves: (el) => {
+        return !!el.getAttribute('data-card-id') && Math.min(window.outerWidth, window.outerHeight) > 540;
+      },
+      copy: (el, source) => {
+        return !source.hasAttribute('data-column-id');
+      },
+      accepts: (el, target) => {
+        const targetId = Number.parseInt(target.getAttribute('data-column-id'));
+        return !isNaN(targetId);
+      },
+    });
+
+    this.dragulaService.drop('CARD')
+      .pipe(
+        takeUntil(this.unsubscribe$),
+      )
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .subscribe(({name, el, target, source, sibling}) => {
+        if (!target)
+        {
+          return;
+        }
+
+        const targetColumnId = Number.parseInt(target.getAttribute('data-column-id'));
+        const sourceColumnId = Number.parseInt(source.getAttribute('data-column-id'));
+        const cardId = Number.parseInt(el.getAttribute('data-card-id'));
+        const siblingCardId = sibling ? Number.parseInt(sibling.getAttribute('data-card-id')) : null;
+
+        cardDragBag.drake.cancel(true);
+        if (sourceColumnId === targetColumnId) {
+          this.updateCardOrder(cardId, targetColumnId, siblingCardId);
+        } else if (sourceColumnId) {
+          this.moveCardToColumn(cardId, sourceColumnId, targetColumnId, siblingCardId);
+        } else {
+          this.createPlaceholderAndShowPopover(targetColumnId, cardId, siblingCardId);
+        }
+      });
+
+    this.unsubscribe$.subscribe(() => {
+      this.dragulaService.destroy('CARD');
+    });
+  }
+
   private createPlaceholderAndShowPopover(targetColumnId: number, cardId: number, siblingCardId?: number): void {
     const newBoardItem: BoardItem = {
       placeholder: {

@@ -125,7 +125,7 @@ export class BoardPageComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    this.isLeftPanelAvailable = Math.min(window.outerWidth, window.outerHeight) > 768;
+    this.updateLeftPanelAvailability();
   }
 
   protected openCard(id: number): void {
@@ -172,6 +172,15 @@ export class BoardPageComponent implements OnInit {
 
       this.cardSearchInput.focus();
     }
+  }
+
+  @HostListener('window:resize', ['$event'])
+  private handleWindowResize(): void {
+    setTimeout(() => this.updateLeftPanelAvailability(), 1);
+  }
+
+  private updateLeftPanelAvailability(): void {
+    this.isLeftPanelAvailable = Math.min(window.outerWidth, window.outerHeight) > 768;
   }
 
   private deserializeCardFilterFromUrlParams(params: HttpParams): CardFilter {

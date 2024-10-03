@@ -6,7 +6,7 @@ import {
   HostListener,
   Injectable,
   Input,
-  Output, TemplateRef,
+  Output, Self, TemplateRef,
   ViewChild
 } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -68,12 +68,16 @@ export class TextEditorComponent implements ControlValueAccessor {
   @Output() protected editingChange = new EventEmitter<boolean>();
   protected newValue?: string;
   protected originalValue?: string;
-  @ViewChild('mdEditor', { read: ElementRef }) protected mdEditorElementRef: ElementRef;
-  @ViewChild('textEditor', { read: ElementRef }) protected textEditorElementRef: ElementRef;
+  @ViewChild('mdEditor', { read: MdEditorComponent }) protected mdEditorComponent: MdEditorComponent;
+  @ViewChild('textEditor', { read: ElementRef<HTMLTextAreaElement> }) protected textEditorElementRef: ElementRef<HTMLTextAreaElement>;
   private touchedCallback: TouchedCallback;
   private changeCallback: ChangeCallback<string>;
 
-  public constructor(public service: TextEditorService, private dialogService: DialogService) {
+  public constructor(
+    public service: TextEditorService,
+    private dialogService: DialogService,
+    @Self() private elementRef: ElementRef<HTMLElement>
+  ) {
   }
 
   public registerOnChange(fn: ChangeCallback<string>): void {
@@ -122,6 +126,15 @@ export class TextEditorComponent implements ControlValueAccessor {
       );
   }
 
+  public focus(): void {
+    this.elementRef.nativeElement.scrollIntoView({ block: 'center' });
+    if (this.type === 'markdown') {
+      this.mdEditorComponent.focus();
+    } else {
+      this.textEditorElementRef.nativeElement.focus();
+    }
+  }
+
   protected discardChanges(event?: Event): void {
     event?.stopPropagation();
     event?.preventDefault();
@@ -164,11 +177,7 @@ export class TextEditorComponent implements ControlValueAccessor {
         { title: 'Continue editing', resultCode: undefined, style: 'btn-primary' },
       ]).pipe(
         map(res => {
-          if (res === 'discard') {
-            return true;
-          }
-
-          return false;
+          return res === 'discard';
         }),
       );
     }
@@ -183,18 +192,7 @@ export class TextEditorComponent implements ControlValueAccessor {
     this.newValue = this.originalValue;
 
     if (scroll) {
-      setTimeout(() => {
-        const editorElement =
-          this.type === 'markdown'
-            ? ((this.mdEditorElementRef?.nativeElement as HTMLElement).querySelector('[contenteditable]')
-                || (this.mdEditorElementRef?.nativeElement as HTMLElement).querySelector('textarea')) as HTMLElement
-            : (this.textEditorElementRef.nativeElement as HTMLElement);
-
-        editorElement.scrollIntoView({
-          block: 'center'
-        });
-        editorElement.focus({ preventScroll: true });
-      }, 1);
+      setTimeout(() => this.focus(), 1);
     }
   }
 
