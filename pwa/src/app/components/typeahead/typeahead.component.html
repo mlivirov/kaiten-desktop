@@ -14,7 +14,8 @@
       </div>
     </div>
     <div
-      class="list-group"
+      style="max-height: 300px"
+      class="list-group overflow-y-auto"
       *ngIf="currentBadgeType !== null"
     >
       <div
@@ -25,6 +26,7 @@
         *ngFor="let item of popoverItems; index as i"
         class="list-group-item user-select-none"
         [class.active]="currentPopoverItemIndex === i"
+        [attr.data-typeahead-popover-item]="i.toString()"
         (click)="selectPopoverItem(item)"
       >
         <ng-container

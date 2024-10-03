@@ -9,6 +9,10 @@ export function getCardState(column: Column, subcolumn?: Column): CardState {
 }
 
 export function getCardStateByCard(card: CardEx): CardState {
+  if (card.state === CardState.Draft) {
+    return CardState.Draft;
+  }
+
   const parent = card.column.parent;
 
   if (parent) {

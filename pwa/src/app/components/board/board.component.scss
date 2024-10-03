@@ -21,7 +21,7 @@
 .grid-column > .column:last-child {
   flex-grow: 1;
 
-  .column-content {
+  .column-content:last-child {
     flex-grow: 1;
   }
 }
@@ -73,4 +73,14 @@
   .column-content {
     //border-bottom: 1px solid $border-color !important;
   }
+}
+
+.content-when-empty:not(:has(*)) {
+  text-align: center !important;
+  opacity: 50%;
+  font-size: 12px !important;
+}
+
+.content-when-empty:not(:has(*)):after {
+  content: attr(data-content-when-empty);
 }

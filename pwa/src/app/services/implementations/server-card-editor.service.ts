@@ -1,5 +1,5 @@
 import { CardEx } from '../../models/card-ex';
-import { map, Observable } from 'rxjs';
+import { map, Observable, switchMap, tap } from 'rxjs';
 import { Owner } from '../../models/owner';
 import { MemberType } from '../../models/member-type';
 import { CheckListItem } from '../../models/check-list-item';
@@ -11,14 +11,19 @@ import { CardEditorService } from '../card-editor.service';
 import { Injectable } from '@angular/core';
 import { CardActivity } from '../../models/card-activity';
 import { BlockBlocker } from '../../models/block-blocker.model';
+import { ChangesNotificationService } from '../changes-notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class ServerCardEditorService implements CardEditorService {
-  public constructor(private httpClient: HttpClient) {
+  public constructor(private httpClient: HttpClient, private changesNotificationService: ChangesNotificationService) {
   }
 
   public createCard(card: Partial<CardEx>): Observable<CardEx> {
-    return this.httpClient.post<CardEx>('http://server/api/latest/cards', card);
+    return this.httpClient.post<CardEx>('http://server/api/latest/cards', card)
+      .pipe(
+        switchMap(createdCard => this.getCard(createdCard.id)),
+        tap(createdCard => this.changesNotificationService.notifyCardCreated(createdCard))
+      );
   }
 
   public addRelation(parentCardId: number, childCardId: number): Observable<void> {
@@ -38,7 +43,11 @@ export class ServerCardEditorService implements CardEditorService {
   }
 
   public updateCard(id: number, properties: Partial<CardEx>): Observable<CardEx> {
-    return this.httpClient.patch<CardEx>(`http://server/api/latest/cards/${id}`, properties);
+    return this.httpClient.patch<CardEx>(`http://server/api/latest/cards/${id}`, properties)
+      .pipe(
+        switchMap(card => this.getCard(card.id)),
+        tap(card => this.changesNotificationService.notifyCardUpdated(card))
+      );
   }
 
   public addMemberToCard(cardId: number, userId: number): Observable<Owner> {

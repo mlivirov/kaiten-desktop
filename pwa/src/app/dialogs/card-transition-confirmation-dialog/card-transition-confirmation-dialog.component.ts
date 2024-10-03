@@ -25,6 +25,7 @@ export class CardTransitionConfirmationDialogComponent {
   @Input() public card?: CardEx;
   @Input() public from?: Column;
   @Input() public to?: Column;
+  @Input() public sortOrder?: number;
   protected isMovingInProgress: boolean = false;
 
   public constructor(
@@ -38,7 +39,8 @@ export class CardTransitionConfirmationDialogComponent {
 
     this.cardEditorService
       .updateCard(this.card.id, {
-        column_id: this.to.id
+        column_id: this.to.id,
+        sort_order: this.sortOrder
       })
       .pipe(
         finalize(() => this.isMovingInProgress = false)

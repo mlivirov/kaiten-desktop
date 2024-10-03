@@ -49,7 +49,10 @@ export class PageHeaderComponent {
 
   protected createCard(): void {
     this.dialogService
-      .createCard(this.currentBoardService.boardId, this.currentBoardService.laneId)
+      .createCard({
+        board_id: this.currentBoardService.boardId,
+        lane_id: this.currentBoardService.laneId
+      })
       .subscribe(id => this.router.navigate(['card', id]));
   }
 

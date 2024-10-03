@@ -57,5 +57,5 @@
   <span
     class="ms-2"
     *ngIf="showName"
-  >{{profile.full_name}}</span>
+  >{{getTextOrDefault(profile.full_name, profile.username)}}</span>
 </div>

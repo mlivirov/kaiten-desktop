@@ -4,13 +4,16 @@ import { User } from '../models/user';
 import { Tag } from '../models/tag';
 import { Observable } from 'rxjs';
 import { CardEx } from '../models/card-ex';
+import { BoardBase } from '../models/board';
+import { CardType } from '../models/card-type';
 
 export interface CardFilter {
   text?: string;
   members?: User[];
   owners?: User[];
   tags?: Tag[];
-  boardId?: number;
+  board?: BoardBase;
+  type?: CardType;
   includeArchived?: boolean;
 }
 
@@ -50,8 +53,12 @@ export class CardSearchService {
       params = params.append('tag_ids', ids);
     }
 
-    if (filter?.boardId) {
-      params = params.append('board_id', filter.boardId);
+    if (filter?.board) {
+      params = params.append('board_id', filter.board.id);
+    }
+
+    if (filter?.type) {
+      params = params.append('type_id', filter.type.id);
     }
 
     if (filter?.includeArchived) {

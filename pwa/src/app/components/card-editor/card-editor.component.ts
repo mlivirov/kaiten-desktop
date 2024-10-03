@@ -113,6 +113,7 @@ export class CardEditorComponent implements OnInit {
   @Input() public showReferences: boolean = true;
   @Input() public alwaysEditable: boolean = false;
   @Input() public collapsableProperties: boolean = false;
+  @Input() public propertiesPanelSize: 'normal'|'small' = 'normal';
   protected readonly CardState = CardState;
   protected isSaving: boolean = false;
   @ViewChild(CardListOfChecklistsComponent) protected cardListOfChecklists: CardListOfChecklistsComponent;
@@ -122,10 +123,7 @@ export class CardEditorComponent implements OnInit {
   protected isCollapsedProperties: boolean = false;
   protected cardTypes: CardType[] = [];
   protected clipboardLink$: Observable<CopyToClipboardLinks>;
-
-  protected get propertiesHeight(): number {
-    return window.outerHeight * 0.8;
-  }
+  protected propertiesHeight: number;
 
   public constructor(
     @Inject(CARD_EDITOR_SERVICE) private cardEditorService: CardEditorService,
@@ -150,6 +148,9 @@ export class CardEditorComponent implements OnInit {
     if (this.collapsableProperties) {
       this.isCollapsedProperties = window.innerWidth < 768;
     }
+
+    // TODO: alright this is garbage but it kinda works, let's leave it here for a while until we get some feedback
+    this.propertiesHeight = window.outerHeight * (this.propertiesPanelSize === 'normal' ? 0.8 : 0.6);
   }
 
   protected updateAsap(value: boolean): void {

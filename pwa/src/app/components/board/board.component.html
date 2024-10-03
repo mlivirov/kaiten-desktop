@@ -1,4 +1,76 @@
 <ng-template
+  #cardPlaceholderTemplate
+  let-columnId="columnId"
+  let-newCardId="newCardId"
+  let-siblingCardId="siblingCardId"
+>
+  <ng-template #droppedCardPopoverContent>
+    <div class="list-group m-n3">
+      <a
+        *ngFor="let lane of board.lanes"
+        href="javascript:void(0)"
+        class="list-group-item list-group-item-action"
+        (click)="moveCardToBoard(newCardId, columnId, lane.id, siblingCardId)"
+      >
+        <div class="d-flex align-items-center">
+          <i class="pi pi-arrow-down-right me-1"></i> Move to
+          <span
+            class="border border-1 border-light-subtle mx-1 d-inline-block"
+            style="min-height: 1rem; min-width: 1rem; {{getLaneColor(lane)}}"
+          ></span>
+          {{getTextOrDefault(lane.title)}} lane
+        </div>
+
+      </a>
+      <a
+        href="javascript:void(0)"
+        class="list-group-item list-group-item-action"
+        (click)="createChild(newCardId, columnId, siblingCardId)"
+      >
+        <i class="pi pi-pencil"></i> Create a child
+      </a>
+      <a
+        href="javascript:void(0)"
+        class="list-group-item list-group-item-action"
+        (click)="droppedCardPopover.close(false)"
+      >
+        <i class="pi pi-times"></i> Cancel
+      </a>
+    </div>
+  </ng-template>
+  <div
+    class="w-100 border border-1 rounded bg-light-subtle p-2 mb-2 cursor-loading"
+    [ngbPopover]="droppedCardPopoverContent"
+    autoClose="outside"
+    container="body"
+    #droppedCardPopover="ngbPopover"
+    (hidden)="removeDroppedCardPlaceholder(newCardId, columnId)"
+  >
+    <div class="d-flex justify-content-between align-items-center">
+      <span class="placeholder placeholder-xs col-2"></span>
+      <span class="placeholder col-3"></span>
+    </div>
+    <div class="mt-2">
+      <span class="placeholder col-4 me-1"></span>
+      <span class="placeholder col-2 me-1"></span>
+      <span class="placeholder col-1 me-1"></span>
+      <span class="placeholder col-3"></span>
+      <span class="placeholder col-5"></span>
+      <span class="placeholder col-5"></span>
+    </div>
+    <div class="mt-2">
+      <span
+        class="placeholder rounded-circle"
+        style="min-width: 24px; min-height: 24px"
+      ></span>
+      <span class="placeholder placeholder-xs col-1 ms-2"></span>
+      <span class="placeholder placeholder-xs col-2 ms-2"></span>
+      <span class="placeholder placeholder-xs col-4 ms-2"></span>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template
   #boardColumn
   let-title="title"
   let-isSubColumn="isSubColumn"
@@ -6,7 +78,7 @@
   let-columnId="columnId"
 >
   <div
-    *ngIf="!(hideEmpty && !cardsByColumnId[columnId]?.length)"
+    *ngIf="!(hideEmpty && !boardItemsByColumnId[columnId]?.length)"
     class="d-flex column-content z-0"
     [ngClass]="{ 'flex-column px-2 w-100': currentBoardStyle === BoardStyle.HorizontalCollapsible && !collapsedColumns[columnId] }"
     [ngStyle]="{'border-bottom border-bottom-style: dashed !important;': currentBoardStyle === BoardStyle.Vertical}"
@@ -30,25 +102,23 @@
           'flex-column my-3': !(currentBoardStyle === BoardStyle.HorizontalCollapsible && !collapsedColumns[columnId]),
         }"
       >
-        <strong
-            [class.text-vertical]="!(currentBoardStyle === BoardStyle.HorizontalCollapsible && !collapsedColumns[columnId])"
-        >{{getTextOrDefault(title)}}</strong>
+        <strong [class.text-vertical]="!(currentBoardStyle === BoardStyle.HorizontalCollapsible && !collapsedColumns[columnId])">{{getTextOrDefault(title)}}</strong>
         <strong
           class="my-1"
           [class.text-vertical]="!(currentBoardStyle === BoardStyle.HorizontalCollapsible && !collapsedColumns[columnId])"
           *ngIf="currentBoardStyle === BoardStyle.HorizontalCollapsible && collapsedColumns[columnId]"
         >[{{ cardsCountByColumnId[columnId] }}]</strong>
         <button
-            type="button"
-            class="btn btn-sm btn-icon-sm border border-1 btn-light"
-            [ngClass]="{
+          type="button"
+          class="btn btn-sm btn-icon-sm border border-1 btn-light"
+          [ngClass]="{
               'mx-2': !collapsedColumns[columnId]
             }"
-            *ngIf="currentBoardStyle === BoardStyle.HorizontalCollapsible"
+          *ngIf="currentBoardStyle === BoardStyle.HorizontalCollapsible"
         >
           <i
-              class="pi"
-              [ngClass]="{
+            class="pi"
+            [ngClass]="{
                   'pi-chevron-left': !collapsedColumns[columnId],
                   'pi-chevron-right': collapsedColumns[columnId],
                 }"
@@ -57,28 +127,32 @@
       </div>
     </div>
     <div
-      class="mx-2 pt-2 w-100"
+      class="mx-2 pt-2 w-100 content-when-empty"
+      [attr.data-content-when-empty]="'no cards in this state'"
       *ngIf="!collapsedColumns[columnId] || currentBoardStyle === BoardStyle.Vertical"
-      [ngClass]="{ 'mx-2': !(currentBoardStyle === BoardStyle.HorizontalCollapsible && !collapsedColumns[columnId]) }"
+      [ngClass]="{
+        'mx-2': !(currentBoardStyle === BoardStyle.HorizontalCollapsible && !collapsedColumns[columnId]),
+        'h-100': currentBoardStyle === BoardStyle.HorizontalCollapsible && !collapsedColumns[columnId],
+      }"
       dragula="CARD"
       [attr.data-column-id]="columnId"
-      style="min-width: 10rem"
+      style="min-width: 222px"
     >
-      <ng-container *ngFor="let card of cardsByColumnId[columnId];">
+      <ng-container *ngFor="let boardItem of boardItemsByColumnId[columnId]">
         <app-card
-          [card]="card"
+          *ngIf="boardItem.card"
+          [card]="boardItem.card"
           (updated)="refresh(true)"
-          [attr.data-card-id]="card.id"
+          [attr.data-card-id]="boardItem.card.id"
           (openRequest)="openCard.emit($event)"
         ></app-card>
+        <ng-container
+          *ngIf="boardItem.placeholder"
+          [ngTemplateOutlet]="cardPlaceholderTemplate"
+          [ngTemplateOutletContext]="boardItem.placeholder"
+        >
+        </ng-container>
       </ng-container>
-
-      <div
-        *ngIf="!cardsByColumnId[columnId]?.length"
-        class="text-center"
-      >
-        <span class="text-muted small">No cards in this state</span>
-      </div>
     </div>
   </div>
 </ng-template>
@@ -203,7 +277,7 @@
 </ng-template>
 
 <div
-  class="d-flex flex-wrap flex-md-nowrap"
+  class="d-flex flex-wrap flex-md-nowrap h-100"
   [attr.data-board-style]="currentBoardStyle.toString()"
 >
   <ng-container

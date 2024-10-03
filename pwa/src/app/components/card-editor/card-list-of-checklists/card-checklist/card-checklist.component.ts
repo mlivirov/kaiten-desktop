@@ -115,7 +115,11 @@ export class CardChecklistComponent implements OnChanges {
 
   protected createCardFromItem(item: CheckListItem): void {
     this.dialogService
-      .createCard(this.currentBoardService.boardId, this.currentBoardService.laneId, null, item.text)
+      .createCard({
+        board_id: this.currentBoardService.boardId,
+        lane_id: this.currentBoardService.laneId,
+        title: item.text
+      })
       .subscribe(id => this.router.navigate(['card', id]));
   }
 

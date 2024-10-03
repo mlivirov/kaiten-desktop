@@ -1,0 +1,43 @@
+<div class="my-2">
+  <app-card-search-input
+    placeholder="Type your search query here or press (CTRL+F)"
+    [ngModel]="searchFilter"
+    (ngModelChange)="handleSearchFilterChanged($event)"
+  ></app-card-search-input>
+</div>
+
+<div dragula="CARD">
+  <app-card
+    *ngFor="let card of cards"
+    [attr.data-card-id]="card.id"
+    [attr.data-column-id]="card.column_id"
+    [buttons]="['copy']"
+    [showTimeDots]="false"
+    [card]="card"
+    (openRequest)="openCard.emit($event)"
+  ></app-card>
+</div>
+<div
+  *ngIf="!cards?.length && !isLoading"
+  class="text-center opacity-50"
+>
+  <div class="small">No cards matching a search criteria</div>
+</div>
+<div
+  class="text-center"
+  *ngIf="hasMore && !isLoading"
+>
+  <button
+    class="btn btn-sm"
+    type="button"
+    (click)="loadMore()"
+  >More</button>
+</div>
+
+<div
+  *ngIf="isLoading"
+  class="text-center opacity-50"
+>
+  <i class="pi pi-spinner pi-spin"></i>
+  <div class="small">Loading</div>
+</div>

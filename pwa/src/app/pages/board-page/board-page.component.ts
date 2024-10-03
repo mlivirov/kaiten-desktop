@@ -1,10 +1,10 @@
-import { Component, HostListener, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CurrentUserComponent } from '../../components/current-user/current-user.component';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { BoardComponent, BoardStyle } from '../../components/board/board.component';
-import { BoardBase } from '../../models/board';
+import { Board } from '../../models/board';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NgIf } from '@angular/common';
+import { NgIf, NgStyle } from '@angular/common';
 import { CardSearchInputComponent } from '../../components/card-search-input/card-search-input.component';
 import { FormsModule } from '@angular/forms';
 import { CardEx } from '../../models/card-ex';
@@ -19,6 +19,8 @@ import { Setting } from '../../models/setting';
 import { SettingService } from '../../services/setting.service';
 import { DialogService } from '../../services/dialog.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NgbCollapse } from '@ng-bootstrap/ng-bootstrap';
+import { ListOfCardsComponent } from '../../components/list-of-cards/list-of-cards.component';
 
 @Component({
   selector: 'app-board-page',
@@ -29,17 +31,23 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     BoardComponent,
     NgIf,
     CardSearchInputComponent,
-    FormsModule
+    FormsModule,
+    NgbCollapse,
+    ListOfCardsComponent,
+    NgStyle
   ],
   templateUrl: './board-page.component.html',
   styleUrl: './board-page.component.scss'
 })
-export class BoardPageComponent {
-  protected board: BoardBase;
+export class BoardPageComponent implements OnInit {
+  protected board: Board;
   protected boardCards: CardEx[] = [];
   protected boardColumns: ColumnEx[] = [];
   protected filterValue?: CardFilter;
   protected boardStyle: BoardStyle = BoardStyle.Vertical;
+  protected isLeftPanelCollapsed: boolean = true;
+  protected showLeftPanelExpandButton: boolean = true;
+  protected isLeftPanelAvailable: boolean = true;
   @ViewChild('cardSearchInput', { read: CardSearchInputComponent }) private cardSearchInput: CardSearchInputComponent;
   @ViewChild('boardComponent', { read: BoardComponent }) private boardComponent: BoardComponent;
   private boardLoaded$: Subject<void> = new Subject();
@@ -49,7 +57,7 @@ export class BoardPageComponent {
     private router: Router,
     private currentBoardService: CurrentBoardService,
     private settingService: SettingService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
   ) {
     activatedRoute
       .data
@@ -94,13 +102,13 @@ export class BoardPageComponent {
         switchMap(t => t
           ? of(t)
           : Math.min(window.outerWidth, window.outerHeight) < 768
-          ? of(BoardStyle.Vertical)
-          : this.dialogService
-            .selectBoardStyle()
-            .pipe(
-              tap(boardStyle => this.settingService.setSetting(Setting.BoardStyle, boardStyle).subscribe()),
-              switchMap(() => EMPTY)
-            )),
+            ? of(BoardStyle.Vertical)
+            : this.dialogService
+              .selectBoardStyle()
+              .pipe(
+                tap(boardStyle => this.settingService.setSetting(Setting.BoardStyle, boardStyle).subscribe()),
+                switchMap(() => EMPTY)
+              )),
       )
       .subscribe(boardStyle => {
         this.boardStyle = <BoardStyle>boardStyle;
@@ -114,6 +122,10 @@ export class BoardPageComponent {
       .subscribe(boardStyle => {
         this.boardStyle = <BoardStyle>boardStyle.value;
       });
+  }
+
+  public ngOnInit(): void {
+    this.isLeftPanelAvailable = Math.min(window.outerWidth, window.outerHeight) > 768;
   }
 
   protected openCard(id: number): void {
@@ -214,7 +226,7 @@ export class BoardPageComponent {
 
     let index = 0;
     while (params.has(`${name}_${index}_${Object.keys(properties)[0]}`)) {
-      const item: T = {} as T;
+      const item = {};
       for (const [propertyName, propertyType] of Object.entries(properties)) {
         const httpParamValue = params.get(`${name}_${index}_${propertyName}`);
 
@@ -227,11 +239,12 @@ export class BoardPageComponent {
         }
       }
 
-      result.push(item);
+      result.push(item as T);
 
       index++;
     }
 
     return result;
   }
+  
 }

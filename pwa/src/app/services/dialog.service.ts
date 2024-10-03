@@ -4,7 +4,7 @@ import {
   catchError,
   EMPTY,
   EmptyError,
-  filter,
+  filter, finalize,
   map,
   Observable,
   of,
@@ -40,6 +40,7 @@ import { CardBlockDialogComponent } from '../dialogs/card-block-dialog/card-bloc
 import { PromptAction, PromptDialogComponent } from '../dialogs/prompt-dialog/prompt-dialog.component';
 import { BoardStyle } from '../components/board/board.component';
 import { BoardStyleDialogComponent } from '../dialogs/board-style-dialog/board-style-dialog.component';
+import { LoadingDialogComponent } from '../dialogs/loading-dialog/loading-dialog.component';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
@@ -51,7 +52,7 @@ export class DialogService {
   ) {
   }
 
-  public cardTransition(card: CardEx, from: Column, to: Column): Observable<CardEx> {
+  public cardTransition(card: CardEx, from: Column, to: Column, sortOrder?: number): Observable<CardEx> {
     const instance = this.modal.open(
       CardTransitionConfirmationDialogComponent
     );
@@ -61,6 +62,7 @@ export class DialogService {
     instance.componentInstance.card = card;
     instance.componentInstance.from = from;
     instance.componentInstance.to = to;
+    instance.componentInstance.sortOrder = sortOrder;
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
@@ -231,6 +233,21 @@ export class DialogService {
       );
   }
 
+  public loadingDialog<T>(action: Observable<T>, text?: string): Observable<T> {
+    const instance = this.modal.open(LoadingDialogComponent, {
+      beforeDismiss() {
+        return false;
+      },
+      centered: true,
+      size: 'sm',
+    });
+    instance.componentInstance.text = text;
+
+    return action.pipe(
+      finalize(() => instance.close())
+    );
+  }
+
   public selectBoardStyle(): Observable<BoardStyle> {
     if (this.activeModals.some(modal => modal.componentInstance instanceof BoardStyleDialogComponent)) {
       return EMPTY;
@@ -260,12 +277,12 @@ export class DialogService {
       );
   }
 
-  public createCard(boardId: number, laneId?: number, typeId?: number, title: string|null = null): Observable<number> {
+  public createCard(template: Partial<CardEx>): Observable<number> {
     if (this.activeModals.some(modal => modal.componentInstance instanceof NewCardDialogComponent)) {
       return EMPTY;
     }
 
-    const newDraft$ = this.draftCardEditorService.createNewDraft(boardId, laneId, typeId, title);
+    const newDraft$ = this.draftCardEditorService.createNewDraft(template);
     return this.draftCardEditorService
       .getLastDraft()
       .pipe(
@@ -302,40 +319,12 @@ export class DialogService {
             return this.draftCardEditorService.deleteCard(draftId).pipe(map(() => newCardId));
           }
 
+          if (newCardId === undefined) {
+            return this.draftCardEditorService.deleteCard(draftId).pipe(switchMap(() => EMPTY));
+          }
+
           return EMPTY;
         }),
-      );
-  }
-
-  public editCard(card: CardEx, closable: boolean = true): Observable<number> {
-    if (this.activeModals.some(modal => modal.componentInstance instanceof NewCardDialogComponent)) {
-      return EMPTY;
-    }
-
-    const instance = this.modal.open(NewCardDialogComponent, {
-      beforeDismiss() {
-        return closable;
-      },
-      size: 'xl',
-      modalDialogClass: 'modal-90-prc'
-    });
-
-    instance.componentInstance.card = card;
-
-    this.activeModals.push(instance);
-
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return instance.closed
-      .pipe(
-        tap({
-          next() {
-            self.removeActiveModal(instance);
-          },
-          complete() {
-            self.removeActiveModal(instance);
-          }
-        })
       );
   }
 
@@ -373,6 +362,38 @@ export class DialogService {
 
   public showNotImplementedDialog(): Observable<boolean> {
     return this.alert('We are sorry, this feature is not implemented yet. Stay tuned!');
+  }
+
+  private editCard(card: CardEx, closable: boolean = true): Observable<number> {
+    if (this.activeModals.some(modal => modal.componentInstance instanceof NewCardDialogComponent)) {
+      return EMPTY;
+    }
+
+    const instance = this.modal.open(NewCardDialogComponent, {
+      beforeDismiss() {
+        return closable;
+      },
+      size: 'xl',
+      modalDialogClass: 'modal-90-prc'
+    });
+
+    instance.componentInstance.card = card;
+
+    this.activeModals.push(instance);
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        })
+      );
   }
 
   private removeActiveModal(modal: NgbModalRef): void {

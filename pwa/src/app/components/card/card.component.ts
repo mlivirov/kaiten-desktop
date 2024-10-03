@@ -26,6 +26,8 @@ import { MdViewerComponent } from '../md-viewer/md-viewer.component';
 import { FormsModule } from '@angular/forms';
 import { TimeagoModule } from 'ngx-timeago';
 
+export type CardComponentButtons = 'copy'|'move'|'block';
+
 @Component({
   selector: 'app-card',
   standalone: true,
@@ -50,6 +52,8 @@ import { TimeagoModule } from 'ngx-timeago';
 export class CardComponent {
   @Input() public card?: CardEx;
   @Input() public disabled: boolean = false;
+  @Input() public buttons: CardComponentButtons[] = ['copy', 'move', 'block'];
+  @Input() public showTimeDots: boolean = true;
   @Output() protected updated: EventEmitter<CardEx> = new EventEmitter<CardEx>();
   @Output() protected openRequest: EventEmitter<number> = new EventEmitter();
   protected active: boolean = false;

@@ -11,15 +11,16 @@ import {
   QueryList,
   Self,
   SimpleChanges,
+  ViewChild,
   ViewChildren
 } from '@angular/core';
 import { JsonPipe, NgClass, NgForOf, NgIf, NgStyle, NgTemplateOutlet } from '@angular/common';
 import { CardComponent } from '../card/card.component';
 import { CardEx } from '../../models/card-ex';
-import { finalize, map, Observable, of, Subject, switchMap, takeUntil, tap, zip } from 'rxjs';
+import { filter, finalize, Observable, of, Subject, switchMap, takeUntil, zip } from 'rxjs';
 import { User } from '../../models/user';
 import { ColumnEx } from '../../models/column-ex';
-import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { DragulaModule, DragulaService } from 'ng2-dragula';
 import { BoardService } from '../../services/board.service';
 import { DialogService } from '../../services/dialog.service';
@@ -27,10 +28,16 @@ import { findColumnRecursive } from '../../functions/find-column-recursive';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CardFilter, CardSearchService } from '../../services/card-search.service';
-import { BoardBase } from '../../models/board';
+import { Board } from '../../models/board';
 import { WipLimitType } from '../../models/wip-limit-type';
 import { getTextOrDefault } from '../../functions/get-text-or-default';
 import { nameof } from '../../functions/name-of';
+import { ServerCardEditorService } from '../../services/implementations/server-card-editor.service';
+import { getLaneColor } from '../../functions/get-lane-color';
+import { AutosizeModule } from 'ngx-autosize';
+import { ReactiveFormsModule } from '@angular/forms';
+import { ChangesNotificationService } from '../../services/changes-notification.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // TODO: extract into separate function
 function colSortPredicate(a, b): number {
@@ -46,6 +53,17 @@ interface BoardViewColumn {
   columns: ColumnEx[];
 }
 
+interface CardPlaceholder {
+  columnId: number,
+  newCardId: number,
+  siblingCardId?: number,
+}
+
+interface BoardItem {
+  card?: CardEx,
+  placeholder?: CardPlaceholder,
+}
+
 @Component({
   selector: 'app-board',
   standalone: true,
@@ -58,7 +76,10 @@ interface BoardViewColumn {
     JsonPipe,
     NgbTooltip,
     DragulaModule,
-    NgStyle
+    NgStyle,
+    NgbPopover,
+    AutosizeModule,
+    ReactiveFormsModule
   ],
   templateUrl: './board.component.html',
   styleUrl: './board.component.scss'
@@ -66,16 +87,18 @@ interface BoardViewColumn {
 export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   @Input() public columns: ColumnEx[];
   @Input() public cards: CardEx[];
-  @Input() public board: BoardBase;
+  @Input() public board: Board;
   @Input() public boardStyle?: BoardStyle;
+  @ViewChild('droppedCardPopover', { read: NgbPopover }) protected droppedCardPopover: NgbPopover;
   @ViewChildren(CardComponent) protected cardComponents: QueryList<CardComponent> = new QueryList();
   @Output() protected openCard: EventEmitter<number> = new EventEmitter();
   @Output() protected loaded: EventEmitter<void> = new EventEmitter();
   protected readonly getTextOrDefault = getTextOrDefault;
+  protected readonly getLaneColor = getLaneColor;
   protected readonly BoardStyle = BoardStyle;
   protected currentBoardStyle: BoardStyle;
   protected currentUser?: User;
-  protected cardsByColumnId: { [key: number]: CardEx[] } = {};
+  protected boardItemsByColumnId: Record<number, BoardItem[]> = {};
   protected viewColumns: BoardViewColumn[];
   protected hideEmpty: boolean = false;
   protected cardsCountByRootColumnId: Record<number, number> = {};
@@ -95,34 +118,48 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     private cardSearchService: CardSearchService,
     private dialogService: DialogService,
     private activatedRoute: ActivatedRoute,
+    private cardEditorService: ServerCardEditorService,
+    private changesNotificationService: ChangesNotificationService,
     @Self() private elementRef: ElementRef
   ) {
     const cardDragBag = dragulaService.createGroup('CARD', {
       moves: (el) => {
         return !!el.getAttribute('data-card-id') && Math.min(window.outerWidth, window.outerHeight) > 540;
       },
-      accepts: (el, target, source) => {
+      copy: (el, source) => {
+        return !source.hasAttribute('data-column-id');
+      },
+      accepts: (el, target) => {
         const targetId = Number.parseInt(target.getAttribute('data-column-id'));
-        const sourceId = Number.parseInt(source.getAttribute('data-column-id'));
-
-        return sourceId !== targetId;
+        return !isNaN(targetId);
       },
     });
 
     dragulaService.drop('CARD')
       .pipe(
         takeUntil(this.unsubscribe$),
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        switchMap(({name, el, target, source}) => {
-          const targetId = Number.parseInt(target.getAttribute('data-column-id'));
-          const sourceId = Number.parseInt(source.getAttribute('data-column-id'));
-          const cardId = Number.parseInt(el.getAttribute('data-card-id'));
-
-          cardDragBag.drake.cancel(true);
-          return this.moveCardToColumn(cardId, sourceId, targetId);
-        })
       )
-      .subscribe();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .subscribe(({name, el, target, source, sibling}) => {
+        if (!target)
+        {
+          return;
+        }
+
+        const targetColumnId = Number.parseInt(target.getAttribute('data-column-id'));
+        const sourceColumnId = Number.parseInt(source.getAttribute('data-column-id'));
+        const cardId = Number.parseInt(el.getAttribute('data-card-id'));
+        const siblingCardId = sibling ? Number.parseInt(sibling.getAttribute('data-card-id')) : null;
+
+        cardDragBag.drake.cancel(true);
+        if (sourceColumnId === targetColumnId) {
+          this.updateCardOrder(cardId, targetColumnId, siblingCardId);
+        } else if (sourceColumnId) {
+          this.moveCardToColumn(cardId, sourceColumnId, targetColumnId, siblingCardId);
+        } else {
+          this.createPlaceholderAndShowPopover(targetColumnId, cardId, siblingCardId);
+        }
+      });
 
     this.unsubscribe$.subscribe(() => {
       dragulaService.destroy('CARD');
@@ -172,6 +209,22 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         })
       )
       .subscribe();
+
+    this.changesNotificationService
+      .cardUpdated$
+      .pipe(
+        takeUntilDestroyed(),
+        filter(card => this.cards.some(t => t.id === card.id) || card.board_id === this.board.id)
+      )
+      .subscribe(card => this.handleCardUpdated(card));
+
+    this.changesNotificationService
+      .cardCreated$
+      .pipe(
+        takeUntilDestroyed(),
+        filter(card => card.board_id === this.board.id)
+      )
+      .subscribe(card => this.handleCardCreated(card));
 
     this.updateCurrentBoardStyle();
   }
@@ -223,15 +276,21 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     this.isBoardLoading = true;
-    zip(
+    let data$ = zip(
       pullData ? this.boardService.getColumns(this.board.id) : of(this.columns),
-      pullData ? this.cardSearchService.searchCards({ boardId: this.board.id }) : of(this.cards),
+      pullData ? this.cardSearchService.searchCards({ board: this.board }) : of(this.cards),
       this.boardService.getCustomColumns(this.board.id),
       this.boardService.getCollapsedColumns(this.board.id),
     )
       .pipe(
         finalize(() => this.isBoardLoading = false)
-      )
+      );
+
+    if (pullData) {
+      data$ = this.dialogService.loadingDialog(data$, 'Refreshing the board...');
+    }
+
+    data$
       .subscribe(([columns, cards, customColumns, collapsedColumns]) => {
         this.columns = columns;
         this.cards = cards?.filter(c => !c.archived);
@@ -282,6 +341,90 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     return !!column.subcolumns?.map(t => t.id).every(t => this.collapsedColumns[t]) || (!column.subcolumns && this.collapsedColumns[column.id]);
   }
 
+  protected moveCardToBoard(cardId: number, columnId: number, laneId: number, siblingCardId?: number): void {
+    this.removeDroppedCardPlaceholder(cardId, columnId);
+
+    const sortOrder = this.getSortOrder(columnId, siblingCardId);
+    const updatedCard$ = this.cardEditorService
+      .updateCard(cardId, {
+        board_id: this.board.id,
+        column_id: columnId,
+        lane_id: laneId,
+        sort_order: sortOrder,
+      });
+
+    this.dialogService
+      .loadingDialog(updatedCard$, 'Updating a card, please wait...')
+      .subscribe();
+  }
+
+  protected removeDroppedCardPlaceholder(cardId: number, columnId: number): void {
+    const indexToDelete = this.boardItemsByColumnId[columnId].findIndex(t => t.placeholder?.newCardId === cardId);
+    if (indexToDelete !== -1) {
+      this.boardItemsByColumnId[columnId].splice(indexToDelete, 1);
+    }
+  }
+
+  protected createChild(cardId: number, targetColumnId: number, siblingCardId: number): void {
+    this.removeDroppedCardPlaceholder(cardId, targetColumnId);
+
+    const sortOrder = this.getSortOrder(targetColumnId, siblingCardId);
+    this.dialogService
+      .loadingDialog(this.cardEditorService.getCard(cardId), 'Getting things ready...')
+      .pipe(
+        switchMap(card => this.dialogService.createCard({
+          board_id: this.board.id,
+          type_id: this.board.default_card_type_id,
+          column_id: targetColumnId,
+          title: `Child of card ${cardId} - ${card.title}`,
+          sort_order: sortOrder
+        })),
+        switchMap(childId => this.dialogService.loadingDialog(this.cardEditorService.addRelation(cardId, childId), 'Linking card to parent, please wait...'))
+      )
+      .subscribe();
+  }
+
+  private handleCardCreated(createdCard: CardEx): void {
+    this.cards.push(createdCard);
+    this.refresh(false);
+  }
+  
+  private handleCardUpdated(updatedCard: CardEx): void {
+    const card = this.cards.find(t => t.id === updatedCard.id);
+
+    if (updatedCard.board_id !== this.board.id) {
+      const indexToDelete = this.cards.findIndex(t => t.id === updatedCard.id);
+      this.cards.splice(indexToDelete, 1);
+    } else if (card) {
+      Object.assign(card, updatedCard);
+    } else {
+      this.cards.push(updatedCard);
+    }
+
+    this.refresh(false);
+  }
+  
+  private createPlaceholderAndShowPopover(targetColumnId: number, cardId: number, siblingCardId?: number): void {
+    const newBoardItem: BoardItem = {
+      placeholder: {
+        newCardId: cardId,
+        columnId: targetColumnId,
+        siblingCardId
+      }
+    };
+
+    if (siblingCardId) {
+      const insertIndex = this.boardItemsByColumnId[targetColumnId].findIndex(t => t.card?.id === siblingCardId);
+      this.boardItemsByColumnId[targetColumnId].splice(insertIndex, 0, newBoardItem);
+    } else {
+      this.boardItemsByColumnId[targetColumnId] = [...this.boardItemsByColumnId[targetColumnId] || [], newBoardItem];
+    }
+
+    setTimeout(() => {
+      this.droppedCardPopover.open();
+    }, 1);
+  }
+
   private updateCurrentBoardStyle(): void {
     if (!this.boardStyle || Math.min(window.outerWidth, window.outerHeight) < 768) {
       this.currentBoardStyle = BoardStyle.Vertical;
@@ -289,26 +432,58 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       this.currentBoardStyle = this.boardStyle;
     }
   }
-
+  
   private doFocusCard(cardId: number): void {
     this.focusedCardComponent?.unfocus();
     const cardComponent = this.cardComponents.find(t => t.card.id == cardId);
     cardComponent.focus();
     this.focusedCardComponent = cardComponent;
   }
+  
+  private getSortOrder(columnId: number, siblingCardId?: number): number {
+    if (!this.boardItemsByColumnId[columnId]?.length) {
+      return 1;
+    }
 
-  private moveCardToColumn(cardId: number, fromId: number, toId: number): Observable<void> {
+    if (!siblingCardId) {
+      return Math.max(...this.boardItemsByColumnId[columnId].map(t => t.card.sort_order)) + 1;
+    }
+
+    const nextCardSortOrder = this.boardItemsByColumnId[columnId].find(t => t.card.id === siblingCardId).card.sort_order;
+
+    let prevCardSortOrder = 0;
+    const indexOfSibling = this.boardItemsByColumnId[columnId].findIndex(t => t.card.id === siblingCardId);
+
+    if (indexOfSibling === 0) {
+      const minSortOrder = Math.min(...this.boardItemsByColumnId[columnId].map(t => t.card.sort_order));
+      return minSortOrder - 1;
+    }
+
+    if (indexOfSibling > 0) {
+      prevCardSortOrder = this.boardItemsByColumnId[columnId][indexOfSibling - 1].card.sort_order;
+    }
+
+    return (nextCardSortOrder + prevCardSortOrder) / 2;
+  }
+  
+  private moveCardToColumn(cardId: number, fromId: number, toId: number, siblingCardId?: number): void {
     const card = this.cards.find(t => t.id === cardId);
     const from = findColumnRecursive(this.columns, fromId);
     const to = findColumnRecursive(this.columns, toId);
 
-    return this.dialogService.cardTransition(card, from, to)
-      .pipe(
-        tap(() => {
-          this.refresh(true);
-        }),
-        map(() => {})
-      );
+    const sortOrder = this.getSortOrder(toId, siblingCardId);
+    this.dialogService.cardTransition(card, from, to, sortOrder).subscribe();
+  }
+
+  private updateCardOrder(cardId: number, columnId: number, siblingCardId?: number): void {
+    const sortOrder = this.getSortOrder(columnId, siblingCardId);
+    const updatedCard$ = this.cardEditorService.updateCard(cardId, {
+      sort_order: sortOrder,
+    });
+
+    this.dialogService
+      .loadingDialog(updatedCard$, 'Updating a card, please wait...')
+      .subscribe();
   }
   
   private updateColumnsArrangement(targetIndex: number|null, sourceIndex: number, colIndex: number): Observable<void> {
@@ -380,7 +555,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private mapCardsByColumnId(cards: CardEx[]): void {
-    const cardsByColumnId: { [key: number]: CardEx[] } = {};
+    const cardsByColumnId: Record<number, BoardItem[]> = {};
     for (const card of cards) {
       let cards = cardsByColumnId[card.column_id];
       if (!cards) {
@@ -410,11 +585,15 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         && (hasTags === true || hasTags === null)
         && (hasText === true || hasText === null)
       ) {
-        cards.push(card);
+        cards.push(<BoardItem>{ card });
       }
     }
 
-    this.cardsByColumnId = cardsByColumnId;
+    for (const [, items] of Object.entries(cardsByColumnId)) {
+      items.sort((a, b) => a.card.sort_order - b.card.sort_order);
+    }
+
+    this.boardItemsByColumnId = cardsByColumnId;
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -428,7 +607,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   @HostListener('window:resize', ['$event'])
-  private handleWindowResize(event: Event): void {
+  private handleWindowResize(): void {
     const lastBoardStyle = this.currentBoardStyle;
     this.updateCurrentBoardStyle();
     if (lastBoardStyle !== this.currentBoardStyle) {
@@ -474,4 +653,5 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
   }
+  
 }

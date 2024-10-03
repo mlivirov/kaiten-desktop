@@ -6,14 +6,19 @@
     [showComments]="false"
     [showReferences]="false"
     [collapsableProperties]="true"
+    propertiesPanelSize="small"
   ></app-card-editor>
 </div>
 
 <div class="modal-footer">
+  <i
+    class="pi pi-spinner pi-spin me-auto"
+    *ngIf="isSaving"
+  ></i>
   <button
     type="button"
     class="btn btn-secondary"
-    (click)="modal.close()"
+    (click)="modal.close(0)"
     [disabled]="isSaving"
   >
     Save as Draft
@@ -21,7 +26,7 @@
   <button
     type="button"
     class="btn btn-danger"
-    (click)="modal.close(0)"
+    (click)="modal.close()"
     [disabled]="isSaving"
   >
     Discard

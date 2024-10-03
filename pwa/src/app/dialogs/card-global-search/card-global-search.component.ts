@@ -15,7 +15,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TimeagoModule } from 'ngx-timeago';
 import { MemberType } from '../../models/member-type';
 import { InlineMemberComponent } from '../../components/inline-member/inline-member.component';
-import { finalize } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 import { CardFilter, CardSearchService } from '../../services/card-search.service';
 import { getTextOrDefault } from '../../functions/get-text-or-default';
 import { Owner } from '../../models/owner';
@@ -60,6 +60,7 @@ export class CardGlobalSearchComponent {
   protected readonly getCardColumnTitle = getCardColumnTitle;
   private offset = 0;
   private readonly limit = 25;
+  private searchSubscription: Subscription;
 
   public constructor(
     public modal: NgbActiveModal,
@@ -81,7 +82,9 @@ export class CardGlobalSearchComponent {
     this.filter = filter;
     this.offset = 0;
     this.isLoading = true;
-    this.cardSearchService
+
+    this.searchSubscription?.unsubscribe();
+    this.searchSubscription = this.cardSearchService
       .searchCards(filter, this.offset, this.limit)
       .pipe(
         finalize(() => this.isLoading = false),
@@ -95,7 +98,8 @@ export class CardGlobalSearchComponent {
   protected loadMore(): void {
     this.offset += this.limit;
     this.isLoading = true;
-    this.cardSearchService
+    this.searchSubscription?.unsubscribe();
+    this.searchSubscription = this.cardSearchService
       .searchCards(this.filter, this.offset, this.limit)
       .pipe(
         finalize(() => this.isLoading = false),

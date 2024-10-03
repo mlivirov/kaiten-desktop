@@ -31,13 +31,13 @@ export class DraftCardEditorService implements CardEditorService {
     return from(Database.cardDrafts.toArray()).pipe(switchMap(drafts => drafts?.length ? of(drafts[drafts.length - 1]) : EMPTY));
   }
 
-  public createNewDraft(boardId: number, laneId?: number, typeId?: number, title: string|null = null): Observable<CardEx> {
+  public createNewDraft(template: Partial<CardEx>): Observable<CardEx> {
     return forkJoin({
       owner: this.authService.getCurrentUser(),
-      board: this.boardService.getBoard(boardId),
-      lane: this.boardService.getLanes(boardId).pipe(map(lanes => {
-        if (laneId) {
-          return lanes.find(t => t.id === laneId);
+      board: this.boardService.getBoard(template.board_id),
+      lane: this.boardService.getLanes(template.board_id).pipe(map(lanes => {
+        if (template.lane_id) {
+          return lanes.find(t => t.id === template.lane_id);
         }
 
         const defaultLane = lanes.find(t => !t.title?.length);
@@ -47,12 +47,12 @@ export class DraftCardEditorService implements CardEditorService {
 
         return lanes.sort((a, b) => a.sort_order - b.sort_order)[0];
       })),
-      column: this.boardService.getColumns(boardId).pipe(map(columns => {
+      column: this.boardService.getColumns(template.board_id).pipe(map(columns => {
         const cols = flattenColumns(columns).sort((a, b) => a.sort_order - b.sort_order);
-        return cols[0];
+        return template.column_id ? cols.find(c => c.id === template.column_id) : cols[0];
       })),
       type: this.boardService.getCardTypes().pipe(
-        map(types => types.find(t => t.id === typeId || !typeId)),
+        map(types => types.find(t => t.id === template.type_id || !template.type_id)),
       )
     })
       .pipe(
@@ -75,7 +75,8 @@ export class DraftCardEditorService implements CardEditorService {
             tags: [],
             members: [],
             checklists: [],
-            title: title
+            title: template.title,
+            description: template.description
           };
 
           return from(Database.cardDrafts.add(card)).pipe(map(id => {

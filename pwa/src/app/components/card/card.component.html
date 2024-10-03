@@ -22,17 +22,21 @@
       <span>asap</span>
     </div>
     <div
-      class="smaller cursor-pointer text-truncate"
+      class="smaller text-truncate user-select-none"
       [ngbTooltip]="card.type.name"
       container="body"
       triggers="hover"
     >{{card.type.name}}</div>
-    <div class="mx-2 d-md-none d-xl-block">
+    <div
+      class="mx-2 d-md-none d-xl-block"
+      *ngIf="showTimeDots"
+    >
       <app-time-dots [since]="card.column_changed_at"></app-time-dots>
     </div>
     <div class="ms-auto"></div>
     <div
-      [ngClass]="{ 'invisible': disabled || !active }"
+      *ngIf="!disabled"
+      [ngClass]="{ 'invisible': !active }"
       class="d-flex align-items-center me-1 ms-md-1 "
     >
       <button
@@ -41,6 +45,7 @@
         class="btn btn-sm btn-icon-sm me-1 border border-1 d-inline-block d-md-none d-lg-inline-block text-secondary"
         (click)="addBlock()"
         [disabled]="isSaving"
+        *ngIf="buttons.includes('block')"
       >
         <i class="pi pi-lock"></i>
       </button>
@@ -48,12 +53,14 @@
         ngbTooltip="Move to next column"
         type="button"
         class="btn btn-sm btn-icon-sm text-primary border border-1 me-1"
+        *ngIf="buttons.includes('move')"
         (click)="transitionToNextColumn()"
         [disabled]="isSaving"
       >
         <i class="pi pi-angle-double-right"></i>
       </button>
       <app-copy-to-clipboard-button
+        *ngIf="buttons.includes('copy')"
         btnClass="btn-sm border border-1 me-1 text-secondary d-block"
         [data]="clipboardLink$"
       ></app-copy-to-clipboard-button>

@@ -1,4 +1,4 @@
-import { Component, Inject, Input } from '@angular/core';
+import { Component, HostListener, Inject, Input } from '@angular/core';
 import { CardEditorComponent } from '../../components/card-editor/card-editor.component';
 import { NgIf } from '@angular/common';
 import { CardEx } from '../../models/card-ex';
@@ -78,5 +78,14 @@ export class NewCardDialogComponent {
       .subscribe(() => {
         this.modal.close(this.card.id);
       });
+  }
+
+  @HostListener('keydown', ['$event'])
+  private handleKeyDown(event: KeyboardEvent): void {
+    if (event.ctrlKey && event.code === 'Enter' && !this.isSaving) {
+      this.save();
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
 }

@@ -405,8 +405,20 @@ app-list-of-related-cards .list .item:last-child {
     min-width: 90% !important;
   }
 
+  html {
+    height: 100%;
+  }
+
   body:has(app-board-page) {
     min-width: fit-content !important;
+    min-height: 100%;
+  }
+
+  app-board-page {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    min-width: 100%;
   }
 }
 
@@ -418,4 +430,12 @@ app-list-of-related-cards .list .item:last-child {
 .text-vertical {
   text-orientation: mixed;
   writing-mode: vertical-rl;
+}
+
+.cursor-loading {
+  cursor: wait;
+}
+
+.popover{
+  max-width: 800px;
 }

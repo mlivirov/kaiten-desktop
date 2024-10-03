@@ -6,6 +6,7 @@ import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { finalize } from 'rxjs';
 import { UserService } from '../../services/user.service';
 import { nameof } from '../../functions/name-of';
+import { getTextOrDefault } from '../../functions/get-text-or-default';
 
 @Component({
   selector: 'app-inline-member',
@@ -31,6 +32,7 @@ export class InlineMemberComponent implements OnChanges {
   @Input() public size: number = 24;
   protected avatarUrl?: string;
   protected isLoading: boolean = false;
+  protected readonly getTextOrDefault = getTextOrDefault;
 
   public constructor(
     private avatarService: AvatarService,
@@ -81,5 +83,4 @@ export class InlineMemberComponent implements OnChanges {
         this.avatarUrl = url;
       });
   }
-  
 }

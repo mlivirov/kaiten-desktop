@@ -1,24 +1,115 @@
-<app-page-header
-  [title]="board.title"
-  (switchBoard)="switchBoard($event.boardId)"
+<ng-container *ngIf="!isLeftPanelAvailable">
+  <app-page-header
+    [title]="board.title"
+    (switchBoard)="switchBoard($event.boardId)"
+  >
+    <ng-template #controls>
+      <app-card-search-input
+        #cardSearchInput
+        class="mt-2 w-100 flex-grow-1"
+        style="min-width: 15rem;"
+        [ngModel]="filterValue"
+        (ngModelChange)="applyFilter($event)"
+        [badges]="['member', 'tag']"
+        placeholder="Type your search query here or press (CTRL+F)"
+      ></app-card-search-input>
+    </ng-template>
+  </app-page-header>
+  <app-board
+    #boardComponent
+    [board]="board"
+    [cards]="boardCards"
+    [columns]="boardColumns"
+    (openCard)="openCard($event)"
+    (loaded)="handleBoardLoaded()"
+    [boardStyle]="boardStyle"
+  ></app-board>
+</ng-container>
+
+<div
+  class="h-100 d-flex flex-column"
+  *ngIf="isLeftPanelAvailable"
 >
-  <ng-template #controls>
-    <app-card-search-input
-      #cardSearchInput
-      class="mt-2 w-100 flex-grow-1"
-      style="min-width: 15rem;"
-      [ngModel]="filterValue"
-      (ngModelChange)="applyFilter($event)"
-      placeholder="Type your search query here or press (CTRL+F)"
-    ></app-card-search-input>
-  </ng-template>
-</app-page-header>
-<app-board
-  #boardComponent
-  [board]="board"
-  [cards]="boardCards"
-  [columns]="boardColumns"
-  (openCard)="openCard($event)"
-  (loaded)="handleBoardLoaded()"
-  [boardStyle]="boardStyle"
-></app-board>
+  <app-page-header
+    [title]="board.title"
+    (switchBoard)="switchBoard($event.boardId)"
+  >
+    <ng-template #controls>
+      <app-card-search-input
+        #cardSearchInput
+        class="mt-2 w-100 flex-grow-1"
+        style="min-width: 15rem;"
+        [ngModel]="filterValue"
+        (ngModelChange)="applyFilter($event)"
+        [badges]="['member', 'tag']"
+        placeholder="Type your search query here or press (CTRL+F)"
+      ></app-card-search-input>
+    </ng-template>
+  </app-page-header>
+
+  <div class="d-flex flex-fill">
+    <div class="position-relative">
+      <div class="h-100 position-absolute border border-1 bg-light-subtle z-1">
+        <!-- a button -->
+        <div
+          class="pt-2 user-select-none cursor-pointer d-flex flex-column align-items-center p-1 text-primary sticky-top"
+          style="width: 31px"
+          (click)="isLeftPanelCollapsed = !isLeftPanelCollapsed"
+          *ngIf="isLeftPanelCollapsed"
+        >
+          <i class="pi pi-angle-double-right mb-2"></i>
+          <span class="text-vertical small">More cards</span>
+        </div>
+        <!-- a panel -->
+        <div
+          #collapse="ngbCollapse"
+          [(ngbCollapse)]="isLeftPanelCollapsed"
+          (hidden)="showLeftPanelExpandButton = true"
+          (shown)="showLeftPanelExpandButton = false"
+          [horizontal]="true"
+          class="h-100"
+          style="max-width: 250px;"
+        >
+          <div
+            class="h-100 overflow-y-auto overflow-x-hidden"
+            style="width: 250px"
+          >
+            <div class="px-3 py-1 d-flex align-items-center">
+              <span class="text-nowrap small strong">More cards</span>
+              <button
+                type="button"
+                class="btn btn-sm btn-icon-sm border border-1 btn-light ms-auto"
+                (click)="isLeftPanelCollapsed = true"
+              >
+                <i class="pi pi-window-minimize"></i>
+              </button>
+            </div>
+            <hr class="pt-0 my-0">
+            <div class="px-2">
+              <app-list-of-cards (openCard)="openCard($event)"></app-list-of-cards>
+            </div>
+          </div>
+        </div>
+        <!-- end of block -->
+      </div>
+    </div>
+
+    <div
+      [ngStyle]="{
+          'margin-left': (showLeftPanelExpandButton ? 33 : 252) + 'px',
+        }"
+      class="z-0 w-100"
+    >
+      <app-board
+        #boardComponent
+        [board]="board"
+        [cards]="boardCards"
+        [columns]="boardColumns"
+        (openCard)="openCard($event)"
+        (loaded)="handleBoardLoaded()"
+        [boardStyle]="boardStyle"
+      ></app-board>
+    </div>
+  </div>
+
+</div>

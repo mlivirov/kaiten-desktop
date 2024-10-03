@@ -21,7 +21,7 @@ import { ChangeCallback, TouchedCallback } from '../../core/types/change-callbac
 
 export interface BadgeType {
   name: string;
-  multi: boolean;
+  options: boolean;
   getTitle(item: unknown): string;
 }
 
@@ -95,7 +95,7 @@ export class TypeaheadComponent implements ControlValueAccessor {
   public constructor(@Inject(BADGE_SERVICE) private badgeService: BadgeService) {
     this.changeSubject
       .pipe(
-        debounceTime(1000),
+        debounceTime(400),
       )
       .subscribe(() => {
         this.openPopoverIfAvailable();
@@ -184,7 +184,6 @@ export class TypeaheadComponent implements ControlValueAccessor {
       const badgeTypeKeyword = `@${badgeType.name}`;
       if (this.value?.startsWith(badgeTypeKeyword)) {
         this.currentBadgeType = badgeType;
-        this.currentPopoverItemIndex = 0;
         this.popoverItemsLoading = true;
 
         const indexOfSpace = this.value.indexOf(' ');
@@ -196,7 +195,8 @@ export class TypeaheadComponent implements ControlValueAccessor {
             finalize(() => this.popoverItemsLoading = false)
           )
           .subscribe(options => {
-            if (badgeType.multi) {
+            if (badgeType.options) {
+              this.currentPopoverItemIndex = 0;
               this.popoverItems = options;
               this.popover.open();
             } else {
@@ -208,12 +208,23 @@ export class TypeaheadComponent implements ControlValueAccessor {
       }
     }
 
-    if (this.value?.startsWith('@')) {
+    if (this.value?.startsWith('@') && this.popoverItems !== this.badgeTypes) {
       this.currentPopoverItemIndex = 0;
       this.currentBadgeType = null;
       this.popoverItems = this.badgeTypes;
       this.popover.open();
     }
+
+    if (!this.value?.length && this.popover.isOpen()) {
+      this.popover.close(false);
+    }
+  }
+
+  private focusPopoverItem(index: number): void {
+    (<HTMLElement>document.querySelector(`[data-typeahead-popover-item="${index}"]`))?.scrollIntoView({
+      behavior: 'instant',
+      block: 'nearest',
+    });
   }
 
   @HostListener('keydown', ['$event'])
@@ -228,12 +239,15 @@ export class TypeaheadComponent implements ControlValueAccessor {
       event.preventDefault();
       event.stopPropagation();
 
-      this.openPopoverIfAvailable();
+      if (!this.popover.isOpen()) {
+        this.openPopoverIfAvailable();
+      }
     } else if ((event.code === 'ArrowDown' || event.code === 'Tab') && this.popover.isOpen()) {
       this.currentPopoverItemIndex = this.currentPopoverItemIndex === this.popoverItems.length - 1
         ? 0
         : this.currentPopoverItemIndex + 1;
 
+      this.focusPopoverItem(this.currentPopoverItemIndex);
       event.preventDefault();
       event.stopPropagation();
     } else if (event.code === 'ArrowUp' && this.popover.isOpen()) {
@@ -241,6 +255,7 @@ export class TypeaheadComponent implements ControlValueAccessor {
         ? this.popoverItems.length - 1
         : this.currentPopoverItemIndex - 1;
 
+      this.focusPopoverItem(this.currentPopoverItemIndex);
       event.preventDefault();
       event.stopPropagation();
     } else if (event.code === 'Enter' && this.popover.isOpen()) {
