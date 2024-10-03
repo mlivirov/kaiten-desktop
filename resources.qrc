@@ -11,5 +11,7 @@
         <file alias="media/primeicons.woff">pwa/dist/pwa/browser/media/primeicons.woff</file>
         <file alias="media/primeicons.woff2">pwa/dist/pwa/browser/media/primeicons.woff2</file>
         <file alias="assets/logo.svg">pwa/dist/pwa/browser/assets/logo.svg</file>
+        <file alias="assets/horizontalCollapsibleDemo.gif">pwa/dist/pwa/browser/assets/horizontalCollapsibleDemo.gif</file>
+        <file alias="assets/verticalDemo.gif">pwa/dist/pwa/browser/assets/verticalDemo.gif</file>
     </qresource>
 </RCC>
