@@ -52,7 +52,7 @@ export class DialogService {
   ) {
   }
 
-  public cardTransition(card: CardEx, from: Column, to: Column, sortOrder?: number): Observable<CardEx> {
+  public cardTransition(card: CardEx, from: Column, to: Column, sortOrder?: number, laneId?: number): Observable<CardEx> {
     const instance = this.modal.open(
       CardTransitionConfirmationDialogComponent
     );
@@ -63,6 +63,7 @@ export class DialogService {
     instance.componentInstance.from = from;
     instance.componentInstance.to = to;
     instance.componentInstance.sortOrder = sortOrder;
+    instance.componentInstance.laneId = laneId;
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;

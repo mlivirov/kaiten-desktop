@@ -143,7 +143,17 @@ $kaiten: #8146D3;
   }
 }
 
+.text-bg-solid {
+  color: $dark !important;
+  background-color: $white;
+}
+
 [data-bs-theme="dark"] {
+  .text-bg-solid {
+    background-color: $dark !important;
+    color: $light !important;
+  }
+
   body {
     background-color: $dark !important;
   }

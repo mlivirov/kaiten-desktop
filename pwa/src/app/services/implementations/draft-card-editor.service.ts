@@ -76,7 +76,8 @@ export class DraftCardEditorService implements CardEditorService {
             members: [],
             checklists: [],
             title: template.title,
-            description: template.description
+            description: template.description,
+            sort_order: template.sort_order,
           };
 
           return from(Database.cardDrafts.add(card)).pipe(map(id => {

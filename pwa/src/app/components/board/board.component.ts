@@ -38,6 +38,7 @@ import { AutosizeModule } from 'ngx-autosize';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ChangesNotificationService } from '../../services/changes-notification.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Lane } from '../../models/lane';
 
 // TODO: extract into separate function
 function colSortPredicate(a, b): number {
@@ -55,8 +56,10 @@ interface BoardViewColumn {
 
 interface CardPlaceholder {
   columnId: number,
-  newCardId: number,
+  cardId: number,
   siblingCardId?: number,
+  targetLaneId?: number,
+  items: BoardItem[],
 }
 
 interface BoardItem {
@@ -98,7 +101,9 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   protected readonly BoardStyle = BoardStyle;
   protected currentBoardStyle: BoardStyle;
   protected currentUser?: User;
+  protected lanesById: Record<number, Lane> = {};
   protected boardItemsByColumnId: Record<number, BoardItem[]> = {};
+  protected boardItemsByLaneId: Record<number, BoardItem[]> = {};
   protected viewColumns: BoardViewColumn[];
   protected hideEmpty: boolean = false;
   protected cardsCountByRootColumnId: Record<number, number> = {};
@@ -152,6 +157,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   public applyFilter(value?: CardFilter): void {
     this.filterValue = value;
     this.mapCardsByColumnId(this.cards);
+    this.mapCardsByLaneId(this.cards);
   }
 
   public focusCard(cardId: number): void {
@@ -211,7 +217,9 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         this.customColumns = customColumns;
         this.collapsedColumns = collapsedColumns;
 
+        this.mapLanesById();
         this.mapCardsByColumnId(this.cards);
+        this.mapCardsByLaneId(this.cards);
         this.sortColumns();
         this.rearrangeColumns();
         this.countCards();
@@ -255,15 +263,15 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     return !!column.subcolumns?.map(t => t.id).every(t => this.collapsedColumns[t]) || (!column.subcolumns && this.collapsedColumns[column.id]);
   }
 
-  protected moveCardToBoard(cardId: number, columnId: number, laneId: number, siblingCardId?: number): void {
-    this.removeDroppedCardPlaceholder(cardId, columnId);
+  protected moveCardToBoard(placeholder: CardPlaceholder): void {
+    this.removeDroppedCardPlaceholder(placeholder);
 
-    const sortOrder = this.getSortOrder(columnId, siblingCardId);
+    const sortOrder = this.getSortOrder(placeholder);
     const updatedCard$ = this.cardEditorService
-      .updateCard(cardId, {
+      .updateCard(placeholder.cardId, {
         board_id: this.board.id,
-        column_id: columnId,
-        lane_id: laneId,
+        column_id: placeholder.columnId,
+        lane_id: placeholder.targetLaneId,
         sort_order: sortOrder,
       });
 
@@ -272,28 +280,29 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       .subscribe();
   }
 
-  protected removeDroppedCardPlaceholder(cardId: number, columnId: number): void {
-    const indexToDelete = this.boardItemsByColumnId[columnId].findIndex(t => t.placeholder?.newCardId === cardId);
+  protected removeDroppedCardPlaceholder(placeholder: CardPlaceholder): void {
+    const indexToDelete = placeholder.items.findIndex(t => t.placeholder === placeholder);
     if (indexToDelete !== -1) {
-      this.boardItemsByColumnId[columnId].splice(indexToDelete, 1);
+      placeholder.items.splice(indexToDelete, 1);
     }
   }
 
-  protected createChild(cardId: number, targetColumnId: number, siblingCardId: number): void {
-    this.removeDroppedCardPlaceholder(cardId, targetColumnId);
+  protected createChild(placeholder: CardPlaceholder): void {
+    this.removeDroppedCardPlaceholder(placeholder);
 
-    const sortOrder = this.getSortOrder(targetColumnId, siblingCardId);
+    const sortOrder = this.getSortOrder(placeholder);
     this.dialogService
-      .loadingDialog(this.cardEditorService.getCard(cardId), 'Getting things ready...')
+      .loadingDialog(this.cardEditorService.getCard(placeholder.cardId), 'Getting things ready...')
       .pipe(
         switchMap(card => this.dialogService.createCard({
           board_id: this.board.id,
           type_id: this.board.default_card_type_id,
-          column_id: targetColumnId,
-          title: `Child of card ${cardId} - ${card.title}`,
-          sort_order: sortOrder
+          column_id: placeholder.columnId,
+          title: `Child of card ${placeholder.cardId} - ${card.title}`,
+          sort_order: sortOrder,
+          lane_id: placeholder.targetLaneId
         })),
-        switchMap(childId => this.dialogService.loadingDialog(this.cardEditorService.addRelation(cardId, childId), 'Linking card to parent, please wait...'))
+        switchMap(childId => this.dialogService.loadingDialog(this.cardEditorService.addRelation(placeholder.cardId, childId), 'Linking card to parent, please wait...'))
       )
       .subscribe();
   }
@@ -393,15 +402,19 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         const targetColumnId = Number.parseInt(target.getAttribute('data-column-id'));
         const sourceColumnId = Number.parseInt(source.getAttribute('data-column-id'));
         const cardId = Number.parseInt(el.getAttribute('data-card-id'));
-        const siblingCardId = sibling ? Number.parseInt(sibling.getAttribute('data-card-id')) : null;
+        const siblingCardId = sibling ? Number.parseInt(sibling.getAttribute('data-card-id')) : undefined;
 
+        const laneElement = target.closest('[data-lane-id]');
+        const targetLaneId = laneElement ? Number.parseInt(laneElement.getAttribute('data-lane-id')) : undefined;
+
+        const placeholder = this.createPlaceholder(targetColumnId, cardId, siblingCardId, targetLaneId);
         cardDragBag.drake.cancel(true);
         if (sourceColumnId === targetColumnId) {
-          this.updateCardOrder(cardId, targetColumnId, siblingCardId);
+          this.updateCardOrder(placeholder);
         } else if (sourceColumnId) {
-          this.moveCardToColumn(cardId, sourceColumnId, targetColumnId, siblingCardId);
+          this.moveCardToColumn(placeholder, sourceColumnId);
         } else {
-          this.createPlaceholderAndShowPopover(targetColumnId, cardId, siblingCardId);
+          this.addPlaceholderAndShowPopover(placeholder);
         }
       });
 
@@ -410,20 +423,24 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     });
   }
 
-  private createPlaceholderAndShowPopover(targetColumnId: number, cardId: number, siblingCardId?: number): void {
-    const newBoardItem: BoardItem = {
-      placeholder: {
-        newCardId: cardId,
-        columnId: targetColumnId,
-        siblingCardId
-      }
-    };
+  private createPlaceholder(targetColumnId: number, cardId: number, siblingCardId?: number, targetLaneId?: number): CardPlaceholder {
+    const items = targetLaneId ? this.boardItemsByLaneId[targetLaneId] : this.boardItemsByColumnId[targetColumnId];
 
-    if (siblingCardId) {
-      const insertIndex = this.boardItemsByColumnId[targetColumnId].findIndex(t => t.card?.id === siblingCardId);
-      this.boardItemsByColumnId[targetColumnId].splice(insertIndex, 0, newBoardItem);
+    return <CardPlaceholder>{
+      cardId: cardId,
+      columnId: targetColumnId,
+      siblingCardId: siblingCardId,
+      targetLaneId: targetLaneId,
+      items: items
+    };
+  }
+
+  private addPlaceholderAndShowPopover(placeholder: CardPlaceholder): void {
+    if (placeholder.siblingCardId) {
+      const insertIndex = placeholder.items.findIndex(t => t.card?.id === placeholder.siblingCardId);
+      placeholder.items.splice(insertIndex, 0, { placeholder });
     } else {
-      this.boardItemsByColumnId[targetColumnId] = [...this.boardItemsByColumnId[targetColumnId] || [], newBoardItem];
+      placeholder.items.push({ placeholder });
     }
 
     setTimeout(() => {
@@ -446,45 +463,47 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     this.focusedCardComponent = cardComponent;
   }
   
-  private getSortOrder(columnId: number, siblingCardId?: number): number {
-    if (!this.boardItemsByColumnId[columnId]?.length) {
+  private getSortOrder(placeholder: CardPlaceholder): number {
+    if (!placeholder.items?.length) {
       return 1;
     }
 
-    if (!siblingCardId) {
-      return Math.max(...this.boardItemsByColumnId[columnId].map(t => t.card.sort_order)) + 1;
+    if (!placeholder.siblingCardId) {
+      return Math.max(...placeholder.items.map(t => t.card.sort_order)) + 1;
     }
 
-    const nextCardSortOrder = this.boardItemsByColumnId[columnId].find(t => t.card.id === siblingCardId).card.sort_order;
+    const nextCardSortOrder = placeholder.items.find(t => t.card.id === placeholder.siblingCardId).card.sort_order;
 
     let prevCardSortOrder = 0;
-    const indexOfSibling = this.boardItemsByColumnId[columnId].findIndex(t => t.card.id === siblingCardId);
+    const indexOfSibling = placeholder.items.findIndex(t => t.card.id === placeholder.siblingCardId);
 
     if (indexOfSibling === 0) {
-      const minSortOrder = Math.min(...this.boardItemsByColumnId[columnId].map(t => t.card.sort_order));
+      const minSortOrder = Math.min(...placeholder.items.map(t => t.card.sort_order));
       return minSortOrder - 1;
     }
 
     if (indexOfSibling > 0) {
-      prevCardSortOrder = this.boardItemsByColumnId[columnId][indexOfSibling - 1].card.sort_order;
+      prevCardSortOrder = placeholder.items[indexOfSibling - 1].card.sort_order;
     }
 
     return (nextCardSortOrder + prevCardSortOrder) / 2;
   }
   
-  private moveCardToColumn(cardId: number, fromId: number, toId: number, siblingCardId?: number): void {
-    const card = this.cards.find(t => t.id === cardId);
+  private moveCardToColumn(placeholder: CardPlaceholder, fromId: number): void {
+    const card = this.cards.find(t => t.id === placeholder.cardId);
     const from = findColumnRecursive(this.columns, fromId);
-    const to = findColumnRecursive(this.columns, toId);
+    const to = findColumnRecursive(this.columns, placeholder.columnId);
 
-    const sortOrder = this.getSortOrder(toId, siblingCardId);
-    this.dialogService.cardTransition(card, from, to, sortOrder).subscribe();
+    const sortOrder = this.getSortOrder(placeholder);
+    this.dialogService.cardTransition(card, from, to, sortOrder, placeholder.targetLaneId).subscribe();
   }
 
-  private updateCardOrder(cardId: number, columnId: number, siblingCardId?: number): void {
-    const sortOrder = this.getSortOrder(columnId, siblingCardId);
-    const updatedCard$ = this.cardEditorService.updateCard(cardId, {
+  private updateCardOrder(placeholder: CardPlaceholder): void {
+    const sortOrder = this.getSortOrder(placeholder);
+
+    const updatedCard$ = this.cardEditorService.updateCard(placeholder.cardId, {
       sort_order: sortOrder,
+      lane_id: placeholder.targetLaneId
     });
 
     this.dialogService
@@ -560,6 +579,29 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     this.columns.sort(colSortPredicate);
   }
 
+  private checkCardMatchesFilter(card: CardEx): boolean {
+    const hasMembers = this.filterValue?.members?.length
+      ? this.filterValue.members.some(member => card.members?.map(t => t.id).includes(member.id))
+      : null;
+
+    const hasOwners = this.filterValue?.owners?.length
+      ? this.filterValue?.owners?.some(owner => card.owner_id === owner.id)
+      : null;
+
+    const hasTags = this.filterValue?.tags?.length
+      ? this.filterValue?.tags?.some(tag => card.tag_ids?.includes(tag.id))
+      : null;
+
+    const hasText = this.filterValue?.text
+      ? card.title.toLowerCase().indexOf(this.filterValue.text?.toLowerCase()) !== -1 || `${card.id}`.indexOf(this.filterValue.text) !== -1
+      : null;
+
+    return (hasMembers === true || hasMembers === null)
+      && (hasOwners === true || hasOwners === null)
+      && (hasTags === true || hasTags === null)
+      && (hasText === true || hasText === null);
+  }
+
   private mapCardsByColumnId(cards: CardEx[]): void {
     const cardsByColumnId: Record<number, BoardItem[]> = {};
     for (const card of cards) {
@@ -569,28 +611,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
         cardsByColumnId[card.column_id] = cards;
       }
 
-      const hasMembers = this.filterValue?.members?.length
-        ? this.filterValue.members.some(member => card.members?.map(t => t.id).includes(member.id))
-        : null;
-
-      const hasOwners = this.filterValue?.owners?.length
-        ? this.filterValue?.owners?.some(owner => card.owner_id === owner.id)
-        : null;
-
-      const hasTags = this.filterValue?.tags?.length
-        ? this.filterValue?.tags?.some(tag => card.tag_ids?.includes(tag.id))
-        : null;
-
-      const hasText = this.filterValue?.text
-        ? card.title.toLowerCase().indexOf(this.filterValue.text?.toLowerCase()) !== -1 || `${card.id}`.indexOf(this.filterValue.text) !== -1
-        : null;
-
-      if (
-        (hasMembers === true || hasMembers === null)
-        && (hasOwners === true || hasOwners === null)
-        && (hasTags === true || hasTags === null)
-        && (hasText === true || hasText === null)
-      ) {
+      if (this.checkCardMatchesFilter(card)) {
         cards.push(<BoardItem>{ card });
       }
     }
@@ -600,6 +621,27 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     this.boardItemsByColumnId = cardsByColumnId;
+  }
+
+  private mapCardsByLaneId(cards: CardEx[]): void {
+    this.boardItemsByLaneId = {};
+    for (const lane of this.board.lanes) {
+      this.boardItemsByLaneId[lane.id] = [];
+    }
+
+    for (const card of cards) {
+      if (this.checkCardMatchesFilter(card)) {
+        this.boardItemsByLaneId[card.lane_id].push({ card });
+      }
+    }
+
+    for (const [, items] of Object.entries(this.boardItemsByLaneId)) {
+      items.sort((a, b) => a.card.sort_order - b.card.sort_order);
+    }
+  }
+
+  private mapLanesById(): void {
+    this.lanesById = this.board.lanes.reduce((agg, lane) => <Record<number, Lane>>{ ...agg, [lane.id]: lane }, {});
   }
 
   @HostListener('window:keydown', ['$event'])

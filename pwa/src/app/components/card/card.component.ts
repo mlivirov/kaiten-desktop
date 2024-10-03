@@ -27,6 +27,7 @@ import { FormsModule } from '@angular/forms';
 import { TimeagoModule } from 'ngx-timeago';
 
 export type CardComponentButtons = 'copy'|'move'|'block';
+export type CardComponentStyles = 'colored'|'list-item';
 
 @Component({
   selector: 'app-card',
@@ -54,6 +55,7 @@ export class CardComponent {
   @Input() public disabled: boolean = false;
   @Input() public buttons: CardComponentButtons[] = ['copy', 'move', 'block'];
   @Input() public showTimeDots: boolean = true;
+  @Input() public cardStyle: CardComponentStyles[] = ['colored'];
   @Output() protected updated: EventEmitter<CardEx> = new EventEmitter<CardEx>();
   @Output() protected openRequest: EventEmitter<number> = new EventEmitter();
   protected active: boolean = false;
@@ -114,7 +116,11 @@ export class CardComponent {
   }
 
   protected getBackgroundColor(): string {
-    return getLaneColor(this.card.lane);
+    if (this.cardStyle.includes('colored')) {
+      return getLaneColor(this.card.lane);
+    }
+
+    return '';
   }
 
   protected openCard(id: number): void {

@@ -1,16 +1,14 @@
 <ng-template
   #cardPlaceholderTemplate
-  let-columnId="columnId"
-  let-newCardId="newCardId"
-  let-siblingCardId="siblingCardId"
+  let-placeholder
 >
   <ng-template #droppedCardPopoverContent>
     <div class="list-group m-n3">
       <a
-        *ngFor="let lane of board.lanes"
+        *ngFor="let lane of (placeholder.targetLaneId ? [lanesById[placeholder.targetLaneId]] : board.lanes)"
         href="javascript:void(0)"
         class="list-group-item list-group-item-action"
-        (click)="moveCardToBoard(newCardId, columnId, lane.id, siblingCardId)"
+        (click)="moveCardToBoard(placeholder)"
       >
         <div class="d-flex align-items-center">
           <i class="pi pi-arrow-down-right me-1"></i> Move to
@@ -25,7 +23,7 @@
       <a
         href="javascript:void(0)"
         class="list-group-item list-group-item-action"
-        (click)="createChild(newCardId, columnId, siblingCardId)"
+        (click)="createChild(placeholder)"
       >
         <i class="pi pi-pencil"></i> Create a child
       </a>
@@ -44,7 +42,7 @@
     autoClose="outside"
     container="body"
     #droppedCardPopover="ngbPopover"
-    (hidden)="removeDroppedCardPlaceholder(newCardId, columnId)"
+    (hidden)="removeDroppedCardPlaceholder(placeholder)"
   >
     <div class="d-flex justify-content-between align-items-center">
       <span class="placeholder placeholder-xs col-2"></span>
@@ -68,6 +66,27 @@
       <span class="placeholder placeholder-xs col-4 ms-2"></span>
     </div>
   </div>
+</ng-template>
+
+<ng-template
+  #boardItemTemplate
+  let-boardItem="boardItem"
+  let-cardStyle="cardStyle"
+>
+  <app-card
+    *ngIf="boardItem.card"
+    [cardStyle]="cardStyle"
+    [card]="boardItem.card"
+    (updated)="refresh(true)"
+    [attr.data-card-id]="boardItem.card.id"
+    (openRequest)="openCard.emit($event)"
+  ></app-card>
+  <ng-container
+    *ngIf="boardItem.placeholder"
+    [ngTemplateOutlet]="cardPlaceholderTemplate"
+    [ngTemplateOutletContext]="{ $implicit: boardItem.placeholder }"
+  >
+  </ng-container>
 </ng-template>
 
 <ng-template
@@ -138,20 +157,11 @@
       [attr.data-column-id]="columnId"
       style="min-width: 222px"
     >
-      <ng-container *ngFor="let boardItem of boardItemsByColumnId[columnId]">
-        <app-card
-          *ngIf="boardItem.card"
-          [card]="boardItem.card"
-          (updated)="refresh(true)"
-          [attr.data-card-id]="boardItem.card.id"
-          (openRequest)="openCard.emit($event)"
-        ></app-card>
-        <ng-container
-          *ngIf="boardItem.placeholder"
-          [ngTemplateOutlet]="cardPlaceholderTemplate"
-          [ngTemplateOutletContext]="boardItem.placeholder"
-        >
-        </ng-container>
+      <ng-container
+        *ngFor="let boardItem of boardItemsByColumnId[columnId]"
+        [ngTemplateOutlet]="boardItemTemplate"
+        [ngTemplateOutletContext]="{ boardItem, cardStyle: 'block' }"
+      >
       </ng-container>
     </div>
   </div>
@@ -278,6 +288,7 @@
 
 <div
   class="d-flex flex-wrap flex-md-nowrap h-100"
+  *ngIf="!(columns.length === 1 && !columns[0].subcolumns?.length)"
   [attr.data-board-style]="currentBoardStyle.toString()"
 >
   <ng-container
@@ -286,3 +297,38 @@
     [ngTemplateOutletContext]="{columns: viewColumn.columns, viewColumnIndex: i}"
   ></ng-container>
 </div>
+
+<ng-container *ngIf="columns.length === 1 && !columns[0].subcolumns?.length">
+  <div class="h-100">
+    <div
+      *ngFor="let lane of board.lanes"
+      class="p-2"
+      [attr.data-lane-id]="lane.id"
+    >
+      <div class="sticky-top mx-n2 text-bg-solid px-2">
+        <h4 class="mb-0">
+          <span
+            class="border border-1 border-light-subtle mx-1 d-inline-block"
+            style="min-height: 1rem; min-width: 1rem; {{getLaneColor(lane)}}"
+          ></span>
+          {{getTextOrDefault(lane.title)}}
+        </h4>
+        <hr class="mt-2">
+      </div>
+      <div
+        [attr.data-column-id]="board.columns[0].id"
+        class="list-unstyled content-when-empty"
+        [attr.data-content-when-empty]="'no cards in this state'"
+        dragula="CARD"
+      >
+        <ng-container
+          *ngFor="let boardItem of boardItemsByLaneId[lane.id]"
+          [ngTemplateOutlet]="boardItemTemplate"
+          [ngTemplateOutletContext]="{ boardItem, cardStyle: ['list-item'] }"
+        >
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+</ng-container>
