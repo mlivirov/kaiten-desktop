@@ -34,9 +34,10 @@ This implementation leverages the latest technologies to deliver a modern and re
 | Card               | +                  | +              |
 | Global card search | -                  | +              |
 | Board search       | -                  | +              |
-| WIP limits         | +                  | +              |
+| Column WIP limits  | +                  | +              |
+| Lane WIP limits    | +                  | -              |
 | Responsive UI      | -                  | +              |
-| Live boards        | + (instant)        | - (timeout)    |
+| Live boards        | + (instant)        | -              |
 | Mass updates       | +                  | in development |
 
 ### Card
