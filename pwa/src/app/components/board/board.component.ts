@@ -237,6 +237,10 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   protected toggleRootColumnCollapsed(column: ColumnEx): void {
+    if (this.currentBoardStyle !== BoardStyle.HorizontalCollapsible) {
+      return;
+    }
+
     this.collapsedColumns[column.id] = !this.collapsedColumns[column.id];
 
     column.subcolumns?.forEach((subcolumn) => {
@@ -247,6 +251,10 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   protected toggleColumnCollapsed(columnId: number): void {
+    if (this.currentBoardStyle !== BoardStyle.HorizontalCollapsible) {
+      return;
+    }
+
     if (this.currentBoardStyle !== BoardStyle.HorizontalCollapsible) {
       return;
     }
