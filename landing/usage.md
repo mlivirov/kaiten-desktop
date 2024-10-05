@@ -1,63 +1,22 @@
 # Настройка и использование
-## Как обычный веб сайт
+## Как обычный веб сайт (Self Hosted)
+:::info
+При таком варианте использования, при авторизации, необходимо указывать адреса прокси вместо оригинальных адресов Kaiten API.
+:::
+
+### Docker
+
+Самый простой способ развертывания это использование готового [Docker образа](https://hub.docker.com/r/mlivirov/kaiten-client).
+
+Пример использования: 
+```bash
+docker run -p 8080:80 -e NGINX_PORT=80 -e KAITEN_HOST=your_organization.kaiten.ru -e KAITEN_FILES=files.kaiten.ru mlivirov/kaiten-client
+```
+
+### Детали
 Сервер Kaiten ограничивает использования API для браузеров используя CORS заголовки.
 
 Для обхода этого ограничения требуется настроить forward proxy через nginx сервер. Этот же сервер можно использовать для хостинга самого PWA приложения.
-
-:::info
-При таком варианте использования, при авторизации, необходимо указывать адреса прокси вместо оригинальных адресов Kaiten.
-:::
-
-Пример docker-compose.yml
-```yaml
-services:
-  web:
-    image: nginx
-    ports:
-      - 8080:80
-    volumes:
-      - ./server/templates:/etc/nginx/templates
-      - ../pwa/dist/pwa/browser:/usr/share/nginx/html
-    environment:
-      - NGINX_PORT=80
-      - KAITEN_HOST=${KAITEN_HOST}
-      - KAITEN_FILES=${KAITEN_FILES}
-```
-
-Пример nginx templates/default.conf.template
-```nginx
-server {
-    large_client_header_buffers 4 32k;
-    listen       ${NGINX_PORT};
-    error_page 404 = @fallback;
-
-    location ~ ^/api/(.*) {
-        resolver 8.8.8.8;
-        proxy_pass_request_headers      on;
-        proxy_pass https://${KAITEN_HOST}:443${request_uri};
-
-        proxy_hide_header 'Access-Control-Allow-Origin';
-        add_header 'Access-Control-Allow-Origin' '*' always;
-        add_header 'Access-Control-Allow-Methods' '*' always;
-        add_header 'Access-Control-Expose-Headers' '*' always;
-        add_header 'X-Original-UI' 'https://${KAITEN_HOST}/' always;
-    }
-
-    location ~ ^/files/(.*) {
-        resolver 8.8.8.8;
-        proxy_pass_request_headers      on;
-        proxy_pass https://${KAITEN_FILES}:443/$1;
-    }
-
-    location / {
-       proxy_set_header Host             $host;
-       proxy_set_header X-Real-IP        $remote_addr;
-
-       root   /usr/share/nginx/html;
-       try_files $uri $uri/ /index.html;
-    }
-}
-```
 
 ## Как мобильный клиент
 Ничего дополнительно настраивать не нужно, т.к. клиент напрямую использует API Kaiten с вашего устройства. Просто скачайте и установите приложение.

@@ -80,6 +80,50 @@ jobs:
       working-directory: ${{ github.workspace }}/desktop
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
+    - name: Zip
+      working-directory: ${{ github.workspace }}
+      uses: montudor/action-zip@v1
+      with:
+        args: zip -qq -r build.zip ${{ steps.strings.outputs.build-output-dir }}/bin
+
+    - name: deploy
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ vars.SERVER_HOST }}
+        username: ${{ secrets.SERVER_CICD_AGENT_LOGIN }}
+        password: ${{ secrets.SERVER_CICD_AGENT_PASSWORD }}
+        port: 22
+        overwrite: true
+        source: "${{ github.workspace }}/build.zip"
+        strip_components: 1
+        target: /var/www/html/docs/builds
+
+  push_to_dockerhub:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_LOGIN }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and push Docker images
+        id: push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ vars.DOCKERHUB_REGISTRY }}/kaiten-client:latest
+          labels: ${{ steps.meta.outputs.labels }}
+
   build-android:
     runs-on: ubuntu-latest
     steps:
@@ -118,3 +162,15 @@ jobs:
           cordova platforms add android@12
           cordova plugin add cordova-plugin-advanced-http
           cordova build android --release -- --packageType=apk
+
+      - name: deploy
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ secrets.SERVER_CICD_AGENT_LOGIN }}
+          password: ${{ secrets.SERVER_CICD_AGENT_PASSWORD }}
+          port: 22
+          overwrite: true
+          source: "mobile/platforms/android/app/build/outputs/apk/*"
+          strip_components: 7
+          target: /var/www/html/docs/builds
