@@ -81,10 +81,9 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Zip
-      working-directory: ${{ github.workspace }}
       uses: montudor/action-zip@v1
       with:
-        args: zip -qq -r build.zip ${{ steps.strings.outputs.build-output-dir }}/bin
+        args: zip -qq -r ${{ matrix.os }}-build.zip ${{ steps.strings.outputs.build-output-dir }}/bin
 
     - name: deploy
       uses: appleboy/scp-action@v0.1.7
@@ -94,7 +93,7 @@ jobs:
         password: ${{ secrets.SERVER_CICD_AGENT_PASSWORD }}
         port: 22
         overwrite: true
-        source: "${{ github.workspace }}/build.zip"
+        source: "${{ matrix.os }}-build.zip"
         strip_components: 1
         target: /var/www/html/docs/builds
 
