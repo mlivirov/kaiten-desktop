@@ -38,7 +38,7 @@ docker run -p 8080:80 -e NGINX_PORT=80 -e KAITEN_HOST=your_organization.kaiten.r
 - Создайте ярлык для kaiten.exe на рабочем столе.
 
 ### Для Linux
-- Скачайте сборку со страницы проекта.
+- Скачайте сборку со страницы проекта в [GitHub](https://github.com/mlivirov/kaiten-desktop/releases).
 - Установите следующие зависимости в систему:
   - qt6-base
   - qt6-webengine

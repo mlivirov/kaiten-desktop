@@ -1,8 +1,14 @@
 # Kaiten Task Manager Clients
 
+## References
+
+http://kaiten-client.ru
+
+http://kaiten.ru
+
 ## Overview
 
-Welcome to the Kaiten Client project! This repository provides enhanced desktop and mobile applications for Kaiten Task Manager, featuring a completely new user interface designed to improve usability and streamline your task management experience.
+Welcome to the Kaiten Client project! This repository provides enhanced desktop and mobile applications for Kaiten, featuring a completely new user interface designed to improve usability and streamline your task management experience.
 
 This implementation leverages the latest technologies to deliver a modern and responsive design:
 
@@ -36,8 +42,8 @@ We welcome contributions to improve the Kaiten Task Manager Clients project! To 
 
 ## License
 
-This project is licensed under the [GNU Lesser General Public License (LGPL)](LICENSE). See the LICENSE file for more details.
+This project is licensed under the [GNU Lesser General Public License (LGPL)](LICENSE.md). See the LICENSE file for more details.
 
 ## Contact
 
-For any questions or support, please contact me at [max.livirov@gmail.com](mailto:your-email@example.com) or open an issue in the repository.
+For any questions or support, please contact me at [max.livirov@gmail.com](mailto:max.livirov@gmail.com) or open an issue in the repository.
