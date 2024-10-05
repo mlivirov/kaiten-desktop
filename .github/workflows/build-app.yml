@@ -80,12 +80,19 @@ jobs:
       working-directory: ${{ github.workspace }}/desktop
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-    - name: Zip
-      uses: montudor/action-zip@v1
-      with:
-        args: zip -qq -r ${{ matrix.os }}-build.zip ${{ steps.strings.outputs.build-output-dir }}/bin
+    - name: List
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      shell: bash
+      run: ls .
 
-    - name: deploy
+    - name: Install zip
+      uses: montudor/action-zip@v1
+
+    - name: Zip
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: zip -qq -r kaiten-client.zip bin
+
+    - name: Deploy
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ vars.SERVER_HOST }}
@@ -93,16 +100,15 @@ jobs:
         password: ${{ secrets.SERVER_CICD_AGENT_PASSWORD }}
         port: 22
         overwrite: true
-        source: "${{ matrix.os }}-build.zip"
+        source: "kaiten-client.zip"
         strip_components: 1
-        target: /var/www/html/docs/builds
+        target: /var/www/html/docs/builds/${{ matrix.os }}
 
-  push_to_dockerhub:
+  build-docker-image:
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
-      attestations: write
       id-token: write
     steps:
       - name: Check out the repo
@@ -162,7 +168,7 @@ jobs:
           cordova plugin add cordova-plugin-advanced-http
           cordova build android --release -- --packageType=apk
 
-      - name: deploy
+      - name: Deploy
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ vars.SERVER_HOST }}
@@ -171,5 +177,5 @@ jobs:
           port: 22
           overwrite: true
           source: "mobile/platforms/android/app/build/outputs/apk/*"
-          strip_components: 7
-          target: /var/www/html/docs/builds
+          strip_components: 8
+          target: /var/www/html/docs/builds/android
