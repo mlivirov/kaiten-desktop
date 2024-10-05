@@ -20,18 +20,19 @@ jobs:
         github-token: ${{ secrets.github_token }}
         path: ${{ github.workspace }}/artifacts
         run-id: ${{ github.event.workflow_run.id }}
-    - run: ls -R ${{ github.workspace }}/artifacts
 
     - run: sudo apt -y install zip
-    - run: zip -q -r binaries-windows.zip ${{ github.workspace }}/artifacts/windows-latest/Release
-    - run: zip -q -r binaries-ubuntu.zip ${{ github.workspace }}/artifacts/ubuntu-latest
+    - run: zip -jrq binaries-windows.zip ${{ github.workspace }}/artifacts/windows-latest/Release
+    - run: zip -jrq binaries-ubuntu.zip ${{ github.workspace }}/artifacts/ubuntu-latest
+    - run: zip -jrq binaries-android.zip ${{ github.workspace }}/artifacts/android-latest/release
 
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
         name: Latest build
         prerelease: true
-        tag_name: 'build:latest'
+        tag_name: 'latest-build'
         files: |
           binaries-windows.zip
           binaries-ubuntu.zip
+          binaries-android.zip

@@ -1,0 +1,41 @@
+name: Build & Publish Docs
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+
+      - name: Build docs
+        run: |
+          cd landing
+          npm install
+          npm run docs:build
+
+      - name: deploy
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ secrets.SERVER_CICD_AGENT_LOGIN }}
+          password: ${{ secrets.SERVER_CICD_AGENT_PASSWORD }}
+          port: 22
+          overwrite: true
+          source: "${{ github.workspace }}/landing/.vitepress/dist/**"
+          strip_components: 5
+          target: /var/www/html/docs
