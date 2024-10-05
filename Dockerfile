@@ -1,25 +1,23 @@
-FROM ubuntu:18.04
+FROM node:18-alpine AS build
 
-RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get -y install \
-    git \
-    cmake \
-    python3 \
-    python3-pip \
-    build-essential \
-    libdbus-1-3 \
-    libpulse-mainloop-glib0
+WORKDIR /build/pwa
 
-RUN pip3 install requests py7zr aqtinstall
+ADD pwa/package.json .
+ADD pwa/package-lock.json .
 
-CMD aqt list-qt linux desktop --modules 6.2.4
-#ARG QT=5.12.9
-#ARG QT_MODULES=
-#ARG QT_HOST=linux
-#ARG QT_TARGET=desktop
-#ARG QT_ARCH=
-#RUN aqt install --outputdir /opt/qt ${QT} ${QT_HOST} ${QT_TARGET} ${QT_ARCH} -m ${QT_MODULES}
+RUN npm install
 
-#ENV PATH /opt/qt/${QT}/gcc_64/bin:$PATH
-#ENV QT_PLUGIN_PATH /opt/qt/${QT}/gcc_64/plugins/
-#ENV QML_IMPORT_PATH /opt/qt/${QT}/gcc_64/qml/
-#ENV QML2_IMPORT_PATH /opt/qt/${QT}/gcc_64/qml/
+ADD pwa/.editorconfig .
+ADD pwa/angular.json .
+ADD pwa/tsconfig.app.json .
+ADD pwa/tsconfig.json .
+ADD pwa/tsconfig.spec.json .
+ADD pwa/src ./src
+
+RUN npm run build -c browser
+
+FROM nginx AS run
+
+ADD proxy/server/templates/default.conf.template /etc/nginx/templates/
+
+COPY --from=build /build/pwa/dist/pwa/browser/** /usr/share/nginx/html/
