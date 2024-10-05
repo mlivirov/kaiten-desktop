@@ -80,17 +80,12 @@ jobs:
       working-directory: ${{ github.workspace }}/desktop
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-    - name: List
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      shell: bash
-      run: ls .
-
-    - name: Install zip
-      uses: montudor/action-zip@v1
-
     - name: Zip
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: zip -qq -r kaiten-client.zip bin
+      uses: thedoctor0/zip-release@0.7.5
+      with:
+        type: zip
+        path: desktop/build/bin
+        filename: 'release.zip'
 
     - name: Deploy
       uses: appleboy/scp-action@v0.1.7
@@ -100,7 +95,7 @@ jobs:
         password: ${{ secrets.SERVER_CICD_AGENT_PASSWORD }}
         port: 22
         overwrite: true
-        source: "kaiten-client.zip"
+        source: "release.zip"
         strip_components: 1
         target: /var/www/html/docs/builds/${{ matrix.os }}
 
