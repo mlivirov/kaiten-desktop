@@ -39,6 +39,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ChangesNotificationService } from '../../services/changes-notification.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Lane } from '../../models/lane';
+import { flattenColumns } from '../../functions/flatten-columns';
 
 // TODO: extract into separate function
 function colSortPredicate(a, b): number {
@@ -611,18 +612,12 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private mapCardsByColumnId(cards: CardEx[]): void {
-    const cardsByColumnId: Record<number, BoardItem[]> = {};
-    for (const card of cards) {
-      let cards = cardsByColumnId[card.column_id];
-      if (!cards) {
-        cards = [];
-        cardsByColumnId[card.column_id] = cards;
-      }
+    const cardsByColumnId: Record<number, BoardItem[]> = flattenColumns(this.columns)
+      .reduce((agg, item) => ({ ...agg, [item.id]: [] }), {});
 
-      if (this.checkCardMatchesFilter(card)) {
-        cards.push(<BoardItem>{ card });
-      }
-    }
+    cards
+      .filter((card) => this.checkCardMatchesFilter(card))
+      .forEach((card) => cardsByColumnId[card.column_id].push(<BoardItem> { card }));
 
     for (const [, items] of Object.entries(cardsByColumnId)) {
       items.sort((a, b) => a.card.sort_order - b.card.sort_order);
