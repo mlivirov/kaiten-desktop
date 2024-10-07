@@ -85,18 +85,14 @@ jobs:
       with:
         type: zip
         path: desktop/build/bin
-        filename: 'release.zip'
+        filename: '${{matrix.os}}-release.zip'
 
-    - name: Deploy
-      uses: appleboy/scp-action@v0.1.7
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4.3.6
       with:
-        host: ${{ vars.SERVER_HOST }}
-        username: ${{ secrets.SERVER_CICD_AGENT_LOGIN }}
-        password: ${{ secrets.SERVER_CICD_AGENT_PASSWORD }}
-        port: 22
-        overwrite: true
-        source: "release.zip"
-        target: /var/www/html/docs/builds/${{ matrix.os }}
+        name: ${{matrix.os}}
+        path: '${{matrix.os}}-release.zip'
+        if-no-files-found: error
 
   build-docker-image:
     runs-on: ubuntu-latest
@@ -162,14 +158,9 @@ jobs:
           cordova plugin add cordova-plugin-advanced-http
           cordova build android --release -- --packageType=apk
 
-      - name: Deploy
-        uses: appleboy/scp-action@v0.1.7
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.3.6
         with:
-          host: ${{ vars.SERVER_HOST }}
-          username: ${{ secrets.SERVER_CICD_AGENT_LOGIN }}
-          password: ${{ secrets.SERVER_CICD_AGENT_PASSWORD }}
-          port: 22
-          overwrite: true
-          source: "mobile/platforms/android/app/build/outputs/apk/*"
-          strip_components: 8
-          target: /var/www/html/docs/builds/android
+          name: 'app'
+          path: 'mobile/platforms/android/app/build/outputs/apk/*.apk'
+          if-no-files-found: error
