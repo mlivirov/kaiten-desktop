@@ -18,6 +18,12 @@
   }
 }
 
+@media only screen and (max-width: 768px) {
+  .list-item-header {
+    top: 55px;
+  }
+}
+
 .grid-column > .column:last-child {
   flex-grow: 1;
 

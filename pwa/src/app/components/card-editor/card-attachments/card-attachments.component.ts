@@ -20,7 +20,7 @@ export class CardAttachmentsComponent {
 
   public constructor(private settingService: SettingService) {
     this.settingService
-      .getSetting(Setting.ApiUrl)
+      .getRequiredSetting(Setting.ApiUrl)
       .subscribe(url => {
         this.baseUrl = url.substring(0, url.lastIndexOf('/'));
       });

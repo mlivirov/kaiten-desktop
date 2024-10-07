@@ -1,6 +1,6 @@
 import { Component, ElementRef, EventEmitter, Input, Output, Self } from '@angular/core';
-import { TimeDotsComponent } from '../time-dots/time-dots.component';
-import { JsonPipe, NgClass, NgForOf, NgIf, NgStyle } from '@angular/common';
+import { TimeDotsComponent } from './time-dots/time-dots.component';
+import { DatePipe, JsonPipe, NgClass, NgForOf, NgIf, NgStyle } from '@angular/common';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
 import { CardEx } from '../../models/card-ex';
 import { CardTransitionService } from '../../services/card-transition.service';
@@ -25,9 +25,12 @@ import { ServerCardEditorService } from '../../services/implementations/server-c
 import { MdViewerComponent } from '../md-viewer/md-viewer.component';
 import { FormsModule } from '@angular/forms';
 import { TimeagoModule } from 'ngx-timeago';
+import { TimespanPipe } from '../../pipes/timespan.pipe';
+import { ElapsedPipe } from '../../pipes/elapsed.pipe';
+import { TimeBadgeComponent } from './time-badge/time-badge.component';
 
 export type CardComponentButtons = 'copy'|'move'|'block';
-export type CardComponentStyles = 'colored'|'list-item';
+export type CardComponentStyles = 'colored'|'list-item'|'time-dots'|'time-badges';
 
 @Component({
   selector: 'app-card',
@@ -46,6 +49,10 @@ export type CardComponentStyles = 'colored'|'list-item';
     JsonPipe,
     NgbPopover,
     TimeagoModule,
+    TimespanPipe,
+    ElapsedPipe,
+    DatePipe,
+    TimeBadgeComponent,
   ],
   templateUrl: './card.component.html',
   styleUrl: './card.component.scss',
@@ -55,7 +62,7 @@ export class CardComponent {
   @Input() public disabled: boolean = false;
   @Input() public buttons: CardComponentButtons[] = ['copy', 'move', 'block'];
   @Input() public showTimeDots: boolean = true;
-  @Input() public cardStyle: CardComponentStyles[] = ['colored'];
+  @Input() public cardStyle: CardComponentStyles[] = ['colored', 'time-dots'];
   @Output() protected updated: EventEmitter<CardEx> = new EventEmitter<CardEx>();
   @Output() protected openRequest: EventEmitter<number> = new EventEmitter();
   protected active: boolean = false;

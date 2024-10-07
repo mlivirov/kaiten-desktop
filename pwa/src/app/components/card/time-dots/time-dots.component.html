@@ -1,6 +1,10 @@
 <div
-  [ngClass]="{'text-success': daysPassed <= 3, 'text-warning': daysPassed > 3 && daysPassed <= 5, 'text-danger': daysPassed >= 5}"
-  class="opacity-75 text-nowrap"
+  [ngClass]="{
+    'text-success': getSeverity() === 'base' || getSeverity() === 'normal',
+    'text-warning': getSeverity() === 'warning',
+    'text-danger': getSeverity() === 'danger',
+  }"
+  class="opacity-75 text-nowrap d-flex flex-nowrap"
   [ngbTooltip]="since | timeago"
   container="body"
 >

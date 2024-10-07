@@ -1,7 +1,7 @@
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CurrentUserComponent } from '../../components/current-user/current-user.component';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
-import { BoardComponent, BoardStyle } from '../../components/board/board.component';
+import { BoardComponent } from '../../components/board/board.component';
 import { Board } from '../../models/board';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgIf, NgStyle } from '@angular/common';
@@ -14,8 +14,8 @@ import { CardFilter } from '../../services/card-search.service';
 import { HttpParams } from '@angular/common/http';
 import { User } from '../../models/user';
 import { Tag } from '../../models/tag';
-import { EMPTY, filter, of, Subject, switchMap, tap } from 'rxjs';
-import { Setting } from '../../models/setting';
+import { EMPTY, filter, map, of, Subject, switchMap, take, tap } from 'rxjs';
+import { BoardStyle, DefaultSettings, Setting } from '../../models/setting';
 import { SettingService } from '../../services/setting.service';
 import { DialogService } from '../../services/dialog.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -39,12 +39,12 @@ import { ListOfCardsComponent } from '../../components/list-of-cards/list-of-car
   templateUrl: './board-page.component.html',
   styleUrl: './board-page.component.scss'
 })
-export class BoardPageComponent implements OnInit {
+export class BoardPageComponent implements OnInit, AfterViewInit {
   protected board: Board;
   protected boardCards: CardEx[] = [];
   protected boardColumns: ColumnEx[] = [];
   protected filterValue?: CardFilter;
-  protected boardStyle: BoardStyle = BoardStyle.Vertical;
+  protected boardStyle: BoardStyle = DefaultSettings.BoardStyle;
   protected isLeftPanelCollapsed: boolean = true;
   protected showLeftPanelExpandButton: boolean = true;
   protected isLeftPanelAvailable: boolean = true;
@@ -61,6 +61,9 @@ export class BoardPageComponent implements OnInit {
   ) {
     activatedRoute
       .data
+      .pipe(
+        takeUntilDestroyed(),
+      )
       .subscribe(data => {
         this.board = data['board'];
         this.boardCards = data['cards'];
@@ -68,19 +71,21 @@ export class BoardPageComponent implements OnInit {
 
         this.currentBoardService.boardId = this.board.id;
         this.currentBoardService.laneId = null;
+        this.applyFilter(this.filterValue);
       });
 
     activatedRoute
       .fragment
       .pipe(
-        filter(f => !!f)
+        takeUntilDestroyed(),
+        filter(f => !!f),
+        map(data => {
+          const params = new HttpParams({ fromString: data });
+          return this.deserializeCardFilterFromUrlParams(params);
+        })
       )
-      .subscribe(data => {
-        const params = new HttpParams({ fromString: data });
-        this.filterValue = this.deserializeCardFilterFromUrlParams(params);
-        setTimeout(() => {
-          this.boardComponent.applyFilter(this.filterValue);
-        }, 1);
+      .subscribe(filter => {
+        this.filterValue = filter;
       });
 
     this.boardLoaded$
@@ -97,7 +102,7 @@ export class BoardPageComponent implements OnInit {
       });
 
     this.settingService
-      .getSetting(Setting.BoardStyle)
+      .getSetting<BoardStyle>(Setting.BoardStyle, null)
       .pipe(
         switchMap(t => t
           ? of(t)
@@ -114,14 +119,12 @@ export class BoardPageComponent implements OnInit {
         this.boardStyle = <BoardStyle>boardStyle;
       });
 
-    this.settingService.changes$
+    this.settingService
+      .subscribeToChanges<BoardStyle>(Setting.BoardStyle)
       .pipe(
         takeUntilDestroyed(),
-        filter(t => t.setting === Setting.BoardStyle)
       )
-      .subscribe(boardStyle => {
-        this.boardStyle = <BoardStyle>boardStyle.value;
-      });
+      .subscribe(v => this.boardStyle = v);
   }
 
   public ngOnInit(): void {
@@ -142,6 +145,7 @@ export class BoardPageComponent implements OnInit {
     this.router.navigate(['board', this.board.id], {
       fragment: fragment,
       onSameUrlNavigation: 'ignore',
+      replaceUrl: true,
     }).then(() => this.router.navigate(['card', id]));
   }
 
@@ -150,14 +154,12 @@ export class BoardPageComponent implements OnInit {
   }
 
   protected applyFilter(value?: CardFilter): void {
-    this.filterValue = value;
+    this.boardComponent.applyFilter(value);
     this.router.navigate(['board', this.board.id], {
-      fragment: this.serializeCardFilterToUrlParams(this.filterValue),
+      fragment: this.serializeCardFilterToUrlParams(value),
       onSameUrlNavigation: 'ignore',
       replaceUrl: true
     });
-
-    this.boardComponent.applyFilter(this.filterValue);
   }
 
   protected handleBoardLoaded(): void {
@@ -255,5 +257,8 @@ export class BoardPageComponent implements OnInit {
 
     return result;
   }
-  
+
+  public ngAfterViewInit(): void {
+    this.boardComponent.applyFilter(this.filterValue);
+  }
 }

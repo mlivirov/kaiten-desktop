@@ -2,7 +2,7 @@ import { Component, Input, ViewChild } from '@angular/core';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { map, Observable, of, switchMap, take } from 'rxjs';
 import { SettingService } from '../../services/setting.service';
-import { LinkCopyStyle, Setting } from '../../models/setting';
+import { DefaultSettings, LinkCopyStyle, Setting } from '../../models/setting';
 import { NgIf } from '@angular/common';
 
 export interface CopyToClipboardLinks {
@@ -37,15 +37,17 @@ export class CopyToClipboardButtonComponent {
       .pipe(
         take(1),
         switchMap(data => {
-          return this.settingService.getSetting(Setting.LinkCopyStyle).pipe(map(linkCopyStyle => {
-            const url = linkCopyStyle === LinkCopyStyle.CLIENT ? data.client : data.kaiten;
+          return this.settingService
+            .getSetting(Setting.LinkCopyStyle, DefaultSettings.LinkCopyStyle)
+            .pipe(map(linkCopyStyle => {
+              const url = linkCopyStyle === LinkCopyStyle.CLIENT ? data.client : data.kaiten;
 
-            if (clickEvent.ctrlKey) {
-              return `[${data.title}](${url})`;
-            } else {
-              return url;
-            }
-          }));
+              if (clickEvent.ctrlKey) {
+                return `[${data.title}](${url})`;
+              } else {
+                return url;
+              }
+            }));
         })
       )
       .subscribe((data) => {

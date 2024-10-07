@@ -15,7 +15,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import { JsonPipe, NgClass, NgForOf, NgIf, NgStyle, NgTemplateOutlet } from '@angular/common';
-import { CardComponent } from '../card/card.component';
+import { CardComponent, CardComponentStyles } from '../card/card.component';
 import { CardEx } from '../../models/card-ex';
 import { filter, finalize, Observable, of, Subject, switchMap, takeUntil, zip } from 'rxjs';
 import { User } from '../../models/user';
@@ -40,15 +40,12 @@ import { ChangesNotificationService } from '../../services/changes-notification.
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Lane } from '../../models/lane';
 import { flattenColumns } from '../../functions/flatten-columns';
+import { SettingService } from '../../services/setting.service';
+import { BoardCardLifetimeStyle, BoardStyle, Setting } from '../../models/setting';
 
 // TODO: extract into separate function
 function colSortPredicate(a, b): number {
   return a.sort_order - b.sort_order;
-}
-
-export enum BoardStyle {
-  Vertical = 'Vertical',
-  HorizontalCollapsible = 'HorizontalCollapsible',
 }
 
 interface BoardViewColumn {
@@ -110,12 +107,14 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   protected cardsCountByRootColumnId: Record<number, number> = {};
   protected cardsCountByColumnId: Record<number, number> = {};
   protected collapsedColumns: Record<number, boolean> = {};
+  protected cardStyle: CardComponentStyles[];
   private filterValue?: CardFilter;
   private isBoardLoading: boolean = false;
   private cardsSizeByRootColumnId: Record<number, number> = {};
   private customColumns: number[][] = [];
   private unsubscribe$: Subject<void> = new Subject();
   private focusedCardComponent?: CardComponent;
+  private boardCardLifetimeStyle: BoardCardLifetimeStyle;
 
   public constructor(
     private authService: AuthService,
@@ -126,7 +125,8 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     private activatedRoute: ActivatedRoute,
     private cardEditorService: ServerCardEditorService,
     private changesNotificationService: ChangesNotificationService,
-    @Self() private elementRef: ElementRef
+    @Self() private elementRef: ElementRef,
+    private settingService: SettingService,
   ) {
     this.changesNotificationService
       .cardUpdated$
@@ -145,12 +145,27 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
       .subscribe(card => this.handleCardCreated(card));
 
     this.updateCurrentBoardStyle();
+
+    this.settingService
+      .getSetting<BoardCardLifetimeStyle>(Setting.BoardCardLifetimeStyle, BoardCardLifetimeStyle.Dots)
+      .subscribe(value => this.boardCardLifetimeStyle = value);
+
+    this.settingService
+      .subscribeToChanges<BoardCardLifetimeStyle>(Setting.BoardCardLifetimeStyle)
+      .pipe(
+        takeUntilDestroyed(),
+      )
+      .subscribe(t => {
+        this.boardCardLifetimeStyle = t;
+        this.updateCardStyle();
+      });
   }
 
   public ngOnInit(): void {
     this.initCardDragBag();
     this.initColumnDragBag();
     this.updateCurrentBoardStyle();
+    this.updateCardStyle();
     this.rearrangeColumns();
     this.authService.getCurrentUser().subscribe(t => this.currentUser = t);
   }
@@ -180,9 +195,11 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes[nameof<BoardComponent>('cards')]?.currentValue && changes[nameof<BoardComponent>('columns')]?.currentValue) {
       this.refresh(false);
+      this.updateCardStyle();
     } else if (changes[nameof<BoardComponent>('boardStyle')]) {
-      this.updateCurrentBoardStyle();
       this.refresh(false);
+      this.updateCurrentBoardStyle();
+      this.updateCardStyle();
     }
   }
 
@@ -463,6 +480,18 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     } else {
       this.currentBoardStyle = this.boardStyle;
     }
+  }
+
+  private updateCardStyle(): void {
+    const newCardStyle: CardComponentStyles[] = [ ];
+    if (this.columns.length === 1 && !this.columns[0].subcolumns?.length) {
+      newCardStyle.push('list-item');
+    } else {
+      newCardStyle.push('colored');
+    }
+
+    newCardStyle.push(this.boardCardLifetimeStyle === BoardCardLifetimeStyle.TextBadges ? 'time-badges' : 'time-dots');
+    this.cardStyle = newCardStyle;
   }
   
   private doFocusCard(cardId: number): void {

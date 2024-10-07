@@ -24,7 +24,7 @@ jobs:
     - run: sudo apt -y install zip
     - run: zip -jrq binaries-windows.zip ${{ github.workspace }}/artifacts/windows-latest/Release
     - run: zip -jrq binaries-ubuntu.zip ${{ github.workspace }}/artifacts/ubuntu-latest
-    - run: zip -jrq binaries-android.zip ${{ github.workspace }}/artifacts/android-latest/release
+    - run: zip -jrq binaries-android.zip ${{ github.workspace }}/artifacts/android-latest
 
     - name: Release
       uses: softprops/action-gh-release@v2

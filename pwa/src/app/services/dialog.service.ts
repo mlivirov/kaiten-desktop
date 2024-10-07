@@ -38,9 +38,9 @@ import {
 import { BlockBlocker } from '../models/block-blocker.model';
 import { CardBlockDialogComponent } from '../dialogs/card-block-dialog/card-block-dialog.component';
 import { PromptAction, PromptDialogComponent } from '../dialogs/prompt-dialog/prompt-dialog.component';
-import { BoardStyle } from '../components/board/board.component';
 import { BoardStyleDialogComponent } from '../dialogs/board-style-dialog/board-style-dialog.component';
 import { LoadingDialogComponent } from '../dialogs/loading-dialog/loading-dialog.component';
+import { BoardStyle } from '../models/setting';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {

@@ -17,10 +17,10 @@ export class BoardService {
 
   public getCollapsedColumns(boardId: number): Observable<Record<number, boolean>> {
     return this.settingsService
-      .getSetting(Setting.CollapsedColumns)
+      .getSetting(Setting.CollapsedColumns, '{}')
       .pipe(
         map(data => {
-          const parsed = data ? JSON.parse(data) as Record<number, Record<number, boolean>> : {};
+          const parsed = <Record<number, Record<number, boolean>>>JSON.parse(data);
           return parsed[boardId] ?? {};
         })
       );
@@ -28,10 +28,10 @@ export class BoardService {
 
   public setCollapsedColumns(boardId: number, columns: Record<number, boolean>): Observable<void> {
     return this.settingsService
-      .getSetting(Setting.CollapsedColumns)
+      .getSetting(Setting.CollapsedColumns, '{}')
       .pipe(
         switchMap(data => {
-          const parsed = data ? JSON.parse(data) as Record<number, Record<number, boolean>> : {};
+          const parsed = <Record<number, Record<number, boolean>>>JSON.parse(data);
           parsed[boardId] = columns;
 
           return this.settingsService.setSetting(Setting.CollapsedColumns, JSON.stringify(parsed));
@@ -41,10 +41,10 @@ export class BoardService {
 
   public getCustomColumns(boardId: number): Observable<number[][]> {
     return this.settingsService
-      .getSetting(Setting.CustomColumns)
+      .getSetting(Setting.CustomColumns, '{}')
       .pipe(
         map(data => {
-          const parsed = data ? JSON.parse(data) as { [key: string]: number[][] } : {};
+          const parsed = <Record<string, number[][]>>JSON.parse(data);
           return parsed[boardId] ?? [];
         })
       );
@@ -52,10 +52,10 @@ export class BoardService {
 
   public setCustomColumns(boardId: number, columns: number[][]): Observable<void> {
     return this.settingsService
-      .getSetting(Setting.CustomColumns)
+      .getSetting(Setting.CustomColumns, '{}')
       .pipe(
         switchMap(data => {
-          const parsed = data ? JSON.parse(data) as { [key: string]: number[][] } : {};
+          const parsed = <Record<string, number[][]>>JSON.parse(data);
           parsed[boardId] = columns;
 
           return this.settingsService.setSetting(Setting.CustomColumns, JSON.stringify(parsed));

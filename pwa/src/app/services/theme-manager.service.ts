@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, filter, map, Observable, tap } from 'rxjs';
+import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 import { SettingService } from './setting.service';
 import { Setting } from '../models/setting';
 export type Theme = 'light' | 'dark' | 'auto';
@@ -14,11 +14,8 @@ export class ThemeManagerService {
 
   public constructor(private settingsService: SettingService) {
     this.settingsService
-      .getSetting(Setting.Theme)
-      .pipe(
-        filter(r => !!r)
-      )
-      .subscribe(setting => this.currentTheme$.next(setting as Theme));
+      .getSetting<Theme>(Setting.Theme, 'light')
+      .subscribe(setting => this.currentTheme$.next(setting));
 
     this.currentTheme$
       .subscribe(theme => {

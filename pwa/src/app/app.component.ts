@@ -8,7 +8,7 @@ import {
   Router,
   RouterOutlet
 } from '@angular/router';
-import { TimeDotsComponent } from './components/time-dots/time-dots.component';
+import { TimeDotsComponent } from './components/card/time-dots/time-dots.component';
 import { CardComponent } from './components/card/card.component';
 import { BoardComponent } from './components/board/board.component';
 import { PageHeaderComponent } from './components/page-header/page-header.component';

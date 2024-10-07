@@ -26,7 +26,7 @@ export class HomePageComponent {
     private dialogService: DialogService,
     private settingService: SettingService
   ) {
-    settingService.getSetting(Setting.LastURL)
+    settingService.getSetting(Setting.LastURL, null)
       .pipe(
         filter(v => !!v)
       )

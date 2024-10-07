@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { EMPTY, forkJoin, from, map, Observable, shareReplay, switchMap, take, tap, zip } from 'rxjs';
 import { Setting } from '../models/setting';
 import { Database } from './db';
 import { Credentials } from '../models/credentials';
 import { User } from '../models/user';
 import { SettingService } from './setting.service';
+import { SuppressErrorHttpContextToken } from '../interceptors/error.interceptor';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -36,7 +37,9 @@ export class AuthService {
       this.settingsService.setSetting(Setting.FilesUrl, creds.resourcesEndpoint),
       this.settingsService.setSetting(Setting.Token, creds.apiToken)
     ]).pipe(
-      switchMap(() => this.httpClient.get<User>('http://server/api/latest/users/current')),
+      switchMap(() => this.httpClient.get<User>('http://server/api/latest/users/current', {
+        context: new HttpContext().set(SuppressErrorHttpContextToken, true)
+      })),
       tap(() => {
         this.resetCurrentUser();
       })
@@ -49,9 +52,9 @@ export class AuthService {
 
   public getCredentials(): Observable<Credentials | null> {
     return forkJoin({
-      ApiUrl: this.settingsService.getSetting(Setting.ApiUrl),
-      FilesUrl: this.settingsService.getSetting(Setting.FilesUrl),
-      Token: this.settingsService.getSetting(Setting.Token),
+      ApiUrl: this.settingsService.getRequiredSetting(Setting.ApiUrl),
+      FilesUrl: this.settingsService.getRequiredSetting(Setting.FilesUrl),
+      Token: this.settingsService.getRequiredSetting(Setting.Token),
     })
       .pipe(
         take(1),

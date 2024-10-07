@@ -160,6 +160,44 @@
         </label>
       </div>
     </div>
+    <div class="mt-3">
+      <div class="mb-2">Card Lifetime style</div>
+
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="BoardCardLifetimeStyle"
+          id="BoardCardLifetimeStyleDots"
+          [value]="BoardCardLifetimeStyle.Dots"
+          [ngModel]="boardCardLifetimeStyle"
+          (ngModelChange)="setBoardCardLifetimeStyle($event)"
+        >
+        <label
+          class="form-check-label"
+          for="BoardCardLifetimeStyleDots"
+        >
+          Progress bar
+        </label>
+      </div>
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="BoardCardLifetimeStyle"
+          id="BoardCardLifetimeStyleBadges"
+          [value]="BoardCardLifetimeStyle.TextBadges"
+          [ngModel]="boardCardLifetimeStyle"
+          (ngModelChange)="setBoardCardLifetimeStyle($event)"
+        >
+        <label
+          class="form-check-label"
+          for="BoardCardLifetimeStyleBadges"
+        >
+          Text badges
+        </label>
+      </div>
+    </div>
   </ng-template>
 
   <div

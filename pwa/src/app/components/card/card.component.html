@@ -28,10 +28,23 @@
       triggers="hover"
     >{{card.type.name}}</div>
     <div
-      class="mx-2 d-md-none d-xl-block"
-      *ngIf="showTimeDots"
+      class="mx-2 d-flex d-md-none d-xl-flex"
+      style="min-width: 55px"
+      *ngIf="cardStyle.includes('time-badges') || cardStyle.includes('time-dots')"
     >
-      <app-time-dots [since]="card.column_changed_at"></app-time-dots>
+      <ng-container *ngIf="cardStyle.includes('time-badges')">
+        <app-time-badge
+          [since]="card.created"
+          label="Created"
+        ></app-time-badge>
+        <app-time-badge
+          [since]="card.last_moved_at"
+          label="Last moved"
+        ></app-time-badge>
+      </ng-container>
+      <ng-container *ngIf="cardStyle.includes('time-dots')">
+        <app-time-dots [since]="card.last_moved_at"></app-time-dots>
+      </ng-container>
     </div>
     <div class="ms-auto"></div>
     <div

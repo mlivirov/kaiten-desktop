@@ -1,6 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { NgIf } from '@angular/common';
-import { TimeDotsComponent } from '../../components/time-dots/time-dots.component';
+import { TimeDotsComponent } from '../../components/card/time-dots/time-dots.component';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({

@@ -71,7 +71,6 @@
 <ng-template
   #boardItemTemplate
   let-boardItem="boardItem"
-  let-cardStyle="cardStyle"
 >
   <app-card
     *ngIf="boardItem.card"
@@ -160,7 +159,7 @@
       <ng-container
         *ngFor="let boardItem of boardItemsByColumnId[columnId]"
         [ngTemplateOutlet]="boardItemTemplate"
-        [ngTemplateOutletContext]="{ boardItem, cardStyle: 'block' }"
+        [ngTemplateOutletContext]="{ boardItem }"
       >
       </ng-container>
     </div>
@@ -305,7 +304,7 @@
       class="p-2"
       [attr.data-lane-id]="lane.id"
     >
-      <div class="sticky-top mx-n2 text-bg-solid px-2">
+      <div class="sticky-top mx-n2 text-bg-solid px-2 list-item-header z-1">
         <h4 class="mb-0">
           <span
             class="border border-1 border-light-subtle mx-1 d-inline-block"
@@ -324,7 +323,7 @@
         <ng-container
           *ngFor="let boardItem of boardItemsByLaneId[lane.id]"
           [ngTemplateOutlet]="boardItemTemplate"
-          [ngTemplateOutletContext]="{ boardItem, cardStyle: ['list-item'] }"
+          [ngTemplateOutletContext]="{ boardItem }"
         >
         </ng-container>
       </div>

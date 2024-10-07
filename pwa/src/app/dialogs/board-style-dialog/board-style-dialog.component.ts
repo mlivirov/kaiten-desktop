@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { BoardStyle } from '../../components/board/board.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BoardStyle } from '../../models/setting';
 
 @Component({
   selector: 'app-board-style-dialog',

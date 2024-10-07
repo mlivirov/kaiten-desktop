@@ -1,20 +1,28 @@
 import { Setting } from '../models/setting';
-import { map, Observable, of, Subject, switchMap, tap } from 'rxjs';
+import { EMPTY, filter, map, Observable, of, Subject, switchMap, tap, throwIfEmpty } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-interface SettingChange {
+interface SettingChange<T> {
   setting: Setting;
-  value: string
+  value: T
 }
 
 @Injectable({ providedIn: 'root' })
 export class SettingService {
-  public changes$ = new Subject<SettingChange>();
+  private changes$: Subject<SettingChange<unknown>> = new Subject<SettingChange<unknown>>();
 
   public constructor(private httpClient: HttpClient) { }
 
-  public setSetting(setting: Setting, value: string): Observable<void> {
+  public subscribeToChanges<T>(setting: Setting): Observable<T> {
+    return this.changes$
+      .pipe(
+        filter(r => r.setting === setting),
+        map(r => <T>r.value)
+      );
+  }
+
+  public setSetting(setting: Setting, value: unknown): Observable<void> {
     return this.httpClient.post(`app://settings#${setting}`, value, {
       responseType: 'text'
     }).pipe(
@@ -26,17 +34,28 @@ export class SettingService {
     );
   }
 
-  public getSetting(setting: Setting): Observable<string> {
+  public getRequiredSetting<T = string>(setting: Setting): Observable<T> {
     return this.httpClient.get(`app://settings#${setting}`, {
       responseType: 'text'
-    });
+    }).pipe(
+      switchMap(t => t?.length ? of(t) : EMPTY),
+      throwIfEmpty(),
+      map(t => <T>t)
+    );
+  }
+
+  public getSetting<T = string>(setting: Setting, defaultValue: T): Observable<T> {
+    return this.httpClient.get(`app://settings#${setting}`, {
+      responseType: 'text'
+    }).pipe(
+      map(t => t?.length ? <T>t : defaultValue)
+    );
   }
 
   public getBaseUrl(): Observable<string> {
-    return this.getSetting(Setting.ForwardedApiUrl)
+    return this.getSetting(Setting.ForwardedApiUrl, '')
       .pipe(
-        tap(setting => console.log(setting)),
-        switchMap(setting => setting?.length ? of(setting) : this.getSetting(Setting.ApiUrl))
+        switchMap(setting => setting?.length ? of(setting) : this.getSetting<string>(Setting.ApiUrl, ''))
       );
   }
 }

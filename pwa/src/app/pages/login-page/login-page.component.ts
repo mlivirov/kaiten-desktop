@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { NgIf, NgOptimizedImage } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { catchError, filter, switchMap } from 'rxjs';
+import { catchError, EMPTY, EmptyError, filter, of, switchMap, throwError } from 'rxjs';
 import { DialogService } from '../../services/dialog.service';
 import { Credentials } from '../../models/credentials';
 import { Router } from '@angular/router';
@@ -39,6 +39,15 @@ export class LoginPageComponent implements OnInit {
   public ngOnInit(): void {
     this.authService
       .getCredentials()
+      .pipe(
+        catchError((error) => {
+          if (error instanceof EmptyError) {
+            return of(<Credentials>{});
+          }
+
+          return throwError(error);
+        })
+      )
       .subscribe(creds => this.initializeForm(creds));
   }
 
@@ -57,9 +66,9 @@ export class LoginPageComponent implements OnInit {
       .login(this.form.value)
       .pipe(
         switchMap(v => this.dialogService.loginConfirmation(v)),
-        catchError(() => this.dialogService.alert('Failed to login. Please make sure that credentials are valid.')),
         filter(t => t),
         switchMap(() => this.boardService.getSpaces()),
+        catchError(() => this.dialogService.alert('Failed to login. Please make sure that credentials are valid.').pipe(switchMap(() => EMPTY))),
       )
       .subscribe(spaces => {
         this.router.navigate(['board', spaces[0].boards[0].id]);
