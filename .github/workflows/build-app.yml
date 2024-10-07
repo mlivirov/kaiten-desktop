@@ -80,18 +80,11 @@ jobs:
       working-directory: ${{ github.workspace }}/desktop
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-    - name: Zip
-      uses: thedoctor0/zip-release@0.7.5
-      with:
-        type: zip
-        path: desktop/build/bin
-        filename: '${{matrix.os}}-release.zip'
-
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.3.6
       with:
         name: ${{matrix.os}}
-        path: '${{matrix.os}}-release.zip'
+        path: '${{ steps.strings.outputs.build-output-dir }}/bin'
         if-no-files-found: error
 
   build-docker-image:
@@ -161,6 +154,6 @@ jobs:
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.3.6
         with:
-          name: 'app'
-          path: 'mobile/platforms/android/app/build/outputs/apk/*.apk'
+          name: android
+          path: 'mobile/platforms/android/app/build/outputs/apk/*'
           if-no-files-found: error

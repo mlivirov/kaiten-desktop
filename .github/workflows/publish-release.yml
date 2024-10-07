@@ -1,0 +1,39 @@
+name: Publish to github
+
+permissions:
+  packages: write
+  contents: write
+
+on:
+  workflow_run:
+    workflows: ["Build multiple platforms"]
+    types:
+      - completed
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/download-artifact@v4
+      with:
+        github-token: ${{ secrets.github_token }}
+        path: ${{ github.workspace }}/artifacts
+        run-id: ${{ github.event.workflow_run.id }}
+    - run: ls -R ${{ github.workspace }}/artifacts
+
+    - run: sudo apt -y install zip
+    - run: zip -qq -r binaries-windows.zip ${{ github.workspace }}/artifacts/windows/Release
+    - run: zip -qq -r binaries-ubuntu.zip ${{ github.workspace }}/artifacts/ubuntu
+    - run: zip -qq -r binaries-android.zip ${{ github.workspace }}/artifacts/android
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: Latest build
+        prerelease: true
+        tag_name: 'build:latest'
+        files: |
+          binaries-windows.zip
+          binaries-ubuntu.zip
+          binaries-android.zip
