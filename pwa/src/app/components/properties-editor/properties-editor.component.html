@@ -105,7 +105,7 @@
             >
               <li
                 *ngFor="let item of getEnumerablePropertyValues(property !== editingProperty ? property.value : editingPropertyValue)"
-                class="py-2 px-4 d-flex align-items-baseline"
+                class="px-4 d-flex align-items-baseline"
                 [class.inline-property]="getPropertyWriterTemplate(property)"
                 [class.blur]="editingProperty && property !== editingProperty"
               >

@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { AsyncPipe, JsonPipe, NgIf, NgOptimizedImage, NgStyle } from '@angular/common';
+import { AsyncPipe, JsonPipe, NgClass, NgIf, NgOptimizedImage, NgStyle } from '@angular/common';
 import { AvatarService } from '../../services/avatar.service';
 import { User } from '../../models/user';
 import { NgbPopover, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
@@ -18,7 +18,8 @@ import { getTextOrDefault } from '../../functions/get-text-or-default';
     AsyncPipe,
     NgbPopover,
     NgbTooltip,
-    NgStyle
+    NgStyle,
+    NgClass
   ],
   templateUrl: './inline-member.component.html',
   styleUrl: './inline-member.component.scss'
@@ -30,6 +31,7 @@ export class InlineMemberComponent implements OnChanges {
   @Input() public showAvatar: boolean = true;
   @Input() public showName: boolean = true;
   @Input() public size: number = 24;
+  @Input() public active: boolean = false;
   protected avatarUrl?: string;
   protected isLoading: boolean = false;
   protected readonly getTextOrDefault = getTextOrDefault;

@@ -40,6 +40,9 @@
   <img
     *ngIf="showAvatar && profile.id > 0"
     class="rounded-circle"
+    [ngClass]="{
+      'border border-2 border-primary': active
+    }"
     alt="avatar"
     [src]="avatarUrl"
     [width]="size"

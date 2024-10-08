@@ -141,11 +141,29 @@
     style="font-size: 14px; cursor: pointer;"
     (click)="openCard(card.id)"
   >{{card.title}}</p>
+  <div class="d-flex flex-column small">
+    <div class="d-flex" *ngFor="let member of assignedMembers.slice(0, areMembersCollapsed ? 2 : undefined); index as i">
+      <app-inline-member
+          class="mb-2 small"
+          [size]="22"
+          [profile]="member"
+          [active]="member.id === responsibleMember?.id"
+      ></app-inline-member>
+    </div>
+  </div>
   <div
-    *ngFor="let member of assignedMembers"
-    class="mt-2-next font-size-medium "
+      *ngIf="assignedMembers.length > 2 && areMembersCollapsed"
+      class="mb-1 smaller opacity-50 cursor-pointer"
+      (click)="areMembersCollapsed = false"
   >
-    <app-inline-member [profile]="member"></app-inline-member>
+    <span>+{{ assignedMembers.length - 2 }} more <i class="pi pi-chevron-down"></i> </span>
+  </div>
+  <div
+      *ngIf="assignedMembers.length > 2 && !areMembersCollapsed"
+      class="mb-1 smaller opacity-50 cursor-pointer"
+      (click)="areMembersCollapsed = true"
+  >
+    <span>less <i class="pi pi-chevron-up"></i> </span>
   </div>
   <ng-template #goalsOverlay>
     <div *ngIf="isExtendedDataLoading">
@@ -199,13 +217,13 @@
     <span *ngIf="!card.goals_done">no goals reached</span>
   </div>
   <div
-    class="progress mb-n2 mx-n2"
+    class="progress mb-n2 mx-n2 cursor-pointer"
     role="progressbar"
     style="height: .25rem"
     *ngIf="card.goals_total"
   >
     <div
-      class="progress-bar progress-bar-striped"
+      class="progress-bar progress-bar-striped bg-primary opacity-75"
       [ngStyle]="{ 'width': (card.goals_done / card.goals_total * 100.).toString() + '%' }"
     ></div>
   </div>

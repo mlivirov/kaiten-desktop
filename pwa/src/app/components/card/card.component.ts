@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, Self } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, Self, SimpleChanges } from '@angular/core';
 import { TimeDotsComponent } from './time-dots/time-dots.component';
 import { DatePipe, JsonPipe, NgClass, NgForOf, NgIf, NgStyle } from '@angular/common';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
@@ -28,6 +28,7 @@ import { TimeagoModule } from 'ngx-timeago';
 import { TimespanPipe } from '../../pipes/timespan.pipe';
 import { ElapsedPipe } from '../../pipes/elapsed.pipe';
 import { TimeBadgeComponent } from './time-badge/time-badge.component';
+import { nameof } from '../../functions/name-of';
 
 export type CardComponentButtons = 'copy'|'move'|'block';
 export type CardComponentStyles = 'colored'|'list-item'|'time-dots'|'time-badges';
@@ -57,7 +58,7 @@ export type CardComponentStyles = 'colored'|'list-item'|'time-dots'|'time-badges
   templateUrl: './card.component.html',
   styleUrl: './card.component.scss',
 })
-export class CardComponent {
+export class CardComponent implements OnChanges {
   @Input() public card?: CardEx;
   @Input() public disabled: boolean = false;
   @Input() public buttons: CardComponentButtons[] = ['copy', 'move', 'block'];
@@ -71,24 +72,9 @@ export class CardComponent {
   protected isSaving: boolean = false;
   protected isExtendedDataLoaded: boolean = false;
   protected isExtendedDataLoading: boolean = false;
-
-  protected get assignedMembers(): Owner[] {
-    if (!this.card?.members) {
-      return [];
-    }
-
-    if (this.card.members.length === 1) {
-      return this.card.members;
-    }
-
-    const responsible = this.card.members.filter(m => m.type === MemberType.Responsible);
-
-    if (responsible.length > 0) {
-      return responsible;
-    }
-
-    return this.card.members;
-  }
+  protected assignedMembers: Owner[] = [];
+  protected responsibleMember: Owner;
+  protected areMembersCollapsed: boolean = true;
 
   public constructor(
     @Self() public elementRef: ElementRef,
@@ -185,4 +171,28 @@ export class CardComponent {
         this.isExtendedDataLoaded = true;
       });
   }
+
+  private updateAssignedMembers(): void {
+    this.assignedMembers = [];
+    if (!this.card?.members) {
+      return;
+    }
+
+    if (this.card.members.length === 1) {
+      this.assignedMembers = this.card.members;
+      return;
+    }
+
+    this.responsibleMember = this.card.members.find(t => t.type === MemberType.Responsible);
+    this.assignedMembers = [...this.card.members];
+    this.assignedMembers.sort((a, b) => b.type - a.type || a.full_name.localeCompare(b.full_name));
+  }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<CardComponent>('card')]) {
+      this.updateAssignedMembers();
+    }
+  }
+
+  protected readonly MemberType = MemberType;
 }

@@ -200,13 +200,17 @@
     let-property="property"
   >
     <div class="d-flex align-items-center flex-grow-1">
-      <app-inline-member
-        [profile]="data"
-        class="small"
-        [class.text-primary-balanced]="data.type === MemberType.Responsible"
-        (dblclick)="toggleMemberResponsible(data)"
-        [ngbTooltip]="property.value.type === MemberType.Responsible ? 'This member is responsible' : 'Double click on the member to make it responsible'"
-      ></app-inline-member>
+      <div class="d-flex">
+        <app-inline-member
+            [profile]="data"
+            class="small"
+            [size]="22"
+            [active]="data.type === MemberType.Responsible"
+            [class.text-primary-balanced]="data.type === MemberType.Responsible"
+            (dblclick)="toggleMemberResponsible(data)"
+            [ngbTooltip]="property.value.type === MemberType.Responsible ? 'This member is responsible' : 'Double click on the member to make it responsible'"
+        ></app-inline-member>
+      </div>
       <button
         type="button"
         class="btn btn-sm btn-link ms-auto visible-on-hover text-secondary"
@@ -261,11 +265,11 @@
     let-data="data"
     let-property="property"
   >
-    <div class="small border border-1 px-2 d-flex align-items-center bg-light-subtle">
-      <span>{{data.name}}</span>
+    <div class="small border border-1 px-2 my-1 d-flex align-items-center bg-light-subtle py-1">
+      <span class="small">{{data.name}}</span>
       <button
         type="button"
-        class="btn btn-sm btn-link ms-auto text-secondary"
+        class="btn btn-sm btn-link ms-auto text-secondary py-0"
         (click)="removeTag(data)"
         [disabled]="isSaveInProgress"
       >
@@ -452,7 +456,7 @@
     let-data="data"
   >
     <app-inline-member
-      class="small"
+      [size]="22"
       [profileUid]="data"
     ></app-inline-member>
   </ng-template>

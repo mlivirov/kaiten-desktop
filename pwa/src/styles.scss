@@ -13,6 +13,10 @@ $kaiten: #8146D3;
   margin-top: 0.25rem;
 }
 
+.mt-1-next + .mt-1-next {
+  margin-top: 0.125rem;
+}
+
 .tui-editor-defaultUI-toolbar .custom-button {
   font-weight: bold;
   width: unset;
