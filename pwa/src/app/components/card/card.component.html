@@ -38,6 +38,7 @@
           label="Created"
         ></app-time-badge>
         <app-time-badge
+          *ngIf="card.last_moved_at"
           [since]="card.last_moved_at"
           label="Last moved"
         ></app-time-badge>
