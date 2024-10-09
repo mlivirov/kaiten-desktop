@@ -39,7 +39,7 @@ import { ListOfCardsComponent } from '../../components/list-of-cards/list-of-car
   templateUrl: './board-page.component.html',
   styleUrl: './board-page.component.scss'
 })
-export class BoardPageComponent implements OnInit, AfterViewInit {
+export class BoardPageComponent implements OnInit {
   protected board: Board;
   protected boardCards: CardEx[] = [];
   protected boardColumns: ColumnEx[] = [];
@@ -71,14 +71,12 @@ export class BoardPageComponent implements OnInit, AfterViewInit {
 
         this.currentBoardService.boardId = this.board.id;
         this.currentBoardService.laneId = null;
-        this.applyFilter(this.filterValue);
       });
 
     activatedRoute
       .fragment
       .pipe(
         takeUntilDestroyed(),
-        filter(f => !!f),
         map(data => {
           const params = new HttpParams({ fromString: data });
           return this.deserializeCardFilterFromUrlParams(params);
@@ -86,6 +84,7 @@ export class BoardPageComponent implements OnInit, AfterViewInit {
       )
       .subscribe(filter => {
         this.filterValue = filter;
+        setTimeout(() => this.boardComponent.applyFilter(filter), 1);
       });
 
     this.boardLoaded$
@@ -154,7 +153,6 @@ export class BoardPageComponent implements OnInit, AfterViewInit {
   }
 
   protected applyFilter(value?: CardFilter): void {
-    this.boardComponent.applyFilter(value);
     this.router.navigate(['board', this.board.id], {
       fragment: this.serializeCardFilterToUrlParams(value),
       onSameUrlNavigation: 'ignore',
@@ -256,9 +254,5 @@ export class BoardPageComponent implements OnInit, AfterViewInit {
     }
 
     return result;
-  }
-
-  public ngAfterViewInit(): void {
-    this.boardComponent.applyFilter(this.filterValue);
   }
 }
