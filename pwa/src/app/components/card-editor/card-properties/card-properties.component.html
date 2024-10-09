@@ -201,14 +201,17 @@
   >
     <div class="d-flex align-items-center flex-grow-1">
       <div class="d-flex">
+        <ng-template #memberTooltipTemplate>
+          {{data.type === MemberType.Responsible ? 'This member is responsible. Double click to remove responsibility.' : 'Double click on the member to make it responsible'}}
+        </ng-template>
+
         <app-inline-member
             [profile]="data"
             class="small"
             [size]="22"
-            [active]="data.type === MemberType.Responsible"
             [class.text-primary-balanced]="data.type === MemberType.Responsible"
             (dblclick)="toggleMemberResponsible(data)"
-            [ngbTooltip]="property.value.type === MemberType.Responsible ? 'This member is responsible' : 'Double click on the member to make it responsible'"
+            [ngbTooltip]="memberTooltipTemplate"
         ></app-inline-member>
       </div>
       <button

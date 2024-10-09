@@ -83,7 +83,7 @@
           class="mt-2 small"
           *ngIf="getResponsible(card)"
         >
-          <app-inline-member [profile]="getResponsible(card)"></app-inline-member>
+          <app-inline-member [size]="20" class="small" [profile]="getResponsible(card)"></app-inline-member>
         </div>
       </div>
 
@@ -158,6 +158,7 @@
           <td>{{card.title}}</td>
           <td class="text-nowrap">
             <app-inline-member
+              [size]="22"
               *ngIf="getResponsible(card)"
               [profile]="getResponsible(card)"
             ></app-inline-member>
