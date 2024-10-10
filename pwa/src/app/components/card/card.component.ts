@@ -73,7 +73,6 @@ export class CardComponent implements OnChanges {
   protected isExtendedDataLoaded: boolean = false;
   protected isExtendedDataLoading: boolean = false;
   protected assignedMembers: Owner[] = [];
-  protected responsibleMember: Owner;
   protected areMembersCollapsed: boolean = true;
 
   public constructor(
@@ -183,7 +182,6 @@ export class CardComponent implements OnChanges {
       return;
     }
 
-    this.responsibleMember = this.card.members.find(t => t.type === MemberType.Responsible);
     this.assignedMembers = [...this.card.members];
     this.assignedMembers.sort((a, b) => b.type - a.type || a.full_name.localeCompare(b.full_name));
   }
