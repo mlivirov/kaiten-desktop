@@ -165,7 +165,7 @@ export class TypeaheadComponent implements ControlValueAccessor {
   }
 
   protected notifyChange(): void {
-    if (this.popover.isOpen()) {
+    if (this.popover.isOpen() && this.value?.length) {
       return;
     }
 
