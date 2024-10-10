@@ -206,12 +206,12 @@
         </ng-template>
 
         <app-inline-member
-            [profile]="data"
-            class="small"
-            [size]="22"
-            [class.text-primary-balanced]="data.type === MemberType.Responsible"
-            (dblclick)="toggleMemberResponsible(data)"
-            [ngbTooltip]="memberTooltipTemplate"
+          [profile]="data"
+          class="small"
+          [size]="22"
+          [class.text-primary-balanced]="data.type === MemberType.Responsible"
+          (dblclick)="toggleMemberResponsible(data)"
+          [ngbTooltip]="memberTooltipTemplate"
         ></app-inline-member>
       </div>
       <button

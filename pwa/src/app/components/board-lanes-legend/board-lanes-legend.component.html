@@ -1,0 +1,33 @@
+<div class="d-flex flex-wrap justify-content-center justify-content-md-start">
+  <div
+    *ngFor="let lane of lanes"
+    class="d-flex flex-nowrap align-items-center me-2"
+    style="font-size: 11px"
+  >
+    <span
+      class="border border-1 border-light-subtle mx-1 d-inline-block bg-light-subtle"
+      style="min-height: 0.8rem; min-width: 0.8rem; {{getLaneColor(lane)}}"
+    ></span>
+    <div class="text-truncate user-select-none">
+      <span class="me-1">{{getTextOrDefault(lane.title)}}</span>
+      <ng-template #countTooltipTemplate>
+        <div class="text-start">In progress: {{activeCountByLaneId[lane.id]}}</div>
+        <div class="text-start">Done: {{totalCardsCountByLaneId[lane.id] - activeCountByLaneId[lane.id]}}</div>
+        <hr class="my-1">
+        <div class="text-end">Total cards: {{totalCardsCountByLaneId[lane.id]}}</div>
+      </ng-template>
+      <span
+        *ngIf="!lane.wip_limit"
+        [ngbTooltip]="countTooltipTemplate"
+        container="body"
+      >[{{totalCardsCountByLaneId[lane.id]}}]</span>
+      <span
+        ngbTooltip="Lane WIP limit (excluding completed tasks)"
+        container="body"
+        *ngIf="lane.wip_limit"
+        [class.text-danger]="lane.wip_limit < getLaneLimitFulfillment(lane.id, lane.wip_limit_type)"
+        [class.text-warning]="getLaneLimitFulfillment(lane.id, lane.wip_limit_type) / lane.wip_limit * 100. > 80."
+      >[{{getLaneLimitFulfillment(lane.id, lane.wip_limit_type)}} of {{lane.wip_limit}}]</span>
+    </div>
+  </div>
+</div>

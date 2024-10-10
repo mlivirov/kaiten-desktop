@@ -14,6 +14,15 @@
         placeholder="Type your search query here or press (CTRL+F)"
       ></app-card-search-input>
     </ng-template>
+    <ng-template
+      #subheader
+      *ngIf="board.lanes?.length > 1"
+    >
+      <app-board-lanes-legend
+        [lanes]="boardLanes"
+        [cards]="boardCards"
+      ></app-board-lanes-legend>
+    </ng-template>
   </app-page-header>
   <app-board
     #boardComponent
@@ -44,6 +53,16 @@
         [badges]="['member', 'tag']"
         placeholder="Type your search query here or press (CTRL+F)"
       ></app-card-search-input>
+    </ng-template>
+
+    <ng-template
+      #subheader
+      *ngIf="board.lanes?.length > 1"
+    >
+      <app-board-lanes-legend
+        [lanes]="boardLanes"
+        [cards]="boardCards"
+      ></app-board-lanes-legend>
     </ng-template>
   </app-page-header>
 

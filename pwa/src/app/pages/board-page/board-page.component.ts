@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CurrentUserComponent } from '../../components/current-user/current-user.component';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { BoardComponent } from '../../components/board/board.component';
@@ -14,13 +14,15 @@ import { CardFilter } from '../../services/card-search.service';
 import { HttpParams } from '@angular/common/http';
 import { User } from '../../models/user';
 import { Tag } from '../../models/tag';
-import { EMPTY, filter, map, of, Subject, switchMap, take, tap } from 'rxjs';
+import { EMPTY, filter, map, of, Subject, switchMap, tap } from 'rxjs';
 import { BoardStyle, DefaultSettings, Setting } from '../../models/setting';
 import { SettingService } from '../../services/setting.service';
 import { DialogService } from '../../services/dialog.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgbCollapse } from '@ng-bootstrap/ng-bootstrap';
 import { ListOfCardsComponent } from '../../components/list-of-cards/list-of-cards.component';
+import { BoardLanesLegendComponent } from '../../components/board-lanes-legend/board-lanes-legend.component';
+import { LaneEx } from '../../models/lane';
 
 @Component({
   selector: 'app-board-page',
@@ -34,7 +36,8 @@ import { ListOfCardsComponent } from '../../components/list-of-cards/list-of-car
     FormsModule,
     NgbCollapse,
     ListOfCardsComponent,
-    NgStyle
+    NgStyle,
+    BoardLanesLegendComponent
   ],
   templateUrl: './board-page.component.html',
   styleUrl: './board-page.component.scss'
@@ -43,6 +46,7 @@ export class BoardPageComponent implements OnInit {
   protected board: Board;
   protected boardCards: CardEx[] = [];
   protected boardColumns: ColumnEx[] = [];
+  protected boardLanes: LaneEx[] = [];
   protected filterValue?: CardFilter;
   protected boardStyle: BoardStyle = DefaultSettings.BoardStyle;
   protected isLeftPanelCollapsed: boolean = true;
@@ -68,6 +72,7 @@ export class BoardPageComponent implements OnInit {
         this.board = data['board'];
         this.boardCards = data['cards'];
         this.boardColumns = data['columns'];
+        this.boardLanes = data['lanes'];
 
         this.currentBoardService.boardId = this.board.id;
         this.currentBoardService.laneId = null;

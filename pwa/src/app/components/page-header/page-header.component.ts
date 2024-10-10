@@ -1,6 +1,6 @@
 import { Component, ContentChild, EventEmitter, HostListener, Input, Output, TemplateRef } from '@angular/core';
 import { CurrentUserComponent } from '../current-user/current-user.component';
-import { NgIf, NgOptimizedImage, NgStyle, NgTemplateOutlet } from '@angular/common';
+import { NgForOf, NgIf, NgOptimizedImage, NgStyle, NgTemplateOutlet } from '@angular/common';
 import { DialogService } from '../../services/dialog.service';
 import { filter } from 'rxjs';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
@@ -19,7 +19,8 @@ import { CurrentBoardService } from '../../services/current-board.service';
     InlineMemberComponent,
     NgbDropdownToggle,
     NgStyle,
-    NgbTooltip
+    NgbTooltip,
+    NgForOf
   ],
   templateUrl: './page-header.component.html',
   styleUrl: './page-header.component.scss',
@@ -29,6 +30,7 @@ export class PageHeaderComponent {
   @Output() protected switchBoard = new EventEmitter<{spaceId: number, boardId: number}>();
   @ContentChild('content') protected contentTemplate: TemplateRef<unknown>;
   @ContentChild('controls') protected controlsTemplate: TemplateRef<unknown>;
+  @ContentChild('subheader') protected subheaderTemplate: TemplateRef<unknown>;
 
   public constructor(
     private dialogService: DialogService,
@@ -65,5 +67,4 @@ export class PageHeaderComponent {
       this.searchBoard();
     }
   }
-  
 }

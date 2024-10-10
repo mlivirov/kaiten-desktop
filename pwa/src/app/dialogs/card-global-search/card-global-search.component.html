@@ -83,7 +83,11 @@
           class="mt-2 small"
           *ngIf="getResponsible(card)"
         >
-          <app-inline-member [size]="20" class="small" [profile]="getResponsible(card)"></app-inline-member>
+          <app-inline-member
+            [size]="20"
+            class="small"
+            [profile]="getResponsible(card)"
+          ></app-inline-member>
         </div>
       </div>
 

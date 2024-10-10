@@ -10,6 +10,7 @@ import { modalGuard } from './guards/modal.guard';
 import { boardColumnsResolver } from './resolvers/board-columns.resolver';
 import { boardCardsResolver } from './resolvers/board-cards.resolver';
 import { textEditorGuard } from './guards/textEditor.guard';
+import { boardLanesResolver } from './resolvers/board-lanes.resolver';
 
 export const routes: Routes = [
   {
@@ -25,7 +26,8 @@ export const routes: Routes = [
         resolve: {
           board: boardResolver,
           columns: boardColumnsResolver,
-          cards: boardCardsResolver
+          cards: boardCardsResolver,
+          lanes: boardLanesResolver,
         },
       },
       {

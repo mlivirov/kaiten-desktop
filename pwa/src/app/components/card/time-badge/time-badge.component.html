@@ -9,12 +9,12 @@
 </ng-template>
 
 <span
-    class="border border-1 rounded small p-0_5 me-1 text-uppercase strong d-inline-block user-select-none"
-    [ngClass]="{
+  class="border border-1 rounded small p-0_5 me-1 text-uppercase strong d-inline-block user-select-none"
+  [ngClass]="{
     'text-success': getSeverity() === 'normal',
     'text-warning': getSeverity() === 'warning',
     'text-danger': getSeverity() === 'danger'
   }"
-    [ngbTooltip]="tooltipTemplate"
-    container="body"
+  [ngbTooltip]="tooltipTemplate"
+  container="body"
 >{{since | elapsed | timespan: 'short' }}</span>

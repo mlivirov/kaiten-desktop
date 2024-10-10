@@ -74,6 +74,7 @@ export class CardComponent implements OnChanges {
   protected isExtendedDataLoading: boolean = false;
   protected assignedMembers: Owner[] = [];
   protected areMembersCollapsed: boolean = true;
+  protected readonly MemberType = MemberType;
 
   public constructor(
     @Self() public elementRef: ElementRef,
@@ -105,6 +106,12 @@ export class CardComponent implements OnChanges {
     });
 
     this.focused = true;
+  }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes[nameof<CardComponent>('card')]) {
+      this.updateAssignedMembers();
+    }
   }
 
   protected getBackgroundColor(): string {
@@ -185,12 +192,5 @@ export class CardComponent implements OnChanges {
     this.assignedMembers = [...this.card.members];
     this.assignedMembers.sort((a, b) => b.type - a.type || a.full_name.localeCompare(b.full_name));
   }
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes[nameof<CardComponent>('card')]) {
-      this.updateAssignedMembers();
-    }
-  }
-
-  protected readonly MemberType = MemberType;
+  
 }

@@ -143,28 +143,35 @@
     (click)="openCard(card.id)"
   >{{card.title}}</p>
   <div class="d-flex flex-column small">
-    <div class="d-flex" *ngFor="let member of assignedMembers.slice(0, areMembersCollapsed ? 2 : undefined); index as i">
+    <div
+      class="d-flex"
+      *ngFor="let member of assignedMembers.slice(0, areMembersCollapsed ? 2 : undefined); index as i"
+    >
       <app-inline-member
-          class="mb-2 small"
-          [size]="22"
-          [profile]="member"
-          [active]="member.type === MemberType.Responsible"
+        class="mb-2 small"
+        [size]="22"
+        [profile]="member"
+        [active]="member.type === MemberType.Responsible"
       ></app-inline-member>
     </div>
   </div>
   <div
-      *ngIf="assignedMembers.length > 2 && areMembersCollapsed"
-      class="mb-1 smaller opacity-50 cursor-pointer"
-      (click)="areMembersCollapsed = false"
+    *ngIf="assignedMembers.length > 2 && areMembersCollapsed"
+    class="mb-1 smaller opacity-50 cursor-pointer"
+    (click)="areMembersCollapsed = false"
   >
-    <span>+{{ assignedMembers.length - 2 }} more <i class="pi pi-chevron-down"></i> </span>
+    <span>
+      +{{ assignedMembers.length - 2 }} more <i class="pi pi-chevron-down"></i> 
+    </span>
   </div>
   <div
-      *ngIf="assignedMembers.length > 2 && !areMembersCollapsed"
-      class="mb-1 smaller opacity-50 cursor-pointer"
-      (click)="areMembersCollapsed = true"
+    *ngIf="assignedMembers.length > 2 && !areMembersCollapsed"
+    class="mb-1 smaller opacity-50 cursor-pointer"
+    (click)="areMembersCollapsed = true"
   >
-    <span>less <i class="pi pi-chevron-up"></i> </span>
+    <span>
+      less <i class="pi pi-chevron-up"></i> 
+    </span>
   </div>
   <ng-template #goalsOverlay>
     <div *ngIf="isExtendedDataLoading">

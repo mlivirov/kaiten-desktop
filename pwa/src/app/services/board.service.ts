@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { map, Observable, switchMap } from 'rxjs';
-import { Lane } from '../models/lane';
+import { Lane, LaneEx } from '../models/lane';
 import { Database, getManyWithCache, getSingleWithCache } from './db';
 import { Board } from '../models/board';
 import { ColumnEx } from '../models/column-ex';
@@ -63,7 +63,7 @@ export class BoardService {
       );
   }
 
-  public getLanes(boardId: number): Observable<Lane[]> {
+  public getLanes(boardId: number): Observable<LaneEx[]> {
     const lanes$ = this.httpClient.get<Lane[]>(`http://server/api/latest/boards/${boardId}/lanes`);
     return getManyWithCache(lanes$, Database.lanes, t => t.where({ board_id: boardId }));
   }
