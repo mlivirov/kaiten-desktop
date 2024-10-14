@@ -20,21 +20,16 @@ import { debounceTime, finalize, Observable, Subject } from 'rxjs';
 import { ChangeCallback, TouchedCallback } from '../../core/types/change-callback.type';
 
 export interface BadgeType {
-  name: string;
-  options: boolean;
+  get name(): string;
+  get isOptions(): boolean;
   getTitle(item: unknown): string;
+  getOptions(offset: number, limit: number, query: string): Observable<unknown[]>;
 }
 
 export interface Badge {
   type: BadgeType;
   value: unknown;
 }
-
-export interface BadgeService {
-  getOptions(type: BadgeType, offset: number, limit: number, query: string): Observable<unknown[]>;
-}
-
-export const BADGE_SERVICE: InjectionToken<BadgeService> = new InjectionToken('BadgeService');
 
 export interface TypeaheadComponentValue {
   text?: string;
@@ -92,7 +87,7 @@ export class TypeaheadComponent implements ControlValueAccessor {
   private onTouchedCallback?: TouchedCallback;
   private changeSubject = new Subject<void>();
 
-  public constructor(@Inject(BADGE_SERVICE) private badgeService: BadgeService) {
+  public constructor() {
     this.changeSubject
       .pipe(
         debounceTime(400),
@@ -133,13 +128,13 @@ export class TypeaheadComponent implements ControlValueAccessor {
 
   protected getCurrentTemplate(): TemplateRef<unknown> {
     const template = this.itemTemplates.find(t => t.type === this.currentBadgeType);
-    return template.templateRef;
+    return template?.templateRef;
   }
 
   protected selectPopoverItem(item: BadgeType | unknown): void {
     if (this.currentBadgeType == null) {
       this.currentBadgeType = <BadgeType>item;
-      const indexOfSpace = this.value.indexOf(' ');
+      const indexOfSpace = this.value.substring(this.currentBadgeType.name.length).indexOf(' ');
       this.value = indexOfSpace === -1 ? '' : this.value.substring(indexOfSpace + 1);
       this.value = `@${this.currentBadgeType.name}:` + this.value;
       this.openPopoverIfAvailable();
@@ -151,13 +146,13 @@ export class TypeaheadComponent implements ControlValueAccessor {
       value: item,
     });
 
-    this.currentBadgeType = null;
-    this.currentPopoverItemIndex = -1;
-
-    let itemStarPos = this.value.indexOf(' ');
+    let itemStarPos = this.value.substring(this.currentBadgeType.name.length).indexOf(' ');
     if (itemStarPos === -1) {
       itemStarPos = this.value.length;
     }
+
+    this.currentBadgeType = null;
+    this.currentPopoverItemIndex = -1;
 
     this.value = this.value.substring(itemStarPos);
     this.popover.close(false);
@@ -186,16 +181,16 @@ export class TypeaheadComponent implements ControlValueAccessor {
         this.currentBadgeType = badgeType;
         this.popoverItemsLoading = true;
 
-        const indexOfSpace = this.value.indexOf(' ');
+        const indexOfSpace = this.value.substring(badgeTypeKeyword.length).indexOf(' ');
         const query = this.value.substring(badgeTypeKeyword.length + 1, indexOfSpace === -1 ? undefined : indexOfSpace);
         this.popoverItems = [];
 
-        this.badgeService.getOptions(badgeType, 0, 5, query)
+        badgeType.getOptions(0, 5, query)
           .pipe(
             finalize(() => this.popoverItemsLoading = false)
           )
           .subscribe(options => {
-            if (badgeType.options) {
+            if (badgeType.isOptions) {
               this.currentPopoverItemIndex = 0;
               this.popoverItems = options;
               this.popover.open();

@@ -15,6 +15,7 @@ export interface CardFilter {
   board?: BoardBase;
   type?: CardType;
   includeArchived?: boolean;
+  customProperties?: Record<number, number[]>;
 }
 
 @Injectable({ providedIn: 'root' })

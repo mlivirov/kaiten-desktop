@@ -22,25 +22,4 @@
   >
     <app-inline-member [profile]="data"></app-inline-member>
   </ng-template>
-  <ng-template
-    [appTypeaheadBadgeItemTemplate]
-    [type]="BadgeTypeTag"
-    let-data="data"
-  >
-    <span>{{data.name}}</span>
-  </ng-template>
-  <ng-template
-    [appTypeaheadBadgeItemTemplate]
-    [type]="BadgeTypeCardType"
-    let-data="data"
-  >
-    <span>{{data.name}}</span>
-  </ng-template>
-  <ng-template
-    [appTypeaheadBadgeItemTemplate]
-    [type]="BadgeTypeBoard"
-    let-data="data"
-  >
-    <span>{{getTextOrDefault(data.title)}}</span>
-  </ng-template>
 </app-typeahead>
