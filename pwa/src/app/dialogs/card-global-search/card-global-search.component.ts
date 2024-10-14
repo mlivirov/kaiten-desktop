@@ -71,6 +71,8 @@ export class CardGlobalSearchComponent {
   }
 
   protected search(filter: CardFilter): void {
+    this.searchSubscription?.unsubscribe();
+
     if (this.showSelected) {
       this.showSelected = false;
     }
@@ -83,7 +85,6 @@ export class CardGlobalSearchComponent {
     this.offset = 0;
     this.isLoading = true;
 
-    this.searchSubscription?.unsubscribe();
     this.searchSubscription = this.cardSearchService
       .searchCards(filter, this.offset, this.limit)
       .pipe(

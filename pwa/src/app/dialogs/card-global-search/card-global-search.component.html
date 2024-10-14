@@ -103,6 +103,7 @@
           </th>
           <th [class.ps-2]="selectMode === 'none'">Location</th>
           <th>Id</th>
+          <th>Type</th>
           <th>Title</th>
           <th>Responsible</th>
           <th class="text-center">Status</th>
@@ -159,6 +160,7 @@
               {{card.id}}
             </a>
           </td>
+          <td>{{card.type.name}}</td>
           <td>{{card.title}}</td>
           <td class="text-nowrap">
             <app-inline-member
