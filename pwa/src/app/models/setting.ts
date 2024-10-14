@@ -30,5 +30,5 @@ export enum BoardStyle {
 export class DefaultSettings {
   public static readonly BoardStyle = BoardStyle.Vertical;
   public static readonly BoardCardLifetimeStyle = BoardCardLifetimeStyle.Dots;
-  public static readonly LinkCopyStyle = LinkCopyStyle.CLIENT;
+  public static readonly LinkCopyStyle = LinkCopyStyle.KAITEN;
 }
