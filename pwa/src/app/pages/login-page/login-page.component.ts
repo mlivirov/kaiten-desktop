@@ -4,7 +4,7 @@ import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, 
 import { catchError, EMPTY, EmptyError, filter, of, switchMap, throwError } from 'rxjs';
 import { DialogService } from '../../services/dialog.service';
 import { Credentials } from '../../models/credentials';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { BoardService } from '../../services/board.service';
 
@@ -32,8 +32,10 @@ export class LoginPageComponent implements OnInit {
     private dialogService: DialogService,
     private router: Router,
     private authService: AuthService,
-    private boardService: BoardService
+    private boardService: BoardService,
+    private activatedRoute: ActivatedRoute
   ) {
+
   }
 
   public ngOnInit(): void {

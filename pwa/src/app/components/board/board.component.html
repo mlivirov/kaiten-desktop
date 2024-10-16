@@ -5,7 +5,7 @@
   <ng-template #droppedCardPopoverContent>
     <div class="list-group m-n3">
       <a
-        *ngFor="let lane of (placeholder.targetLaneId ? [lanesById[placeholder.targetLaneId]] : board.lanes)"
+        *ngFor="let lane of (placeholder.targetLaneId ? [lanesById[placeholder.targetLaneId]] : lanes)"
         href="javascript:void(0)"
         class="list-group-item list-group-item-action"
         (click)="moveCardToBoard(placeholder)"
@@ -300,7 +300,7 @@
 <ng-container *ngIf="columns.length === 1 && !columns[0].subcolumns?.length">
   <div class="h-100">
     <div
-      *ngFor="let lane of board.lanes"
+      *ngFor="let lane of lanes"
       class="p-2"
       [attr.data-lane-id]="lane.id"
     >

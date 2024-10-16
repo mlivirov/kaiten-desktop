@@ -38,7 +38,7 @@ import { AutosizeModule } from 'ngx-autosize';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ChangesNotificationService } from '../../services/changes-notification.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Lane } from '../../models/lane';
+import { Lane, LaneEx } from '../../models/lane';
 import { flattenColumns } from '../../functions/flatten-columns';
 import { SettingService } from '../../services/setting.service';
 import { BoardCardLifetimeStyle, BoardStyle, Setting } from '../../models/setting';
@@ -89,6 +89,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   @Input() public columns: ColumnEx[];
   @Input() public cards: CardEx[];
   @Input() public board: Board;
+  @Input() public lanes: LaneEx[];
   @Input() public boardStyle?: BoardStyle;
   @ViewChild('droppedCardPopover', { read: NgbPopover }) protected droppedCardPopover: NgbPopover;
   @ViewChildren(CardComponent) protected cardComponents: QueryList<CardComponent> = new QueryList();
@@ -657,7 +658,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
 
   private mapCardsByLaneId(cards: CardEx[]): void {
     this.boardItemsByLaneId = {};
-    for (const lane of this.board.lanes) {
+    for (const lane of this.lanes) {
       this.boardItemsByLaneId[lane.id] = [];
     }
 
@@ -673,7 +674,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private mapLanesById(): void {
-    this.lanesById = this.board.lanes.reduce((agg, lane) => <Record<number, Lane>>{ ...agg, [lane.id]: lane }, {});
+    this.lanesById = this.lanes.reduce((agg, lane) => <Record<number, Lane>>{ ...agg, [lane.id]: lane }, {});
   }
 
   @HostListener('window:keydown', ['$event'])

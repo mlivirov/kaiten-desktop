@@ -44,9 +44,9 @@ import { LaneEx } from '../../models/lane';
 })
 export class BoardPageComponent implements OnInit {
   protected board: Board;
-  protected boardCards: CardEx[] = [];
-  protected boardColumns: ColumnEx[] = [];
-  protected boardLanes: LaneEx[] = [];
+  protected cards: CardEx[] = [];
+  protected columns: ColumnEx[] = [];
+  protected lanes: LaneEx[] = [];
   protected filterValue?: CardFilter;
   protected boardStyle: BoardStyle = DefaultSettings.BoardStyle;
   protected isLeftPanelCollapsed: boolean = true;
@@ -70,9 +70,9 @@ export class BoardPageComponent implements OnInit {
       )
       .subscribe(data => {
         this.board = data['board'];
-        this.boardCards = data['cards'];
-        this.boardColumns = data['columns'];
-        this.boardLanes = data['lanes'];
+        this.cards = data['cards'];
+        this.columns = data['columns'];
+        this.lanes = data['lanes'];
 
         this.currentBoardService.boardId = this.board.id;
         this.currentBoardService.laneId = null;

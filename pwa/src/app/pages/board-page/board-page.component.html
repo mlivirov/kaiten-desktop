@@ -16,19 +16,20 @@
     </ng-template>
     <ng-template
       #subheader
-      *ngIf="board.lanes?.length > 1"
+      *ngIf="lanes?.length > 1"
     >
       <app-board-lanes-legend
-        [lanes]="boardLanes"
-        [cards]="boardCards"
+        [lanes]="lanes"
+        [cards]="cards"
       ></app-board-lanes-legend>
     </ng-template>
   </app-page-header>
   <app-board
     #boardComponent
     [board]="board"
-    [cards]="boardCards"
-    [columns]="boardColumns"
+    [cards]="cards"
+    [lanes]="lanes"
+    [columns]="columns"
     (openCard)="openCard($event)"
     (loaded)="handleBoardLoaded()"
     [boardStyle]="boardStyle"
@@ -57,11 +58,11 @@
 
     <ng-template
       #subheader
-      *ngIf="board.lanes?.length > 1"
+      *ngIf="lanes?.length > 1"
     >
       <app-board-lanes-legend
-        [lanes]="boardLanes"
-        [cards]="boardCards"
+        [lanes]="lanes"
+        [cards]="cards"
       ></app-board-lanes-legend>
     </ng-template>
   </app-page-header>
@@ -122,8 +123,9 @@
       <app-board
         #boardComponent
         [board]="board"
-        [cards]="boardCards"
-        [columns]="boardColumns"
+        [lanes]="lanes"
+        [cards]="cards"
+        [columns]="columns"
         (openCard)="openCard($event)"
         (loaded)="handleBoardLoaded()"
         [boardStyle]="boardStyle"

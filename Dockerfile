@@ -20,4 +20,4 @@ FROM nginx AS run
 
 ADD proxy/server/templates/default.conf.template /etc/nginx/templates/
 
-COPY --from=build /build/pwa/dist/pwa/browser/** /usr/share/nginx/html/
+COPY --from=build /build/pwa/dist/pwa/browser /usr/share/nginx/html

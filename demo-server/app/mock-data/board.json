@@ -1,0 +1,22 @@
+{
+    "created": "2024-07-10T09:46:51.932Z",
+    "updated": "2024-10-10T12:15:50.069Z",
+    "id": 53,
+    "uid": "1569e94e-0a99-4e62-9469-850ed66c7caf",
+    "title": "Community Engagement",
+    "cell_wip_limits": null,
+    "default_card_type_id": 1,
+    "description": null,
+    "external_id": null,
+    "email_key": "c3842e5cd6b34836",
+    "move_parents_to_done": true,
+    "backward_moves_enabled": false,
+    "default_tags": null,
+    "first_image_is_cover": false,
+    "reset_lane_spent_time": false,
+    "automove_cards": false,
+    "hide_done_policies": true,
+    "hide_done_policies_in_done_column": true,
+    "auto_assign_enabled": true,
+    "import_uid": null
+}

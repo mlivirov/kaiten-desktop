@@ -162,7 +162,9 @@ export class CardSearchInputComponent implements ControlValueAccessor, OnInit {
   ) {
     this.availableBadgeType$
       .pipe(
-        switchMap(() => this.customPropertyService.getCustomPropertiesWithValues())
+        // TODO: disabled until Kaiten API implements this
+        // switchMap(() => this.customPropertyService.getCustomPropertiesWithValues())
+        map(() => [])
       )
       .subscribe(customProperties => this.updateAvailableBadgeTypes(customProperties));
   }
@@ -261,11 +263,10 @@ export class CardSearchInputComponent implements ControlValueAccessor, OnInit {
       this.badgeTypes.push(this.BadgeTypeBoard);
     }
 
-    // TODO: disabled until Kaiten API implements this
-    // if (this.badges.includes('property')) {
-    //   for (const customProperty of customProperties.filter(t => t.property.type === 'select')) {
-    //     this.badgeTypes.push(new CustomPropertyBadge(customProperty.property, customProperty.values));
-    //   }
-    // }
+    if (this.badges.includes('property')) {
+      for (const customProperty of customProperties.filter(t => t.property.type === 'select')) {
+        this.badgeTypes.push(new CustomPropertyBadge(customProperty.property, customProperty.values));
+      }
+    }
   }
 }

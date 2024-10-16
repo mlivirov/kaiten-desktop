@@ -1,0 +1,36 @@
+[
+    {
+        "created": "2024-07-10T09:46:51.932Z",
+        "updated": "2024-07-19T18:50:05.271Z",
+        "id": 86,
+        "uid": "8d8fe37f-8db5-4910-aa92-d5dc9b3b3a6f",
+        "title": "Fast Track",
+        "sort_order": 1.2469924645270865,
+        "row_count": 1,
+        "wip_limit": 1,
+        "wip_limit_type": 1,
+        "last_moved_warning_after_minutes": -1,
+        "board_id": 53,
+        "default_card_type_id": null,
+        "default_tags": null,
+        "external_id": null,
+        "condition": 1
+    },
+    {
+        "created": "2024-07-10T09:46:51.932Z",
+        "updated": "2024-07-26T11:08:26.809Z",
+        "id": 87,
+        "uid": "2980544e-dd5f-4e94-bb3f-34677c731a99",
+        "title": "Default",
+        "sort_order": 3.0249354197271257,
+        "row_count": 1,
+        "wip_limit": null,
+        "wip_limit_type": 1,
+        "last_moved_warning_after_minutes": -1,
+        "board_id": 53,
+        "default_card_type_id": null,
+        "default_tags": null,
+        "external_id": null,
+        "condition": 1
+    }
+]

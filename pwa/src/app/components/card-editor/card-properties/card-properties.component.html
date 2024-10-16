@@ -505,7 +505,7 @@
     let-data="data"
     let-property="property"
   >
-    {{ findSelectValue(property.extra.values, data).value }}
+    {{ findSelectValue(property.extra.values, data)?.value }}
   </ng-template>
 
   <ng-template

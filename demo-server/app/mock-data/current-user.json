@@ -1,0 +1,113 @@
+{
+    "id": 87,
+    "uid": "42e4a456-e23a-4930-8d2d-9990272ba512",
+    "full_name": "Pablo Picasso",
+    "email": "pablo.picasso@example.com",
+    "username": "pablo_p",
+    "avatar_initials_url": null,
+    "avatar_uploaded_url": null,
+    "initials": "PP",
+    "avatar_type": 3,
+    "lng": "en",
+    "timezone": "UTC",
+    "theme": "dark",
+    "created": "2024-07-05T07:19:43.764Z",
+    "updated": "2024-09-27T07:35:25.442Z",
+    "activated": true,
+    "ui_version": 2,
+    "virtual": false,
+    "email_blocked": null,
+    "email_blocked_reason": null,
+    "delete_requested_at": null,
+    "telegram_id": null,
+    "telegram_settings": {},
+    "permissions": 9216,
+    "own_permissions": 9216,
+    "groups": [
+        {
+            "created": "2024-07-15T13:00:03.309Z",
+            "updated": "2024-07-15T13:00:09.772Z",
+            "id": 10,
+            "uid": "bca7cf10-a809-4312-9aea-0932e59f669b",
+            "name": "Fullstack Developer",
+            "company_id": 1,
+            "permissions": 0,
+            "add_to_cards_and_spaces_enabled": true,
+            "user_id": 87,
+            "group_id": 10
+        }
+    ],
+    "company_id": 1,
+    "user_id": 87,
+    "default_space_id": null,
+    "role": 2,
+    "email_frequency": 2,
+    "email_settings": null,
+    "slack_id": null,
+    "slack_settings": null,
+    "notification_settings": {
+        "card_unblock": [
+            "inner",
+            "mobile_app",
+            "email"
+        ],
+        "card_block_add": [
+            "inner",
+            "mobile_app",
+            "email"
+        ],
+        "card_member_add": [
+            "inner",
+            "mobile_app",
+            "email"
+        ],
+        "due_date_reminder": [
+            "inner",
+            "mobile_app",
+            "email"
+        ],
+        "card_member_remove": [
+            "inner",
+            "mobile_app",
+            "email"
+        ],
+        "card_comment_mention": [
+            "inner",
+            "mobile_app",
+            "email"
+        ],
+        "card_member_become_responsible": [
+            "inner",
+            "mobile_app",
+            "email"
+        ]
+    },
+    "notification_enabled_channels": [
+        "inner",
+        "mobile_app",
+        "email"
+    ],
+    "slack_private_channel_id": null,
+    "telegram_sd_bot_enabled": false,
+    "invite_last_sent_at": "2024-07-05T07:19:43.763Z",
+    "apps_permissions": 5,
+    "external": false,
+    "last_request_date": "2024-10-14T20:39:08.411Z",
+    "last_request_method": "GET",
+    "work_time_settings": {
+        "work_days": [
+            0,
+            1,
+            2,
+            3,
+            4
+        ],
+        "hours_count": 8
+    },
+    "personal_settings": {
+        "id": "2787b307-2537-4353-9953-86a88eaeecb0",
+        "current_card_view_id": "d8987819-2a97-48e8-9d59-427793698cf0"
+    },
+    "locked": false,
+    "has_password": false
+}
