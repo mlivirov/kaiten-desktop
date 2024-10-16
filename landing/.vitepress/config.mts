@@ -65,7 +65,14 @@ export default defineConfig({
       '        trackLinks:true,\n' +
       '        accurateTrackBounce:true,\n' +
       '        webvisor:true\n' +
-      '   });\n'
+      '   });\n',
+    ],
+    [
+      'meta',
+      {
+        'name': 'keywords',
+        'content': 'Kaiten, Kaiten клиент, Kaiten мобильное приложение',
+      }
     ]
   ]
 })
