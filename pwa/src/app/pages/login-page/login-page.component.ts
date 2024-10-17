@@ -44,11 +44,17 @@ export class LoginPageComponent implements OnInit {
       .pipe(
         catchError((error) => {
           if (error instanceof EmptyError) {
-            return of(<Credentials>{});
+            const creds = <Credentials>{
+              apiEndpoint: this.activatedRoute.snapshot.queryParamMap.get('api'),
+              resourcesEndpoint: this.activatedRoute.snapshot.queryParamMap.get('files'),
+              apiToken: this.activatedRoute.snapshot.queryParamMap.get('token'),
+            };
+
+            return of(creds);
           }
 
           return throwError(error);
-        })
+        }),
       )
       .subscribe(creds => this.initializeForm(creds));
   }
