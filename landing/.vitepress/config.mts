@@ -27,6 +27,7 @@ export default defineConfig({
     returnToTopLabel: "Наверх",
     nav: [
       { text: 'О проекте', link: '/' },
+      { text: 'Демо', link: '/demo' },
       { text: 'Поддержать', link: '/support' },
     ],
 

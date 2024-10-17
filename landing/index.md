@@ -10,13 +10,13 @@ hero:
     dark: /logo.svg
     alt: logo
   actions:
-    - theme: brand
+    - theme: alt
       text: Зачем?
       link: /reasons
     - theme: alt
       text: Для кого?
       link: /audience
-    - theme: alt
+    - theme: brand
       text: Настройка и использование
       link: /usage
 
