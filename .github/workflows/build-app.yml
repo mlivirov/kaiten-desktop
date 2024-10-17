@@ -112,6 +112,34 @@ jobs:
           tags: ${{ vars.DOCKERHUB_REGISTRY }}/kaiten-client:latest
           labels: ${{ steps.meta.outputs.labels }}
 
+  build-demo-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+
+      - name: Build PWA
+        run: |
+          cd pwa
+          npm install
+          npm run build-demo
+
+      - name: deploy
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ secrets.SERVER_CICD_AGENT_LOGIN }}
+          password: ${{ secrets.SERVER_CICD_AGENT_PASSWORD }}
+          port: 22
+          overwrite: true
+          source: "${{ github.workspace }}/pwa/dist/pwa/browser"
+          strip_components: 6
+          target: /var/www/html/app
+
   build-android:
     runs-on: ubuntu-22.04
     steps:

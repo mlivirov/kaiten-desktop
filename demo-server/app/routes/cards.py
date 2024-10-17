@@ -8,7 +8,7 @@ router = APIRouter(
     prefix="/cards",
 )
 
-@router.get("/")
+@router.get("")
 async def get_cards(
         query: Optional[str] = Query(None),
         limit: Optional[int] = Query(None),

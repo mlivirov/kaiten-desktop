@@ -15,7 +15,7 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
           const path = req.url.substring(apiUrlTemplate.length + 1);
           const subPath = path.substring(0, path.indexOf('/'));
           const subPathReplacements = {
-            'api': creds.apiEndpoint,
+            'api': creds.apiEndpoint + '/api',
             'files': creds.resourcesEndpoint
           };
 

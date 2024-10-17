@@ -35,6 +35,14 @@
             "scripts": []
           },
           "configurations": {
+            "demo": {
+              "index": {
+                "input": "src/browser.index.html",
+                "output": "index.html"
+              },
+              "outputHashing": "all",
+              "baseHref": "/app/"
+            },
             "browser": {
               "index": {
                 "input": "src/browser.index.html",

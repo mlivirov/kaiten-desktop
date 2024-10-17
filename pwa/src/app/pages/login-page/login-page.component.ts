@@ -64,8 +64,13 @@ export class LoginPageComponent implements OnInit {
   }
 
   protected submit(): void {
+    const creds = {...this.form.value};
+    while (creds.apiEndpoint.endsWith('/')) {
+      creds.apiEndpoint = creds.apiEndpoint.substring(0, creds.apiEndpoint.length - 1);
+    }
+
     this.authService
-      .login(this.form.value)
+      .login(creds)
       .pipe(
         switchMap(v => this.dialogService.loginConfirmation(v)),
         filter(t => t),

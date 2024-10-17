@@ -6,6 +6,6 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("")
 async def get_spaces():
     return load_json_file("mock-data/spaces.json")

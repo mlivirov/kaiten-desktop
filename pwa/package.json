@@ -7,6 +7,7 @@
     "build": "ng build -c browser",
     "build-desktop": "ng build -c desktop",
     "build-cordova": "ng build -c cordova",
+    "build-demo": "ng build -c demo",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint"

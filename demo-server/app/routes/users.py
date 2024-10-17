@@ -11,6 +11,6 @@ router = APIRouter(
 async def get_current_user():
     return load_json_file("mock-data/current-user.json")
 
-@router.get("/")
+@router.get("")
 async def get_current_user():
     return load_json_file("mock-data/users.json")
