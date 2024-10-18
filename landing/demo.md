@@ -9,4 +9,4 @@
 
 
 
-[Открыть демо](http://kaiten-client.ru/app/login?api=http:%2F%2Fkaiten-client.ru%2Fdemo&files=http:%2F%2Fkaiten-client.ru%2Ffiles&token=demo)
+[Открыть демо](https://kaiten-client.ru/app/login?api=https:%2F%2Fkaiten-client.ru%2Fdemo&files=https:%2F%2Fkaiten-client.ru%2Ffiles&token=demo)
