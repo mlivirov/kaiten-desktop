@@ -162,6 +162,14 @@
             *ngIf="card.state !== CardState.Draft"
           ></div>
           <button
+              ngbDropdownItem
+              type="button"
+              (click)="archiveCard()"
+              *ngIf="card.state !== CardState.Draft"
+          >
+            <i class="pi pi-history"></i> {{ card.archived ? 'Un-archive' : 'Archive' }}
+          </button>
+          <button
             ngbDropdownItem
             type="button"
             (click)="deleteCard()"

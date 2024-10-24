@@ -315,6 +315,21 @@ export class CardEditorComponent implements AfterViewInit {
       });
   }
 
+  protected archiveCard(): void {
+    this.isSaving = true;
+    this.dialogService
+      .confirmation(`Are you sure you want to ${this.card.archived ? 'un-archive' : 'archive' } this card?`)
+      .pipe(
+        filter(t => !!t),
+        switchMap(() => this.cardEditorService.updateCard(this.card.id, { archived: !this.card.archived })),
+        finalize(() => this.isSaving = false)
+      )
+      .subscribe(() => {
+        this.card.archived = !this.card.archived;
+        this.update.emit(this.card.id);
+      });
+  }
+
   protected deleteCard(): void {
     this.isSaving = true;
     this.dialogService
