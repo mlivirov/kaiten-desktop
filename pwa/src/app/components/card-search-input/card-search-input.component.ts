@@ -1,4 +1,4 @@
-import { Component, forwardRef, Injectable, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import {
   Badge,
   BadgeType,
@@ -6,7 +6,7 @@ import {
   TypeaheadComponent,
   TypeaheadComponentValue
 } from '../typeahead/typeahead.component';
-import { map, Observable, of, Subject, switchMap } from 'rxjs';
+import { map, Observable, of, Subject } from 'rxjs';
 import { User } from '../../models/user';
 import { Tag } from '../../models/tag';
 import { InlineMemberComponent } from '../inline-member/inline-member.component';
@@ -24,50 +24,65 @@ import { SpaceBoardPermissions } from '../../models/space-board-permissions';
 import { CustomPropertyService } from '../../services/custom-property.service';
 import { CustomProperty, CustomPropertyAndValues, CustomPropertySelectValue } from '../../models/custom-property';
 
-
 class UserBadge implements BadgeType {
+  public get name(): string { return this.badgeName; }
+
+  public get isOptions(): boolean { return true; }
+
   public constructor(private userService: UserService, private badgeName: string) {
   }
-  public get name() { return this.badgeName }
-  public get isOptions() { return true; }
-  public getTitle(item: User) { return item.full_name; }
+
+  public getTitle(item: User): string { return item.full_name; }
+
   public getOptions(offset: number, limit: number, query: string): Observable<User[]> {
     return this.userService.getUsers(offset, limit, query);
   }
 }
 
 class TagBadge implements BadgeType {
+  public get name(): string { return 'tag'; }
+
+  public get isOptions(): boolean { return true; }
+
   public constructor(private tagService: TagService) {
   }
-  public get name() { return 'tag' }
-  public get isOptions() { return true; }
-  public getTitle(item: Tag) { return item.name; }
+
+  public getTitle(item: Tag): string { return item.name; }
+
   public getOptions(offset: number, limit: number, query: string): Observable<Tag[]> {
-    return this.tagService.getTags(offset, limit, query)
+    return this.tagService.getTags(offset, limit, query);
   }
 }
 
 class CardTypeBadge implements BadgeType {
+  public get name(): string { return 'type'; }
+
+  public get isOptions(): boolean { return true; }
+
   public constructor(private boardService: BoardService) {
   }
-  public get name() { return 'type' }
-  public get isOptions() { return true; }
-  public getTitle(item: CardType) { return item.name; }
+
+  public getTitle(item: CardType): string { return item.name; }
+
   public getOptions(offset: number, limit: number, query: string): Observable<CardType[]> {
     return this.boardService
-        .getCardTypes()
-        .pipe(
-          map(types => types.filter(t => query ? t.name.toLowerCase().includes(query.toLowerCase()) : t))
-        );
+      .getCardTypes()
+      .pipe(
+        map(types => types.filter(t => query ? t.name.toLowerCase().includes(query.toLowerCase()) : t))
+      );
   }
 }
 
 class BoardBadge implements BadgeType {
+  public get name(): string { return 'board'; }
+
+  public get isOptions(): boolean { return true; }
+
   public constructor(private boardService: BoardService) {
   }
-  public get name() { return 'board' }
-  public get isOptions() { return true; }
-  public getTitle(item: Board) { return item.title; }
+
+  public getTitle(item: Board): string { return item.title; }
+
   public getOptions(offset: number, limit: number, query: string): Observable<SpaceBoardPermissions[]> {
     return this.boardService
       .getSpaces()
@@ -79,9 +94,13 @@ class BoardBadge implements BadgeType {
 }
 
 class ArchivedBadge implements BadgeType {
-  public get name() { return 'archived' }
-  public get isOptions() { return false; }
-  public getTitle(val: boolean) { return val ? 'Yes' : 'No'; }
+  public get name(): string { return 'archived'; }
+
+  public get isOptions(): boolean { return false; }
+
+  public getTitle(val: boolean): string { return val ? 'Yes' : 'No'; }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public getOptions(offset: number, limit: number, query: string): Observable<boolean[]> {
     return of([true]);
   }
@@ -93,12 +112,15 @@ interface CustomPropertyBadgeValue {
 }
 
 class CustomPropertyBadge implements BadgeType {
+  public get name(): string { return this.property.name.toLowerCase(); }
+
+  public get isOptions(): boolean { return true; }
+
   public constructor(private property: CustomProperty, private values: CustomPropertySelectValue[]) {
   }
 
-  public get name() { return this.property.name.toLowerCase() }
-  public get isOptions() { return true; }
-  public getTitle(item: CustomPropertyBadgeValue) { return item.value.value; }
+  public getTitle(item: CustomPropertyBadgeValue): string { return item.value.value; }
+
   public getOptions(offset: number, limit: number, query: string): Observable<CustomPropertyBadgeValue[]> {
     const filtered = this.values
       .filter(t => query ? t.value.toLowerCase().includes(query.toLowerCase()) : t)
@@ -139,14 +161,13 @@ export class CardSearchInputComponent implements ControlValueAccessor, OnInit {
   @Input() public placeholder?: string = '';
   @Input() public title: string;
   @Input() public titleClass: string;
-  protected readonly getTextOrDefault = getTextOrDefault;
   public readonly BadgeTypeMember: BadgeType = new UserBadge(this.userService, 'member');
   public readonly BadgeTypeOwner: BadgeType = new UserBadge(this.userService, 'owner');
   public readonly BadgeTypeTag: BadgeType = new TagBadge(this.tagService);
   public readonly BadgeTypeArchived: BadgeType = new ArchivedBadge();
   public readonly BadgeTypeCardType: BadgeType = new CardTypeBadge(this.boardService);
   public readonly BadgeTypeBoard: BadgeType = new BoardBadge(this.boardService);
-
+  protected readonly getTextOrDefault = getTextOrDefault;
   protected badgeTypes: Array<BadgeType> = [];
   protected value: TypeaheadComponentValue = null;
   @ViewChild('typeahead', { read: TypeaheadComponent }) private typeahead: TypeaheadComponent;

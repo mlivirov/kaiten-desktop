@@ -35,7 +35,10 @@
           [ngTemplateOutlet]="getCurrentTemplate() || simpleTextPopoverItem"
           [ngTemplateOutletContext]="{ data: item }"
         ></ng-container>
-        <ng-template #simpleTextPopoverItem let-data="data">
+        <ng-template
+          #simpleTextPopoverItem
+          let-data="data"
+        >
           {{currentBadgeType.getTitle(data)}}
         </ng-template>
       </div>

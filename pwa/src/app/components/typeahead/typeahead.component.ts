@@ -5,8 +5,6 @@ import {
   ElementRef,
   forwardRef,
   HostListener,
-  Inject,
-  InjectionToken,
   Input,
   QueryList,
   Self,

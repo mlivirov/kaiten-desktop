@@ -1,4 +1,4 @@
-import { Component, Injectable, Input, OnChanges, Optional, SimpleChanges } from '@angular/core';
+import { Component, Injectable, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { AsyncPipe, JsonPipe, NgClass, NgIf, NgOptimizedImage, NgStyle } from '@angular/common';
 import { AvatarService } from '../../services/avatar.service';
 import { User } from '../../models/user';
@@ -32,7 +32,7 @@ class InlineMemberComponentCache {
     return cacheEntry.value;
   }
 
-  public setAvatarUrlForId(id: number, value: string) {
+  public setAvatarUrlForId(id: number, value: string): void {
     this.avatarUrlById.set(id, {
       createdAt: Date.now(),
       value: value
