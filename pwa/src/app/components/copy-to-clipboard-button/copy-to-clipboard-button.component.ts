@@ -4,6 +4,7 @@ import { map, Observable, of, switchMap, take } from 'rxjs';
 import { SettingService } from '../../services/setting.service';
 import { DefaultSettings, LinkCopyStyle, Setting } from '../../models/setting';
 import { NgIf } from '@angular/common';
+import { ClipboardService } from 'ngx-clipboard';
 
 export interface CopyToClipboardLinks {
   kaiten: string,
@@ -28,7 +29,10 @@ export class CopyToClipboardButtonComponent {
   @ViewChild(NgbTooltip) protected tooltip: NgbTooltip;
   protected justCopied: boolean = false;
 
-  public constructor(private settingService: SettingService) {
+  public constructor(
+    private settingService: SettingService,
+    private clipboardService: ClipboardService
+  ) {
   }
 
   protected copy(clickEvent: MouseEvent): void {
@@ -51,10 +55,14 @@ export class CopyToClipboardButtonComponent {
         })
       )
       .subscribe((data) => {
-        navigator.clipboard.writeText(data);
+        this.tooltip.open();
+        this.clipboardService.copy(data);
         this.justCopied = true;
 
-        setTimeout(() => this.justCopied = false, 1000);
+        setTimeout(() => {
+          this.justCopied = false;
+          this.tooltip.close(false);
+        }, 1000);
       });
   }
 }

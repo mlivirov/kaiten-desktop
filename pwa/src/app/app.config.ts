@@ -15,6 +15,7 @@ import { CordovaApplication } from './core/cordova-application';
 import { AutosizeModule } from 'ngx-autosize';
 import { ServerCardEditorService } from './services/implementations/server-card-editor.service';
 import { CARD_EDITOR_SERVICE } from './services/card-editor.service';
+import { ClipboardModule } from 'ngx-clipboard';
 
 const interceptors = [errorInterceptor, throttleInterceptor, retryInterceptor];
 if (!QtApplication.isAvailable()) {
@@ -31,6 +32,7 @@ export const appConfig: ApplicationConfig = {
       TimeagoModule.forRoot(),
       DragulaModule.forRoot(),
       AutosizeModule,
+      ClipboardModule
     ),
     {
       provide: APP_INITIALIZER,
