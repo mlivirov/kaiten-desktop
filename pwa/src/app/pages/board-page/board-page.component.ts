@@ -74,6 +74,7 @@ export class BoardPageComponent implements OnInit {
         this.columns = data['columns'];
         this.lanes = data['lanes'];
 
+        this.currentBoardService.lastViewedBoardId = this.board.id;
         this.currentBoardService.boardId = this.board.id;
         this.currentBoardService.laneId = null;
       });

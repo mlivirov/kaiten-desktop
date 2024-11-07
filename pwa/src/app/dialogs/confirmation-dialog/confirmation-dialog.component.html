@@ -13,12 +13,12 @@
   ></button>
 </div>
 <div class="modal-body">
-  <p>{{text}}</p>
+  <p class="mb-0">{{text}}</p>
 </div>
 <div class="modal-footer">
   <button
     type="button"
-    class="btn ms-2 {{button.style}}"
+    class="btn ms-2 {{button.style ?? 'btn-secondary'}}"
     (click)="modal.close(button.resultCode)"
     *ngFor="let button of buttons"
   >
