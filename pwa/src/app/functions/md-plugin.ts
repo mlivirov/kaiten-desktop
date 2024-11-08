@@ -24,15 +24,16 @@ class MdConvertor implements Convertor {
   public toMarkdown(html: string, toMarkdownOptions: toastui.ToMarkOptions): string {
     html = this.removeNonStandardElements(html);
     const md = this.defaultConvertor.toMarkdown(html, toMarkdownOptions);
-    return md;
+
+    const dom = new DOMParser().parseFromString(md, 'text/html');
+    dom.querySelectorAll('br').forEach(t => t.remove());
+    return dom.body.innerHTML;
   }
 
   private fixComponentBugs(dom: Document): void {
     dom.querySelectorAll('br:only-child').forEach(x => {
       x.parentElement.insertBefore(dom.createTextNode('\u00A0'), x);
     });
-
-    dom.querySelectorAll('br + br').forEach(x => x.remove());
   }
 
   private removeNonStandardElements(html: string): string {
