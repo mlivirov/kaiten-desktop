@@ -199,7 +199,7 @@
 <div class="modal-footer justify-content-between">
   <div>
     <div *ngIf="!hasMore && !isLoading && !showSelected && cards?.length">
-      No more cards
+      {{cards.length}} card{{ cards.length > 1 ? 's' : '' }} found
     </div>
     <div
       class="text-center"
