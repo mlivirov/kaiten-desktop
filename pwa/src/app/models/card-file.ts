@@ -1,8 +1,19 @@
+export enum CardFileType {
+  Attachment = 1,
+  GoogleDrive = 2,
+  DropBox = 3,
+  Box = 4,
+  OneDrive = 5,
+  YandexDisc = 6,
+  CommentEmail = 7,
+  CommentAttachment = 8
+}
+
 export interface CardFile {
   id: number;
   url: string;
   name: string;
-  type: number;
+  type: CardFileType;
   size: number;
   mime_type: null;
   deleted: boolean;

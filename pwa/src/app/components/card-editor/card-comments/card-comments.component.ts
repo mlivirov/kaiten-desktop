@@ -30,9 +30,13 @@ import {
   formatClientCardLinkForClipboard,
   formatKaitenCardLinkForClipboard
 } from '../../../functions/format-kaiten-card-link-for-clipboard';
-import { Card } from '../../../models/card';
 import { nameof } from '../../../functions/name-of';
 import { ActivatedRoute } from '@angular/router';
+import { CardEx } from '../../../models/card-ex';
+import { CardFile, CardFileType } from '../../../models/card-file';
+import { DialogService } from '../../../services/dialog.service';
+import { NgxFilesizeModule } from 'ngx-filesize';
+import { AttachmentsComponent } from '../attachments/attachments.component';
 
 export interface CardCommentViewModel {
   type: 'comment'|'activity',
@@ -45,6 +49,7 @@ export interface CardCommentViewModel {
   text: string,
   action: string,
   order: number,
+  attachments: CardFile[]
 }
 
 @Component({
@@ -65,13 +70,15 @@ export interface CardCommentViewModel {
     DecimalPipe,
     PercentPipe,
     TimespanPipe,
-    CopyToClipboardButtonComponent
+    CopyToClipboardButtonComponent,
+    NgxFilesizeModule,
+    AttachmentsComponent
   ],
   templateUrl: './card-comments.component.html',
   styleUrl: './card-comments.component.scss'
 })
 export class CardCommentsComponent implements OnChanges {
-  @Input({ required: true }) public card: Card;
+  @Input({ required: true }) public card: CardEx;
 
   public get countOfAllEntries(): number {
     return this.activities.length + this.comments.length;
@@ -98,7 +105,8 @@ export class CardCommentsComponent implements OnChanges {
     private throughputReportService: ThroughputReportService,
     private settingService: SettingService,
     @Self() private elementRef: ElementRef,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private dialogService: DialogService
   ) {
     this.authService
       .getCurrentUser()
@@ -262,7 +270,8 @@ export class CardCommentsComponent implements OnChanges {
       edited: comment.edited,
       text: comment.text,
       created: new Date(comment.created),
-      comment_type: comment.type
+      comment_type: comment.type,
+      attachments: this.card.files.filter(t => t.comment_id === comment.id && t.type === CardFileType.CommentAttachment)
     };
   }
   
@@ -419,5 +428,4 @@ export class CardCommentsComponent implements OnChanges {
       text: text,
     };
   }
-  
 }

@@ -9,6 +9,10 @@ $enable-negative-margins: true;
 $gray-1000: #131e28;
 $kaiten: #8146D3;
 
+.mt-3-next + .mt-3-next {
+  margin-top: 0.5rem;
+}
+
 .mt-2-next + .mt-2-next {
   margin-top: 0.25rem;
 }
@@ -481,4 +485,9 @@ app-list-of-related-cards .list .item:last-child {
 
 .p-0_5 {
   padding: 0.125rem !important;
+}
+
+.file-image {
+  background-color: $gray-600;
+  text-decoration: none;
 }

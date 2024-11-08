@@ -1,0 +1,23 @@
+<div class="modal-header">
+  <div class="d-flex align-items-center">
+    <div
+      class="me-2"
+      id="exampleModalLabel"
+    >{{attachment.name}}</div>
+    <small>(Added {{attachment.created | date: 'short'}})</small>
+  </div>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modal.close()"
+  ></button>
+</div>
+
+<div class="modal-body">
+  <img
+    [src]="attachment.url"
+    alt="attachment"
+    width="100%"
+  >
+</div>

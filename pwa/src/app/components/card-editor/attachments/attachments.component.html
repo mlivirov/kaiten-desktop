@@ -1,0 +1,42 @@
+<div
+  *ngIf="attachments"
+  class="mt-2"
+>
+  <div
+    *ngFor="let attachment of attachments"
+    class="mt-3-next d-flex align-items-center"
+  >
+    <div>
+      <img
+        *ngIf="checkIsImage(attachment); else fileAttachment"
+        alt="attachment"
+        [src]="attachment.url"
+        width="112"
+        height="80"
+        class="border border-1 cursor-pointer object-fit-scale"
+        (click)="viewAttachment(attachment)"
+      >
+      <ng-template #fileAttachment>
+        <a
+          [href]="attachment.url"
+          target="_blank"
+        >
+          <div
+            style="width: 112px; height: 80px"
+            class="border border-1 cursor-pointer file-image text-nowrap d-flex align-items-center text-uppercase text-center overflow-hidden"
+          >
+            {{attachment.name}}
+          </div>
+        </a>
+      </ng-template>
+    </div>
+    <div class="ms-2 small">
+      <div>
+        {{attachment.name}} ({{attachment.size | filesize}})
+      </div>
+      <div class="small">
+        <em>Added at {{attachment.created | date: 'short'}}</em>
+      </div>
+    </div>
+  </div>
+</div>

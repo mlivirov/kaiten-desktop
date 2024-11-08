@@ -36,6 +36,7 @@
     "ng2-dragula": "^5.1.0",
     "ngx-autosize": "^2.0.4",
     "ngx-clipboard": "^16.0.0",
+    "ngx-filesize": "^3.0.4",
     "ngx-timeago": "^3.0.0",
     "primeicons": "^7.0.0",
     "rxjs": "~7.8.0",

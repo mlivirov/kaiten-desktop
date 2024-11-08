@@ -41,6 +41,10 @@ import { PromptAction, PromptDialogComponent } from '../dialogs/prompt-dialog/pr
 import { BoardStyleDialogComponent } from '../dialogs/board-style-dialog/board-style-dialog.component';
 import { LoadingDialogComponent } from '../dialogs/loading-dialog/loading-dialog.component';
 import { BoardStyle } from '../models/setting';
+import {
+  ViewAttachmentDialogComponent
+} from '../dialogs/view-attachment-dialog/view-attachment-dialog.component';
+import { CardFile } from '../models/card-file';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
@@ -363,6 +367,29 @@ export class DialogService {
 
   public showNotImplementedDialog(): Observable<boolean> {
     return this.alert('We are sorry, this feature is not implemented yet. Stay tuned!');
+  }
+
+  public showAttachment(attachment: CardFile): Observable<void> {
+    const instance = this.modal.open(ViewAttachmentDialogComponent, {
+      size: 'lg'
+    });
+    this.activeModals.push(instance);
+
+    instance.componentInstance.attachment = attachment;
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return instance.closed
+      .pipe(
+        tap({
+          next() {
+            self.removeActiveModal(instance);
+          },
+          complete() {
+            self.removeActiveModal(instance);
+          }
+        })
+      );
   }
 
   private editCard(card: CardEx, closable: boolean = true): Observable<number> {
