@@ -209,7 +209,7 @@ export class BoardComponent implements OnInit, OnDestroy, OnChanges {
     this.unsubscribe$.complete();
   }
 
-  protected refresh(pullData: boolean = false): void {
+  public refresh(pullData: boolean = false): void {
     if (this.isBoardLoading) {
       return;
     }

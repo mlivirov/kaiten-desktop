@@ -177,6 +177,11 @@ export class BoardPageComponent implements OnInit {
       event.stopPropagation();
 
       this.cardSearchInput.focus();
+    } else if (event.code === 'KeyR' && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.boardComponent.refresh(true);
     }
   }
 
