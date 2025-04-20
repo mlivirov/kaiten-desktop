@@ -102,7 +102,7 @@ export function mdPlugin(): PluginInfo {
         node['processed'] = true;
 
         const cardLinkRegExp = new RegExp('^\\/(?<cardId>\\d+)$').exec(destination);
-        const cardLongLinkMatch = new RegExp('space\\/\\d+\\/card\\/(?<cardId>\\d+)(\\?focus=(?<focusType>\\w+)&focusId=(?<focusId>\\d+))?').exec(destination);
+        const cardLongLinkMatch = new RegExp('\\/card\\/(?<cardId>\\d+)(\\?focus=(?<focusType>\\w+)&focusId=(?<focusId>\\d+))?').exec(destination);
 
         const cardId = cardLinkRegExp?.groups['cardId'] || cardLongLinkMatch?.groups['cardId'];
         const cardFocusType = cardLongLinkMatch?.groups['focusType'];
