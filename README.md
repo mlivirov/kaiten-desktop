@@ -2,6 +2,10 @@
 
 ## References
 
+
+> [!NOTE]  
+> Hosting has been discontinued due to the small interest to the initiative. I still use this for my day-to-day tasks.
+
 http://kaiten-client.ru
 
 http://kaiten.ru
